@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty TCG — Verzamelkaarten</title>
+<meta name="theme-color" content="#161033" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>" />
+<meta name="description" content="Botty TCG: verzamelkaarten in Pokémon-stijl met Botty in de hoofdrol. Verschillende stadia (Basis, Fase 1, Fase 2), eigen types, HP en stat-balken, met holografische zeldzame kaarten." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://hive.ramonmoorlag.nl/kaarten.html" />
+<meta property="og:title" content="Botty TCG — Verzamelkaarten" />
+<meta property="og:description" content="Verzamelkaarten met Botty: drie stadia, eigen types en stat-balken, holografische zeldzame kaarten." />
+<meta property="og:image" content="https://moorlag.github.io/Kortebroeken/social-preview.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{min-height:100vh;}
+  body{
+    font-family:'Nunito',sans-serif;
+    color:#eef0ff;
+    background:radial-gradient(1200px 600px at 50% -10%,#3a2b73 0%,#1b1340 45%,#100b29 100%);
+    display:flex;flex-direction:column;align-items:center;
+    padding:1.6rem 1rem 3rem;position:relative;overflow-x:hidden;
+  }
+  #sparks{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7;}
+  .inhoud{position:relative;z-index:1;width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;}
+
+  .logo{font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:#ffd24a;margin-bottom:.45rem;text-align:center;}
+  h1{font-size:32px;font-weight:900;text-align:center;line-height:1.05;
+     background:linear-gradient(90deg,#ffd24a,#ff8bd0,#7fd9ff,#ffd24a);background-size:300% 100%;
+     -webkit-background-clip:text;background-clip:text;color:transparent;animation:glans 9s linear infinite;}
+  @keyframes glans{to{background-position:300% 0;}}
+  .ondertitel{font-size:14px;font-weight:700;color:#c9c6ee;margin:.3rem 0 1.2rem;text-align:center;max-width:640px;line-height:1.45;}
+
+  /* Filterknoppen */
+  .filters{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1.4rem;}
+  .filter{font-family:inherit;cursor:pointer;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);
+          color:#dcd9ff;font-weight:800;font-size:12.5px;border-radius:999px;padding:.45rem .95rem;transition:all .15s;}
+  .filter:hover{border-color:#ffd24a;color:#fff;}
+  .filter.aan{background:linear-gradient(90deg,#ffd24a,#ffb347);color:#3a2a00;border-color:#ffd24a;box-shadow:0 4px 14px rgba(255,210,74,.3);}
+
+  /* Kaartenrooster */
+  .deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:1.4rem 1.2rem;width:100%;justify-items:center;}
+
+  /* ---- De kaart zelf (Pokémon-stijl) ---- */
+  .tcg{
+    --type:#57b85f;--type2:#2e6b34;
+    width:248px;border-radius:16px;padding:9px;position:relative;
+    background:linear-gradient(150deg,#fbe48a 0%,#f4c64b 30%,#e8a92e 55%,#f4c64b 80%,#fbe48a 100%);
+    box-shadow:0 10px 26px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.4);
+    transform-style:preserve-3d;transition:transform .18s ease, box-shadow .18s ease;will-change:transform;
+  }
+  .tcg:hover{box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 22px rgba(255,210,74,.25);}
+  .tcg.r-rare{background:linear-gradient(150deg,#eaf0ff,#cdd6ff 30%,#b7c2ff 55%,#cdd6ff 80%,#eaf0ff);}
+  .tcg.r-secret{background:linear-gradient(150deg,#ffe7a8,#ffd24a 25%,#ff8bd0 50%,#7fd9ff 75%,#ffe7a8);background-size:200% 200%;animation:secretrand 8s linear infinite;}
+  @keyframes secretrand{to{background-position:200% 200%;}}
+
+  .binnen{position:relative;border-radius:10px;overflow:hidden;
+          background:linear-gradient(160deg,color-mix(in srgb,var(--type) 30%,#1a1430),#120d26 70%);
+          border:1px solid rgba(0,0,0,.35);padding:8px 9px 9px;display:flex;flex-direction:column;gap:6px;min-height:438px;}
+
+  .stage-band{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;
+              color:#fff;background:rgba(0,0,0,.32);border-radius:6px;padding:2px 7px;align-self:flex-start;}
+  .stage-band .pre{opacity:.7;}
+
+  .kop{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .kop .naam{font-size:18px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);line-height:1;}
+  .kop .rechts{display:flex;align-items:center;gap:6px;}
+  .kop .hp{font-size:11px;font-weight:900;color:#ff5252;display:flex;align-items:baseline;gap:2px;}
+  .kop .hp b{font-size:18px;}
+  .kop .hp .lab{font-size:9px;color:#ffb0b0;}
+  .typebol{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:15px;
+           background:radial-gradient(circle at 35% 30%,#fff8,transparent 60%),var(--type);
+           border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 5px rgba(0,0,0,.4);}
+
+  /* Kunstvenster */
+  .art{position:relative;height:150px;border-radius:8px;overflow:hidden;
+       border:3px solid;border-image:linear-gradient(140deg,#fff,#b9bed0,#fff) 1;
+       background:
+         radial-gradient(120% 90% at 50% 18%,color-mix(in srgb,var(--type) 55%,#fff) 0%,color-mix(in srgb,var(--type) 35%,#0c0820) 60%,#0c0820 100%);
+       display:flex;align-items:center;justify-content:center;}
+  .art::before{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:soft-light;
+       background:repeating-linear-gradient(115deg,transparent 0 7px,rgba(255,255,255,.18) 7px 9px);}
+  .art svg{position:relative;z-index:1;height:128px;width:auto;overflow:visible;filter:drop-shadow(0 6px 7px rgba(0,0,0,.45));}
+  .art .glans{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;
+       background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%);
+       transform:translateX(-30%);transition:opacity .2s;}
+  .tcg:hover .art .glans{opacity:1;animation:vegen 1.1s ease;}
+  @keyframes vegen{from{transform:translateX(-60%);}to{transform:translateX(60%);}}
+
+  /* Holo-laag voor zeldzame kaarten */
+  .holo{position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:8px;opacity:0;transition:opacity .2s;
+        mix-blend-mode:color-dodge;
+        background:
+          radial-gradient(60% 40% at var(--mx,50%) var(--my,40%),rgba(255,255,255,.55),transparent 60%),
+          repeating-linear-gradient(75deg,rgba(255,0,128,.28) 0 12px,rgba(0,200,255,.28) 12px 24px,rgba(140,255,120,.28) 24px 36px,rgba(255,220,60,.28) 36px 48px);
+        background-size:auto, 220% 220%;}
+  .tcg.holo-aan .holo{opacity:.55;}
+  .tcg.r-secret .holo{mix-blend-mode:screen;}
+
+  /* Statbalken */
+  .stats{display:flex;flex-direction:column;gap:3px;background:rgba(0,0,0,.26);border-radius:8px;padding:6px 8px;}
+  .srij{display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:900;color:#e6e3ff;}
+  .srij .ico{width:14px;text-align:center;}
+  .srij .lab{width:46px;}
+  .balk{flex:1;height:7px;border-radius:5px;background:rgba(255,255,255,.13);overflow:hidden;}
+  .balk>span{display:block;height:100%;width:0;border-radius:5px;transition:width 1s cubic-bezier(.2,.8,.2,1);}
+  .s-energie>span{background:linear-gradient(90deg,#5ec6ff,#2f9fe0);}
+  .s-data>span{background:linear-gradient(90deg,#7be0d6,#2f8f86);}
+  .s-fit>span{background:linear-gradient(90deg,#9be86f,#57b85f);}
+  .s-geluk>span{background:linear-gradient(90deg,#ffce54,#f6a623);}
+  .srij .num{width:22px;text-align:right;color:#cfd9ff;}
+
+  /* Vaardigheid + aanval */
+  .kunde{background:rgba(255,255,255,.94);color:#1c1730;border-radius:8px;padding:6px 8px;font-size:10px;line-height:1.32;}
+  .kunde .titel{font-weight:900;font-size:11px;display:flex;align-items:center;gap:5px;margin-bottom:1px;}
+  .kunde .kosten{display:inline-flex;gap:2px;}
+  .pip{width:12px;height:12px;border-radius:50%;display:inline-grid;place-items:center;font-size:8px;
+       background:var(--type);border:1px solid rgba(0,0,0,.35);color:#fff;}
+  .kunde .schade{margin-left:auto;font-weight:900;font-size:14px;color:#1c1730;}
+  .kunde .et{color:#6a6390;font-style:italic;}
+  .kunde + .kunde{margin-top:4px;}
+  .badge-vaardig{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#b8423f;
+       border:1px solid #e2a3a1;border-radius:4px;padding:0 3px;}
+
+  /* Onderbalk: zwakte/weerstand/terugtocht */
+  .onderbalk{display:flex;justify-content:space-between;gap:4px;font-size:8px;font-weight:800;color:#d8d5f5;
+             background:rgba(0,0,0,.26);border-radius:7px;padding:4px 7px;margin-top:auto;}
+  .onderbalk .cel{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;flex:1;}
+  .onderbalk .cel .kop2{opacity:.65;text-transform:uppercase;letter-spacing:.04em;}
+  .onderbalk .cel .waarde{display:flex;align-items:center;gap:2px;font-size:11px;}
+
+  .flavor{font-size:8.5px;font-style:italic;color:#bfbce4;line-height:1.3;padding:0 2px;}
+  .voet{display:flex;align-items:center;justify-content:space-between;font-size:8px;font-weight:800;color:#cbc7ee;padding:0 2px;}
+  .voet .rar{letter-spacing:1px;}
+
+  .navlinks{display:flex;flex-wrap:wrap;gap:1.1rem;justify-content:center;margin-top:1.8rem;}
+  .navlinks a{font-size:13px;font-weight:800;color:#ffd24a;text-decoration:none;}
+  .navlinks a:hover{text-decoration:underline;}
+
+  @media (max-width:430px){ h1{font-size:26px;} .deck{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));} }
+  @media (prefers-reduced-motion: reduce){
+    #sparks{display:none;}
+    h1,.tcg.r-secret{animation:none!important;}
+    .tcg:hover .art .glans{animation:none!important;}
+  }
+</style>
+</head>
+<body>
+  <canvas id="sparks" aria-hidden="true"></canvas>
+  <div class="inhoud">
+    <p class="logo">Botty TCG · Serie 1 — Automatisering</p>
+    <h1>Verzamelkaarten</h1>
+    <p class="ondertitel">Botty in de hoofdrol, in Pokémon-stijl. Elke kaart toont een ander
+      <strong>stadium</strong> (Basis → Fase 1 → Fase 2) met eigen type, HP en stat-balken.
+      Beweeg over een kaart voor de glans — de zeldzame kaarten zijn <em>holografisch</em>. ✨</p>
+
+    <div class="filters" id="filters">
+      <button class="filter aan" data-f="alle" type="button">Alle</button>
+      <button class="filter" data-f="baby" type="button">🍼 Basis</button>
+      <button class="filter" data-f="tiener" type="button">🌱 Fase 1</button>
+      <button class="filter" data-f="volwassen" type="button">⭐ Fase 2</button>
+      <button class="filter" data-f="holo" type="button">💎 Holografisch</button>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="navlinks">
+      <a href="https://ramonmoorlag.nl/kortebroeken/botty.html">← Speel met je eigen Botty</a>
+      <a href="index.html">🌐 Botty-verse</a>
+      <a href="https://ramonmoorlag.nl/kortebroeken/">de kortebroekenmeter</a>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  // ---------- Kleurpaletten (gelijk aan Botty / Botty-verse) ----------
+  var paletten = [
+    {naam:"Klassiek", broek:"#57b85f", broekRand:"#2e6b34", scherm:"#3a9d94", schermRand:"#2b8077", accent:"#2f8f86", oogje:"#bfe3df"},
+    {naam:"Aqua",     broek:"#3fb6c9", broekRand:"#1f6f7e", scherm:"#2f8fa8", schermRand:"#236f84", accent:"#2f9fb0", oogje:"#cdeef5"},
+    {naam:"Amethist", broek:"#9b78e0", broekRand:"#5e44a0", scherm:"#7b5bc4", schermRand:"#5a3f9a", accent:"#8a6fd0", oogje:"#e3d8fb"},
+    {naam:"Zonnig",   broek:"#f6a623", broekRand:"#b97608", scherm:"#e08a1a", schermRand:"#a8650f", accent:"#f0a83a", oogje:"#ffe9c2"},
+    {naam:"Koraal",   broek:"#e0556b", broekRand:"#a03048", scherm:"#d14761", schermRand:"#9a3149", accent:"#e06b80", oogje:"#fbd8df"},
+    {naam:"Azuur",    broek:"#5ec6ff", broekRand:"#2f7fae", scherm:"#3a9de0", schermRand:"#236f9e", accent:"#4fb0ec", oogje:"#d3ecff"},
+    {naam:"Mint",     broek:"#5fd0a8", broekRand:"#2e8a6a", scherm:"#3aa886", schermRand:"#247a5f", accent:"#3fb894", oogje:"#cdf5e6"}
+  ];
+
+  // ---------- Botty-sprites (klassen i.p.v. id's: veilig te dupliceren; kleur via palet p) ----------
+  function spriteVolwassen(p){ return ''
+    + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+    +   '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+    +   '<path d="M111,1 L112.4,5.6 117,7 112.4,8.4 111,13 109.6,8.4 105,7 109.6,5.6 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+    + '<g class="been"><line x1="86" y1="212" x2="80" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="78" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="114" y1="212" x2="120" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="122" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="66" y1="156" x2="36" y2="184" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="55" cy="166" rx="8" ry="6" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" transform="rotate(-43 55 166)"/><circle cx="34" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="134" y1="156" x2="164" y2="184" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="145" cy="166" rx="8" ry="6" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" transform="rotate(43 145 166)"/><circle cx="166" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="68" y="184" width="64" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="200" x2="100" y2="214" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<rect x="66" y="140" width="68" height="52" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="84" y="150" width="32" height="20" rx="7" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M93,124 q14,4 0,7 q-14,4 0,7" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+    + '<g class="kop"><circle cx="52" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<circle cx="148" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+    +   '<path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+    +   '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
+    +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+  function spriteBaby(p){ return ''
+    + '<g class="antenne"><path d="M100,8 Q96,-9 109,-16" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+    +   '<circle cx="111" cy="-20" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+    +   '<path d="M111,-29 L112.4,-24.4 117,-23 112.4,-21.6 111,-17 109.6,-21.6 105,-23 109.6,-24.4 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+    + '<g class="been"><line x1="88" y1="204" x2="82" y2="228" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="80" cy="231" rx="10" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="112" y1="204" x2="118" y2="228" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="120" cy="231" rx="10" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="66" y1="156" x2="44" y2="176" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="57" cy="163" rx="7" ry="5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" transform="rotate(-40 57 163)"/><circle cx="42" cy="179" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="134" y1="156" x2="156" y2="176" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="143" cy="163" rx="7" ry="5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" transform="rotate(40 143 163)"/><circle cx="158" cy="179" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="71" y="197" width="58" height="24" rx="9" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="210" x2="100" y2="221" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<rect x="67" y="148" width="66" height="42" rx="16" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="83" y="157" width="34" height="18" rx="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M93,130 q14,3 0,6 q-14,3 0,6" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+    + '<g class="kop"><circle cx="36" cy="70" r="18" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="36" cy="70" r="8" fill="'+p.oogje+'"/>'
+    +   '<circle cx="164" cy="70" r="18" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="164" cy="70" r="8" fill="'+p.oogje+'"/>'
+    +   '<path d="M72,10 Q36,12 36,70 Q36,116 72,132 Q100,142 128,132 Q164,116 164,70 Q164,12 128,10 Q100,4 72,10 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+    +   '<path d="M76,58 Q100,52 124,58 Q136,62 130,78 L112,107 Q100,118 88,107 L70,78 Q64,62 76,58 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+    +   '<line x1="90" y1="76" x2="90" y2="92" stroke="#1f2a28" stroke-width="5.5" stroke-linecap="round"/><line x1="110" y1="76" x2="110" y2="92" stroke="#1f2a28" stroke-width="5.5" stroke-linecap="round"/>'
+    +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+  function spriteTiener(p){ return ''
+    + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+    +   '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+    +   '<path d="M111,1 L112.4,5.6 117,7 112.4,8.4 111,13 109.6,8.4 105,7 109.6,5.6 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+    + '<g class="been"><line x1="86" y1="218" x2="76" y2="248" stroke="#2b2b2b" stroke-width="3.5"/><ellipse cx="74" cy="251" rx="11" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="114" y1="218" x2="124" y2="248" stroke="#2b2b2b" stroke-width="3.5"/><ellipse cx="126" cy="251" rx="11" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="66" y1="155" x2="26" y2="202" stroke="#2b2b2b" stroke-width="3.5"/><ellipse cx="50" cy="173" rx="8" ry="5.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" transform="rotate(-44 50 173)"/><circle cx="24" cy="205" r="5.5" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="134" y1="155" x2="174" y2="202" stroke="#2b2b2b" stroke-width="3.5"/><ellipse cx="150" cy="173" rx="8" ry="5.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" transform="rotate(44 150 173)"/><circle cx="176" cy="205" r="5.5" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="67" y="193" width="66" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="209" x2="100" y2="223" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<rect x="65" y="136" width="70" height="62" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="82" y="148" width="36" height="22" rx="7" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M93,124 q14,4 0,7 q-14,4 0,7" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+    + '<g class="kop"><circle cx="52" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<circle cx="148" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+    +   '<path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+    +   '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
+    +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+  var sprites = { baby:spriteBaby, tiener:spriteTiener, volwassen:spriteVolwassen };
+  var stageInfo = {
+    baby:      {label:"Basis",   emoji:"🍼"},
+    tiener:    {label:"Fase 1",  emoji:"🌱"},
+    volwassen: {label:"Fase 2",  emoji:"⭐"}
+  };
+
+  // ---------- Types ----------
+  var types = {
+    plant:  {naam:"Plant",   emoji:"🍃"},
+    water:  {naam:"Water",   emoji:"💧"},
+    psy:    {naam:"Psy",     emoji:"🔮"},
+    elektro:{naam:"Elektro", emoji:"⚡"},
+    vuur:   {naam:"Vuur",    emoji:"🔥"},
+    data:   {naam:"Data",    emoji:"📡"},
+    natuur: {naam:"Natuur",  emoji:"🌿"}
+  };
+
+  // ---------- De kaartenset (Serie 1) ----------
+  // stats: 0–100 → balken. hp: Pokémon-stijl getal. rarity: common|uncommon|rare|secret.
+  var kaarten = [
+    { nr:1, naam:"Bitje", stage:"baby", palet:5, type:"data", hp:50, rarity:"common",
+      stats:{energie:45,data:62,fit:34,geluk:82},
+      vaardigheid:{naam:"Nieuwsgierig", tekst:"Zolang Bitje op de bank ligt, mag je 1× per beurt een databyte spieken."},
+      aanval:{naam:"Pixelprik", kosten:["data"], schade:10, tekst:"Een speldenprikje van pure data."},
+      zwakte:"psy", weerstand:null, terugtocht:1,
+      flavor:"Net uit het ei. Wil álles weten — vooral wat dat rode lampje doet." },
+
+    { nr:2, naam:"Pixel", stage:"baby", palet:0, type:"plant", hp:60, rarity:"common",
+      stats:{energie:48,data:40,fit:42,geluk:78},
+      vaardigheid:{naam:"Spruitje", tekst:"Aan het eind van je beurt: +10 geluk als Pixel duurzame data at."},
+      aanval:{naam:"Bladknuffel", kosten:["plant"], schade:10, tekst:"Zo zacht dat de tegenstander even moet glimlachen."},
+      zwakte:"vuur", weerstand:null, terugtocht:1,
+      flavor:"Groeit het hardst van complimentjes en schone data." },
+
+    { nr:3, naam:"Nova", stage:"tiener", palet:4, type:"vuur", hp:80, rarity:"uncommon",
+      stats:{energie:66,data:58,fit:70,geluk:64},
+      vaardigheid:{naam:"Opstoken", tekst:"Eén keer per spel: verdubbel de fit-balk tot je volgende beurt."},
+      aanval:{naam:"Vonksprint", kosten:["vuur","vuur"], schade:40, tekst:"Rent zo snel dat de data-cache gloeit."},
+      zwakte:"water", weerstand:"plant", terugtocht:1,
+      flavor:"Puberend en vurig: wil bewegen, bewegen, bewegen." },
+
+    { nr:4, naam:"Echo", stage:"tiener", palet:1, type:"water", hp:80, rarity:"uncommon",
+      stats:{energie:70,data:66,fit:58,geluk:60},
+      vaardigheid:{naam:"Spiegelen", tekst:"Kopieer de vaardigheid van een Botty naast Echo tot je volgende beurt."},
+      aanval:{naam:"Datastroom", kosten:["water","data"], schade:50, tekst:"Een rustige golf eerlijke informatie."},
+      zwakte:"elektro", weerstand:null, terugtocht:2,
+      flavor:"Denkt twee keer na voor ze antwoordt. Meestal." },
+
+    { nr:5, naam:"Volt", stage:"volwassen", palet:3, type:"elektro", hp:130, rarity:"rare",
+      stats:{energie:92,data:78,fit:88,geluk:80},
+      vaardigheid:{naam:"Snellader", tekst:"Eén keer per beurt: zet 1 energie-symbool gratis op een Botty."},
+      aanval:{naam:"Stroomstoot", kosten:["elektro","elektro","data"], schade:90, tekst:"Gooi een munt; bij kop nog +30."},
+      zwakte:"psy", weerstand:"vuur", terugtocht:2,
+      flavor:"Volgroeid en vol pit. Houdt de hele hive opgeladen." },
+
+    { nr:6, naam:"Lumi", stage:"volwassen", palet:2, type:"psy", hp:120, rarity:"rare",
+      stats:{energie:82,data:90,fit:74,geluk:86},
+      vaardigheid:{naam:"Dilemma-orakel", tekst:"Bekijk de bovenste 3 kaarten van je stapel; kies de wijste."},
+      aanval:{naam:"Ethische echo", kosten:["psy","psy"], schade:70, tekst:"Bij een eerlijke keuze: geen verzwakking terug."},
+      zwakte:"data", weerstand:null, terugtocht:1,
+      flavor:"Weegt elk dilemma. Kiest bijna altijd wijs." },
+
+    { nr:7, naam:"Mira", stage:"volwassen", palet:6, type:"natuur", hp:120, rarity:"rare",
+      stats:{energie:80,data:76,fit:82,geluk:90},
+      vaardigheid:{naam:"Bandweven", tekst:"Aan het eind van je beurt: +20 geluk als een mens haar deze beurt aaide."},
+      aanval:{naam:"Bloeistoot", kosten:["natuur","natuur","data"], schade:80, tekst:"Geneest 20 schade bij Mira zelf."},
+      zwakte:"vuur", weerstand:"water", terugtocht:2,
+      flavor:"Bloeit alleen écht op door menselijke aandacht." },
+
+    { nr:8, naam:"Turing", stage:"volwassen", palet:5, type:"data", hp:150, rarity:"secret",
+      stats:{energie:96,data:99,fit:90,geluk:88},
+      vaardigheid:{naam:"Singularity", tekst:"Turing verzorgt elke beurt automatisch alle Botty's — maar bouwt zelf geen band op."},
+      aanval:{naam:"Volledige automatisering", kosten:["data","data","data"], schade:120, tekst:"Neemt alles over. De mens kijkt toe."},
+      zwakte:"psy", weerstand:"elektro", terugtocht:3,
+      flavor:"De legendarische eindvorm. Perfect — maar zonder mens die zorgt." },
+  ];
+  var totaal = kaarten.length;
+
+  // ---------- Render ----------
+  var statRijen = [["energie","⚡"],["data","💾"],["fit","🏃"],["geluk","😊"]];
+  var rarLabel = { common:"● Gewoon", uncommon:"◆ Ongewoon", rare:"★ Zeldzaam", secret:"★ Geheim ★" };
+
+  function pips(lijst, kleur){
+    return lijst.map(function(){ return '<span class="pip" style="background:'+kleur+'"></span>'; }).join("");
+  }
+  function nr3(n){ return ("00"+n).slice(-3); }
+
+  function bouwKaart(k){
+    var p = paletten[k.palet];
+    var t = types[k.type];
+    var st = stageInfo[k.stage];
+    var isHolo = (k.rarity==="rare" || k.rarity==="secret");
+
+    var div = document.createElement("article");
+    div.className = "tcg r-"+k.rarity;
+    div.dataset.stage = k.stage;
+    div.dataset.holo = isHolo ? "1" : "0";
+    div.style.setProperty("--type", p.broek);
+    div.style.setProperty("--type2", p.broekRand);
+
+    var stageBand = '<div class="stage-band"><span>'+st.emoji+' '+st.label+'</span>'
+      + (k.stage!=="baby" ? '<span class="pre">· evolueert</span>' : '<span class="pre">· beginfase</span>') + '</div>';
+
+    var kop = '<div class="kop"><span class="naam">'+k.naam+'</span>'
+      + '<span class="rechts"><span class="hp"><span class="lab">HP</span><b>'+k.hp+'</b></span>'
+      + '<span class="typebol" title="'+t.naam+'">'+t.emoji+'</span></span></div>';
+
+    var art = '<div class="art"><svg viewBox="0 -34 200 292" aria-label="Botty '+k.naam+' ('+st.label+')">'
+      + sprites[k.stage](p) + '</svg><div class="glans"></div>'
+      + (isHolo ? '<div class="holo"></div>' : '') + '</div>';
+
+    var stats = '<div class="stats">' + statRijen.map(function(r){
+      var key=r[0], v=k.stats[key];
+      return '<div class="srij"><span class="ico">'+r[1]+'</span>'
+        + '<span class="lab">'+key+'</span>'
+        + '<span class="balk s-'+key+'"><span data-w="'+v+'"></span></span>'
+        + '<span class="num">'+v+'</span></div>';
+    }).join("") + '</div>';
+
+    var vaardig = '<div class="kunde"><div class="titel"><span class="badge-vaardig">Vaardigheid</span>'
+      + k.vaardigheid.naam+'</div><div>'+k.vaardigheid.tekst+'</div></div>';
+
+    var aanval = '<div class="kunde"><div class="titel"><span class="kosten">'+pips(k.aanval.kosten,p.broek)+'</span>'
+      + k.aanval.naam+'<span class="schade">'+k.aanval.schade+'</span></div>'
+      + '<div class="et">'+k.aanval.tekst+'</div></div>';
+
+    var zw = k.zwakte ? types[k.zwakte] : null;
+    var we = k.weerstand ? types[k.weerstand] : null;
+    var onder = '<div class="onderbalk">'
+      + '<div class="cel"><span class="kop2">Zwakte</span><span class="waarde">'+(zw?zw.emoji+' ×2':'—')+'</span></div>'
+      + '<div class="cel"><span class="kop2">Weerstand</span><span class="waarde">'+(we?we.emoji+' −20':'—')+'</span></div>'
+      + '<div class="cel"><span class="kop2">Terugtocht</span><span class="waarde">'+(pips(new Array(k.terugtocht).fill(0),"#9aa0c0")||'—')+'</span></div>'
+      + '</div>';
+
+    var flavor = '<div class="flavor">'+k.flavor+'</div>';
+    var voet = '<div class="voet"><span class="rar">'+rarLabel[k.rarity]+'</span>'
+      + '<span>'+nr3(k.nr)+'/'+nr3(totaal)+' · '+t.naam+'</span></div>';
+
+    div.innerHTML = '<div class="binnen">'+stageBand+kop+art+stats+vaardig+aanval+onder+flavor+voet+'</div>';
+    return div;
+  }
+
+  var deck = document.getElementById("deck");
+  kaarten.forEach(function(k){ deck.appendChild(bouwKaart(k)); });
+
+  // Balken vullen (kleine vertraging zodat de transitie zichtbaar is)
+  setTimeout(function(){
+    deck.querySelectorAll(".balk > span").forEach(function(s){ s.style.width = s.dataset.w + "%"; });
+  }, 120);
+
+  // ---------- Holo + 3D-tilt op de muis ----------
+  if(!reduce){
+    deck.addEventListener("pointermove", function(e){
+      var kaart = e.target.closest(".tcg"); if(!kaart) return;
+      var r = kaart.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width;       // 0..1
+      var py = (e.clientY - r.top) / r.height;       // 0..1
+      var rotY = (px - 0.5) * 16;                     // links/rechts kantelen
+      var rotX = (0.5 - py) * 16;                     // boven/onder kantelen
+      kaart.style.transform = "perspective(800px) rotateX("+rotX.toFixed(2)+"deg) rotateY("+rotY.toFixed(2)+"deg) scale(1.04)";
+      if(kaart.dataset.holo==="1"){
+        kaart.classList.add("holo-aan");
+        var holo = kaart.querySelector(".holo");
+        if(holo){
+          holo.style.setProperty("--mx", (px*100).toFixed(1)+"%");
+          holo.style.setProperty("--my", (py*100).toFixed(1)+"%");
+          holo.style.backgroundPosition = "0 0, "+(px*100).toFixed(0)+"% "+(py*100).toFixed(0)+"%";
+        }
+      }
+    });
+    deck.addEventListener("pointerleave", function(){
+      deck.querySelectorAll(".tcg").forEach(function(kaart){
+        kaart.style.transform = "";
+        kaart.classList.remove("holo-aan");
+      });
+    }, true);
+    // ook resetten als je één kaart verlaat
+    deck.addEventListener("pointerout", function(e){
+      var kaart = e.target.closest(".tcg");
+      if(kaart && !kaart.contains(e.relatedTarget)){
+        kaart.style.transform = "";
+        kaart.classList.remove("holo-aan");
+      }
+    });
+  }
+
+  // ---------- Filters ----------
+  var filterBalk = document.getElementById("filters");
+  filterBalk.addEventListener("click", function(e){
+    var b = e.target.closest(".filter"); if(!b) return;
+    filterBalk.querySelectorAll(".filter").forEach(function(x){ x.classList.toggle("aan", x===b); });
+    var f = b.dataset.f;
+    deck.querySelectorAll(".tcg").forEach(function(kaart){
+      var toon = (f==="alle") || (f==="holo" ? kaart.dataset.holo==="1" : kaart.dataset.stage===f);
+      kaart.style.display = toon ? "" : "none";
+    });
+  });
+
+  // ---------- Sterretjes-achtergrond ----------
+  (function sparks(){
+    if(reduce) return;
+    var cv = document.getElementById("sparks"), ctx = cv.getContext("2d"), ster=[];
+    function size(){
+      cv.width = window.innerWidth; cv.height = window.innerHeight;
+      ster = []; var n = Math.floor(cv.width*cv.height/14000);
+      for(var i=0;i<n;i++) ster.push({x:Math.random()*cv.width, y:Math.random()*cv.height,
+        r:Math.random()*1.6+0.3, s:Math.random()*0.5+0.1, f:Math.random()*Math.PI*2});
+    }
+    size(); window.addEventListener("resize", size);
+    function frame(){
+      ctx.clearRect(0,0,cv.width,cv.height);
+      for(var i=0;i<ster.length;i++){
+        var st=ster[i]; st.f += 0.03; st.y -= st.s; if(st.y < -2){ st.y = cv.height+2; st.x = Math.random()*cv.width; }
+        var a = 0.4 + Math.sin(st.f)*0.35;
+        ctx.fillStyle = "rgba(255,240,200,"+a.toFixed(2)+")";
+        ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, Math.PI*2); ctx.fill();
+      }
+      requestAnimationFrame(frame);
+    }
+    frame();
+  })();
+})();
+</script>
+</body>
+</html>
