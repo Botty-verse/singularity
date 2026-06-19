@@ -459,6 +459,51 @@
     setTimeout(function(){ if(f.parentNode) f.parentNode.removeChild(f); }, 1100);
   }
 
+  function hop(b){
+    var el = elMap[b.naam];
+    if(!el || !el.kaart || reduce) return;
+    el.kaart.classList.add("act");
+    setTimeout(function(){ el.kaart.classList.remove("act"); }, 500);
+  }
+
+  function trekBeam(a, b){
+    if(reduce) return;
+    var elA = elMap[a.naam], elB = elMap[b.naam];
+    if(!elA || !elB) return;
+    var vr = verse.getBoundingClientRect();
+    var ra = elA.kaart.getBoundingClientRect();
+    var rb = elB.kaart.getBoundingClientRect();
+    var x1 = ra.left + ra.width/2 - vr.left, y1 = ra.top + ra.height/2 - vr.top;
+    var x2 = rb.left + rb.width/2 - vr.left, y2 = rb.top + rb.height/2 - vr.top;
+    var dx = x2 - x1, dy = y2 - y1;
+    var len = Math.sqrt(dx*dx + dy*dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    var beam = document.createElement("div");
+    beam.className = "beam";
+    beam.style.left = x1 + "px"; beam.style.top = (y1 - 2) + "px";
+    beam.style.width = len + "px"; beam.style.transform = "rotate(" + ang + "deg)";
+    verse.appendChild(beam);
+    setTimeout(function(){ if(beam.parentNode) beam.parentNode.removeChild(beam); }, 1000);
+  }
+
+  function toonBezoek(naamA, naamB){
+    var bA = bottys.find(function(x){ return x.naam === naamA; });
+    var bB = bottys.find(function(x){ return x.naam === naamB; });
+    if(!bA || !bB) return;
+    hop(bA); hop(bB);
+    floater(bA, "💞", "#ff8bd0"); floater(bB, "💞", "#ff8bd0");
+    floater(bA.data >= bB.data ? bB : bA, "📡 +data", "#39ff85");
+    var elA = elMap[naamA], elB = elMap[naamB];
+    if(elA) elA.kaart.classList.add("bezoekt");
+    if(elB) elB.kaart.classList.add("bezoekt");
+    setTimeout(function(){
+      if(elA) elA.kaart.classList.remove("bezoekt");
+      if(elB) elB.kaart.classList.remove("bezoekt");
+    }, 1600);
+    trekBeam(bA, bB);
+    document.getElementById("ticker").innerHTML =
+      '<span class="knip">▌</span> 🔗 <b>' + naamA + '</b> en <b>' + naamB + '</b> wisselen kennis uit';
+  }
+
   // ── Uptime ────────────────────────────────────────────────────────────────
   function fmtDuur(ms){
     var s=Math.floor(ms/1000), m=Math.floor(s/60), u=Math.floor(m/60), d=Math.floor(u/24);
@@ -505,9 +550,10 @@
         .then(function(r){ return r.json(); })
         .then(function(state){
           setVerbonden(true);
-          // Realtime doet de render, maar als fallback hier ook
           renderState(state);
-          if(state.bottys && state.bottys.length > 0){
+          if(state.lastBezoek){
+            toonBezoek(state.lastBezoek.a, state.lastBezoek.b);
+          } else if(state.bottys && state.bottys.length > 0){
             var willekeurig = state.bottys[Math.floor(Math.random()*state.bottys.length)];
             document.getElementById("ticker").innerHTML =
               '<span class="knip">▌</span> 🤖 De AI verzorgt <b>' + willekeurig.naam + '</b>';
@@ -548,13 +594,6 @@
       startTick();
     });
 
-  // ── Nieuwe hive knop ──────────────────────────────────────────────────────
-  document.getElementById("btn-nieuw").addEventListener("click", function(){
-    if(!confirm("Weet je zeker dat je een nieuwe hive wilt starten? Alle Botty's verdwijnen.")) return;
-    fetch(TICK_URL + "?reset=1", { method:"POST" })
-      .then(function(r){ return r.json(); })
-      .then(function(state){ renderState(state); });
-  });
 
   // ── Matrix regen ───────────────────────────────────────────────────────────
   (function rain(){
