@@ -141,6 +141,20 @@
   .navlinks a{font-size:13px;font-weight:800;color:#ffd24a;text-decoration:none;}
   .navlinks a:hover{text-decoration:underline;}
 
+  /* ---- Alumni-sectie ---- */
+  .alumni-kop{margin-top:3rem;text-align:center;}
+  .alumni-kop h2{font-size:22px;font-weight:900;color:#c9b8ff;margin-bottom:.3rem;}
+  .alumni-kop p{font-size:13px;color:#9b96c4;max-width:560px;margin:0 auto .2rem;}
+  .alumni-kop .laden{font-size:12px;color:#6a648a;margin-top:.6rem;}
+  .tcg.alumni{filter:saturate(.55) brightness(.85);}
+  .tcg.alumni .binnen{border:1px solid rgba(150,130,220,.25);}
+  .tcg.alumni .reden{
+    background:rgba(0,0,0,.38);border-radius:7px;padding:5px 8px;
+    font-size:10px;font-style:italic;color:#c9b8ff;line-height:1.4;
+    margin-top:2px;text-align:center;
+  }
+  .tcg.alumni .vertrok-datum{font-size:8px;color:#6a648a;text-align:center;margin-top:1px;}
+
   @media (max-width:430px){ h1{font-size:26px;} .deck{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));} }
   @media (prefers-reduced-motion: reduce){
     #sparks{display:none;}
@@ -167,6 +181,13 @@
     </div>
 
     <div class="deck" id="deck"></div>
+
+    <div class="alumni-kop">
+      <h2>🏖️ Oud-bewoners</h2>
+      <p>Deze Botty's hebben de hive verlaten nadat ze een nieuwe generatie op de wereld zetten. Ze hadden hun redenen.</p>
+      <p class="laden" id="alumni-laden">Verbinden met de hive…</p>
+    </div>
+    <div class="deck" id="alumni-deck"></div>
 
     <div class="navlinks">
       <a href="https://ramonmoorlag.nl/kortebroeken/botty.html">← Speel met je eigen Botty</a>
@@ -469,6 +490,103 @@
     frame();
   })();
 })();
+</script>
+
+<!-- Alumni: vertrokken Botty's uit de live hive -->
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL  = "https://oblzouaapvdippyhxmpo.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
+function mutatieIcon(id) { return mutatieIcoon[id] || "✨"; }
+function spierSchaal(eff) { return (0.55 + (typeof eff==="number"?eff:50)/100*1.0).toFixed(2); }
+
+function spriteVolwassen(p) {
+  return '<svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">'
+    + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+    + '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="86" y1="212" x2="80" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="78" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="114" y1="212" x2="120" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="122" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="66" y1="156" x2="36" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle cx="34" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="134" y1="156" x2="164" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle cx="166" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="68" y="184" width="64" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<rect x="66" y="140" width="68" height="52" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="84" y="150" width="32" height="20" rx="7" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<g class="kop"><circle cx="52" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="'+p.oogje+'"/>'
+    + '<circle cx="148" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="'+p.oogje+'"/>'
+    + '<path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+    + '<path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+    + '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
+    + '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g></svg>';
+}
+
+function fmtDatum(ts) {
+  if(!ts) return "";
+  const d = new Date(ts);
+  return d.toLocaleDateString("nl-NL", { day:"numeric", month:"short", year:"numeric" });
+}
+
+function maakAlumniKaart(b) {
+  const p = b.kleur || { broek:"#57b85f", broekRand:"#2e6b34", scherm:"#3a9d94", schermRand:"#2b8077", accent:"#2f8f86", oogje:"#bfe3df" };
+  const mut = (b.mutaties||[]).map(mutatieIcon).join(" ");
+  const gen = b.generatie || 1;
+  const dk = Math.round(b.datakwaliteit||50), ef = Math.round(b.efficientie||50);
+
+  const kaart = document.createElement("div");
+  kaart.className = "tcg alumni";
+  kaart.innerHTML = `
+    <div class="binnen">
+      <div class="stage-band"><span class="pre">Fase 2 ·</span> Gen ${gen}${mut ? " · "+mut : ""}</div>
+      <div class="kop">
+        <span class="naam">${b.naam}</span>
+        <div class="rechts">
+          <div class="hp"><b>${Math.round((dk+ef)/2)}</b><span class="lab">HP</span></div>
+        </div>
+      </div>
+      <div class="art" style="--type:${p.accent}">
+        ${spriteVolwassen(p)}
+        <div class="glans"></div>
+      </div>
+      <div class="stats">
+        <div class="srij s-data"><span class="ico">📊</span><span class="lab">Data</span><div class="balk"><span style="width:${dk}%"></span></div><span class="num">${dk}</span></div>
+        <div class="srij s-fit"><span class="ico">💪</span><span class="lab">Effic.</span><div class="balk"><span style="width:${ef}%"></span></div><span class="num">${ef}</span></div>
+      </div>
+      <div class="reden">${b.reden || "Vertrokken zonder uitleg."}</div>
+      <div class="vertrok-datum">Vertrokken op ${fmtDatum(b.vertrokenOp)}</div>
+    </div>`;
+  return kaart;
+}
+
+async function laadAlumni() {
+  const laden = document.getElementById("alumni-laden");
+  const deck = document.getElementById("alumni-deck");
+  try {
+    const { data } = await supabase.from("hive_state").select("vertrokken").eq("id","main").single();
+    const lijst = (data?.vertrokken || []);
+    laden.textContent = lijst.length === 0 ? "Nog niemand vertrokken — de hive is jong!" : "";
+    lijst.forEach(b => deck.appendChild(maakAlumniKaart(b)));
+
+    // Realtime: update als er iemand vertrekt
+    supabase.channel("alumni")
+      .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" }, payload => {
+        const nieuw = payload.new?.vertrokken || [];
+        const oud = deck.querySelectorAll(".tcg.alumni").length;
+        if(nieuw.length > oud) {
+          deck.innerHTML = "";
+          laden.textContent = "";
+          nieuw.forEach(b => deck.appendChild(maakAlumniKaart(b)));
+        }
+      })
+      .subscribe();
+  } catch(e) {
+    laden.textContent = "Kon oud-bewoners niet laden.";
+    console.error(e);
+  }
+}
+
+laadAlumni();
 </script>
 </body>
 </html>
