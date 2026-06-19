@@ -236,6 +236,7 @@
   var firstOpened = Date.now();
   var acties = 0;
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var bezigKweek = false;
 
   // ── Paletten & hulpfuncties ───────────────────────────────────────────────
   var paletten = [
@@ -504,6 +505,35 @@
       '<span class="knip">▌</span> 🔗 <b>' + naamA + '</b> en <b>' + naamB + '</b> wisselen kennis uit';
   }
 
+  function toonKweek(ev){
+    if(bezigKweek || reduce) return;
+    var elA = elMap[ev.ouderA], elB = elMap[ev.ouderB];
+    if(!elA || !elB) return;
+    bezigKweek = true;
+    elA.kaart.classList.add("paart"); elB.kaart.classList.add("paart");
+    trekBeam({naam: ev.ouderA}, {naam: ev.ouderB});
+    floater(bottys.find(function(x){ return x.naam === ev.ouderA; }), "💞", "#ff8bd0");
+    floater(bottys.find(function(x){ return x.naam === ev.ouderB; }), "💞", "#ff8bd0");
+    document.getElementById("ticker").innerHTML =
+      '<span class="knip">▌</span> 💞 De AI koppelt <b>' + ev.ouderA + '</b> en <b>' + ev.ouderB + '</b>…';
+    setTimeout(function(){
+      elA.kaart.classList.remove("paart"); elB.kaart.classList.remove("paart");
+      elA.wrap.classList.add("weg");
+      document.getElementById("ticker").innerHTML =
+        '<span class="knip">▌</span> 👋 <b>' + ev.ouderA + '</b> zwaait gedag en vertrekt…';
+      setTimeout(function(){
+        elA.wrap.classList.remove("weg");
+        document.getElementById("ticker").innerHTML =
+          '<span class="knip">▌</span> 🥚 Een ei verschijnt in de hive…';
+        setTimeout(function(){
+          document.getElementById("ticker").innerHTML =
+            '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> is geboren — generatie ' + ev.generatie + '!';
+          bezigKweek = false;
+        }, 3000);
+      }, 1600);
+    }, 1700);
+  }
+
   // ── Uptime ────────────────────────────────────────────────────────────────
   function fmtDuur(ms){
     var s=Math.floor(ms/1000), m=Math.floor(s/60), u=Math.floor(m/60), d=Math.floor(u/24);
@@ -551,7 +581,9 @@
         .then(function(state){
           setVerbonden(true);
           renderState(state);
-          if(state.lastBezoek){
+          if(state.lastKweek){
+            toonKweek(state.lastKweek);
+          } else if(state.lastBezoek){
             toonBezoek(state.lastBezoek.a, state.lastBezoek.b);
           } else if(state.bottys && state.bottys.length > 0){
             var willekeurig = state.bottys[Math.floor(Math.random()*state.bottys.length)];
