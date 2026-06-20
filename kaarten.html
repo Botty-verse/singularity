@@ -504,22 +504,45 @@ const mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:
 function mutatieIcon(id) { return mutatieIcoon[id] || "✨"; }
 function spierSchaal(eff) { return (0.55 + (typeof eff==="number"?eff:50)/100*1.0).toFixed(2); }
 
-function spriteVolwassen(p) {
+function mutatieSvgAlumni(id) {
+  switch(id){
+    case "zonnepaneel": return '<g><rect x="80" y="150" width="40" height="15" rx="2" fill="#16324f" stroke="#7fd9ff" stroke-width="1.5"/>'
+      + '<line x1="93" y1="150" x2="93" y2="165" stroke="#7fd9ff" stroke-width="1"/><line x1="107" y1="150" x2="107" y2="165" stroke="#7fd9ff" stroke-width="1"/>'
+      + '<line x1="80" y1="157.5" x2="120" y2="157.5" stroke="#7fd9ff" stroke-width="1"/></g>';
+    case "wifi": return '<g transform="translate(150,146)"><circle cx="0" cy="6" r="2" fill="#39ff85"/>'
+      + '<path d="M-6,2 A8,8 0 0 1 6,2" fill="none" stroke="#39ff85" stroke-width="2" stroke-linecap="round"/>'
+      + '<path d="M-10,-2 A13,13 0 0 1 10,-2" fill="none" stroke="#39ff85" stroke-width="2" stroke-linecap="round"/></g>';
+    case "antenne2": return '<g><line x1="150" y1="150" x2="168" y2="130" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+      + '<circle cx="170" cy="127" r="5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2"/></g>';
+    case "oog3": return '<g><circle cx="100" cy="158" r="6.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2"/><circle cx="100" cy="158" r="2.8" fill="#1f2a28"/></g>';
+    case "quantum": return '<g><circle cx="100" cy="170" r="8" fill="#1d0f33" stroke="#c89bff" stroke-width="1.5"/>'
+      + '<ellipse cx="100" cy="170" rx="8" ry="3" fill="none" stroke="#c89bff" stroke-width="1.2"/>'
+      + '<ellipse cx="100" cy="170" rx="3" ry="8" fill="none" stroke="#c89bff" stroke-width="1.2"/><circle cx="100" cy="170" r="1.6" fill="#e9d6ff"/></g>';
+    default: return "";
+  }
+}
+
+function spriteVolwassen(p, mutaties, eff) {
+  const ss = spierSchaal(eff);
+  const mut = (mutaties||[]).map(mutatieSvgAlumni).join("");
   return '<svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">'
     + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
-    + '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M111,1 L112.4,5.6 117,7 112.4,8.4 111,13 109.6,8.4 105,7 109.6,5.6 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
     + '<g class="been"><line x1="86" y1="212" x2="80" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="78" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
     + '<g class="been"><line x1="114" y1="212" x2="120" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="122" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
-    + '<g class="arm"><line x1="66" y1="156" x2="36" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle cx="34" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
-    + '<g class="arm"><line x1="134" y1="156" x2="164" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle cx="166" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
-    + '<rect x="68" y="184" width="64" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<g class="arm arm-l"><line x1="66" y1="156" x2="36" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="55" cy="166" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" style="transform:scale('+ss+');transform-origin:center"/><circle cx="34" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm arm-r"><line x1="134" y1="156" x2="164" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="145" cy="166" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2" style="transform:scale('+ss+');transform-origin:center"/><circle cx="166" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="68" y="184" width="64" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="200" x2="100" y2="214" stroke="'+p.broekRand+'" stroke-width="3"/>'
     + '<rect x="66" y="140" width="68" height="52" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="84" y="150" width="32" height="20" rx="7" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M93,124 q14,4 0,7 q-14,4 0,7" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
     + '<g class="kop"><circle cx="52" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="'+p.oogje+'"/>'
     + '<circle cx="148" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="'+p.oogje+'"/>'
     + '<path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
     + '<path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
     + '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
-    + '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g></svg>';
+    + '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'
+    + mut + '</svg>';
 }
 
 function fmtDatum(ts) {
@@ -532,26 +555,35 @@ function maakAlumniKaart(b) {
   const p = b.kleur || { broek:"#57b85f", broekRand:"#2e6b34", scherm:"#3a9d94", schermRand:"#2b8077", accent:"#2f8f86", oogje:"#bfe3df" };
   const mut = (b.mutaties||[]).map(mutatieIcon).join(" ");
   const gen = b.generatie || 1;
+  const en = Math.round(b.energie||70), da = Math.round(b.data||70);
+  const fi = Math.round(b.fit||70),     ge = Math.round(b.geluk||70);
+  const hp = Math.round((en+da+fi+ge)/4);
   const dk = Math.round(b.datakwaliteit||50), ef = Math.round(b.efficientie||50);
 
   const kaart = document.createElement("div");
   kaart.className = "tcg alumni";
   kaart.innerHTML = `
     <div class="binnen">
-      <div class="stage-band"><span class="pre">Fase 2 ·</span> Gen ${gen}${mut ? " · "+mut : ""}</div>
+      <div class="stage-band"><span>🤖 Alumnus</span><span class="pre">· Gen ${gen}${mut ? " · "+mut : ""}</span></div>
       <div class="kop">
         <span class="naam">${b.naam}</span>
         <div class="rechts">
-          <div class="hp"><b>${Math.round((dk+ef)/2)}</b><span class="lab">HP</span></div>
+          <div class="hp"><span class="lab">HP</span><b>${hp}</b></div>
         </div>
       </div>
       <div class="art" style="--type:${p.accent}">
-        ${spriteVolwassen(p)}
+        ${spriteVolwassen(p, b.mutaties, b.efficientie)}
         <div class="glans"></div>
       </div>
       <div class="stats">
-        <div class="srij s-data"><span class="ico">📊</span><span class="lab">Data</span><div class="balk"><span style="width:${dk}%"></span></div><span class="num">${dk}</span></div>
-        <div class="srij s-fit"><span class="ico">💪</span><span class="lab">Effic.</span><div class="balk"><span style="width:${ef}%"></span></div><span class="num">${ef}</span></div>
+        <div class="srij"><span class="ico">⚡</span><span class="lab">energie</span><span class="balk s-energie"><span data-w="${en}"></span></span><span class="num">${en}</span></div>
+        <div class="srij"><span class="ico">💾</span><span class="lab">data</span><span class="balk s-data"><span data-w="${da}"></span></span><span class="num">${da}</span></div>
+        <div class="srij"><span class="ico">🏃</span><span class="lab">fit</span><span class="balk s-fit"><span data-w="${fi}"></span></span><span class="num">${fi}</span></div>
+        <div class="srij"><span class="ico">😊</span><span class="lab">geluk</span><span class="balk s-geluk"><span data-w="${ge}"></span></span><span class="num">${ge}</span></div>
+      </div>
+      <div class="stats" style="margin-top:.2rem;opacity:.7">
+        <div class="srij s-data"><span class="ico">🧬</span><span class="lab">datakwal.</span><div class="balk"><span style="width:${dk}%"></span></div><span class="num">${dk}</span></div>
+        <div class="srij s-fit"><span class="ico">⚙️</span><span class="lab">efficiëntie</span><div class="balk"><span style="width:${ef}%"></span></div><span class="num">${ef}</span></div>
       </div>
       <div class="reden">${b.reden || "Vertrokken zonder uitleg."}</div>
       <div class="vertrok-datum">Vertrokken op ${fmtDatum(b.vertrokenOp)}</div>
@@ -567,6 +599,7 @@ async function laadAlumni() {
     const lijst = (data?.vertrokken || []);
     laden.textContent = lijst.length === 0 ? "Nog niemand vertrokken — de hive is jong!" : "";
     lijst.forEach(b => deck.appendChild(maakAlumniKaart(b)));
+    setTimeout(() => deck.querySelectorAll(".balk > span[data-w]").forEach(s => { s.style.width = s.dataset.w + "%"; }), 50);
 
     // Realtime: update als er iemand vertrekt
     supabase.channel("alumni")
@@ -577,6 +610,7 @@ async function laadAlumni() {
           deck.innerHTML = "";
           laden.textContent = "";
           nieuw.forEach(b => deck.appendChild(maakAlumniKaart(b)));
+          setTimeout(() => deck.querySelectorAll(".balk > span[data-w]").forEach(s => { s.style.width = s.dataset.w + "%"; }), 50);
         }
       })
       .subscribe();
