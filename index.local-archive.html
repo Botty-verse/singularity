@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty-verse — De Singularity</title>
+<meta name="theme-color" content="#04140d" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>" />
+<meta name="description" content="Het Botty-verse: een singularity waarin de AI 9 Botty's volledig automatisch verzorgt. Ze gaan op bezoek, delen kennis en planten zich voort — de AI kweekt op datakwaliteit en efficiëntie, en de diversiteit sterft af. Naar de Tamagotchi Singularity en de niveaus van automatisering." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://moorlag.github.io/Kortebroeken/bottyverse.html" />
+<meta property="og:title" content="Botty-verse — De Singularity" />
+<meta property="og:description" content="9 Botty's, volledig verzorgd door de AI. Ze planten zich voort en de AI kweekt op functie — maar de menselijke band blijft 0% en de diversiteit sterft af." />
+<meta property="og:image" content="https://moorlag.github.io/Kortebroeken/social-preview.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --rood:#b52718;
+    --groen:#1a5c4a;
+    --teal:#2f8f86;
+    --matrix:#39ff85;
+    --matrix-dim:#1f7d4d;
+    --paneel:rgba(6,26,18,.78);
+    --paneel-rand:#1c5b42;
+    --licht:#dff7ea;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{min-height:100vh;}
+  body{
+    font-family:'Nunito',sans-serif;
+    background:#04140d;
+    color:var(--licht);
+    display:flex;flex-direction:column;align-items:center;
+    padding:1.4rem 1rem 3rem;
+    position:relative;overflow-x:hidden;
+  }
+  /* Matrix-regen op de achtergrond */
+  #rain{position:fixed;inset:0;z-index:0;opacity:.5;pointer-events:none;}
+  .inhoud{position:relative;z-index:1;width:100%;max-width:960px;display:flex;flex-direction:column;align-items:center;}
+
+  .logo{font-size:11px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:#ff6b5c;margin-bottom:.5rem;text-align:center;}
+  h1{font-size:30px;font-weight:900;text-align:center;line-height:1.05;
+     background:linear-gradient(90deg,#39ff85,#5ec6ff,#39ff85);-webkit-background-clip:text;background-clip:text;color:transparent;
+     text-shadow:0 0 22px rgba(57,255,133,.25);}
+  .ondertitel{font-size:14px;font-weight:700;color:#9fe9c4;margin:.25rem 0 1.1rem;text-align:center;max-width:640px;line-height:1.45;}
+
+  /* Dashboard-balk */
+  .dash{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;width:100%;max-width:760px;margin-bottom:.7rem;}
+  .kpi{flex:1 1 150px;min-width:128px;background:var(--paneel);border:1.5px solid var(--paneel-rand);border-radius:14px;
+       padding:.6rem .8rem;text-align:center;backdrop-filter:blur(3px);}
+  .kpi .label{font-size:10.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#7fd9ab;}
+  .kpi .waarde{font-size:20px;font-weight:900;color:var(--matrix);margin-top:.1rem;}
+  .kpi.band .waarde{color:#cdd6d2;}
+  .kpi .sub{font-size:10px;font-weight:700;color:#86a99a;margin-top:.05rem;}
+
+  /* AI-ticker */
+  .ticker{width:100%;max-width:760px;background:rgba(4,20,13,.7);border:1.5px solid var(--paneel-rand);border-radius:12px;
+          font-size:12.5px;font-weight:700;color:#bdf6d6;padding:.5rem .8rem;margin-bottom:1.1rem;text-align:center;
+          min-height:2.1rem;display:flex;align-items:center;justify-content:center;gap:.4rem;}
+  .ticker .knip{color:var(--matrix);}
+
+  /* Het rooster met Botty's */
+  .verse{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;width:100%;max-width:760px;position:relative;}
+  .kaart{background:var(--paneel);border:1.5px solid var(--paneel-rand);border-radius:18px;padding:.7rem .6rem .8rem;
+         backdrop-filter:blur(3px);position:relative;overflow:hidden;}
+  .kaart::after{content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+                box-shadow:inset 0 0 24px rgba(57,255,133,.06);}
+  .knaam{font-size:13px;font-weight:900;color:var(--licht);text-align:center;}
+  .kstage{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#7fd9ab;text-align:center;
+          display:flex;align-items:center;justify-content:center;gap:4px;}
+  .kdot{width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.4);}
+  /* Genoom-badges: zichtbare erfelijke eigenschappen */
+  .genen{font-size:9px;font-weight:900;color:#9bd0b6;text-align:center;margin:.15rem 0 .25rem;
+         display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;}
+  .genen .muts{font-size:11px;letter-spacing:1px;}
+
+  .scene{position:relative;height:128px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:.4rem;}
+  .bw{width:min(96px,88%);position:relative;animation:adem 3.4s ease-in-out infinite;}
+  .bw svg{width:100%;height:auto;display:block;overflow:visible;transform:scale(var(--groei,1));transform-origin:50% 100%;}
+  @keyframes adem{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+  .bw .antenne{transform-box:view-box;transform-origin:100px 46px;animation:wieber 3.4s ease-in-out infinite;}
+  .bw-baby .antenne{transform-origin:100px 8px;}
+  @keyframes wieber{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(6deg);}}
+  .bw.act{animation:hop .5s ease-in-out;}
+  @keyframes hop{0%,100%{transform:translateY(0);}45%{transform:translateY(-16px);}}
+  .bw .ziek-bubbel{position:absolute;left:50%;top:-2px;transform:translateX(-50%);font-size:16px;display:none;}
+  .bw.ziek .ziek-bubbel{display:block;animation:zweef-ziek 2s ease-in-out infinite;}
+  @keyframes zweef-ziek{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-4px);}}
+  .bw.ziek svg{filter:saturate(.5) hue-rotate(35deg) brightness(.95);}
+  .bw .ster{opacity:0;transition:opacity .4s;}
+  .bw.vitaal .ster{opacity:1;}
+  /* Spiermassa = fenotype van de erfelijke efficiëntie (schaalt via --spier) */
+  .bw .spier{opacity:0;transition:opacity .4s, transform .45s ease;transform-box:fill-box;transform-origin:center;
+             transform:scale(var(--spier,1));}
+  .bw.vitaal .spier{opacity:1;}
+  /* Mutatie-onderdelen (extra antennes, wifi, zonnepaneel…) */
+  .mut-glow{filter:drop-shadow(0 0 2.5px rgba(200,180,255,.85));}
+  /* Afscheid: een ouder zwaait gedag en verlaat de hive */
+  .bw.weg{animation:wegzwaai 1.4s ease forwards;}
+  @keyframes wegzwaai{0%{transform:translate(0,0) rotate(0);opacity:1;}
+    25%{transform:translate(0,-6px) rotate(-9deg);}50%{transform:translate(0,-6px) rotate(9deg);}
+    72%{transform:translate(0,-6px) rotate(-6deg);}100%{transform:translate(46px,26px) rotate(22deg);opacity:0;}}
+  /* Het ei (tussen vertrek en geboorte) */
+  .ei{font-size:50px;line-height:1;animation:eiwiebel 1.05s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(127,217,255,.5));}
+  @keyframes eiwiebel{0%,100%{transform:rotate(-8deg);}50%{transform:rotate(8deg);}}
+
+  .floaters{position:absolute;inset:0;pointer-events:none;}
+  .floater{position:absolute;font-weight:900;font-size:13px;left:50%;top:34px;transform:translateX(-50%);
+           white-space:nowrap;animation:fl 1.1s ease-out forwards;}
+  @keyframes fl{from{opacity:1;transform:translate(-50%,0);}to{opacity:0;transform:translate(-50%,-34px);}}
+
+  .bars{display:flex;flex-direction:column;gap:3px;}
+  .bar-rij{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:900;color:#9bd9bd;}
+  .bar-rij .ico{width:13px;text-align:center;}
+  .bar{flex:1;height:6px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden;}
+  .bar > span{display:block;height:100%;border-radius:5px;transition:width .5s ease;}
+  .b-energie>span{background:linear-gradient(90deg,#5ec6ff,#2f9fe0);}
+  .b-data>span{background:linear-gradient(90deg,#3a9d94,#2f8f86);}
+  .b-fit>span{background:linear-gradient(90deg,#7fd06f,#57b85f);}
+  .b-geluk>span{background:linear-gradient(90deg,#ffce54,#f6a623);}
+
+  /* ---- Onderling bezoek / kweek: IR-link tussen twee kaarten + gloed ---- */
+  .beam{position:absolute;height:4px;transform-origin:0 50%;pointer-events:none;z-index:6;border-radius:3px;
+        background:linear-gradient(90deg,rgba(127,217,255,0),#7fd9ff,#fff,#39ff85,rgba(57,255,133,0));
+        background-size:220% 100%;box-shadow:0 0 12px rgba(127,217,255,.85),0 0 22px rgba(57,255,133,.45);
+        opacity:0;animation:beampuls 1.6s ease forwards, beamstroom 1.6s linear;}
+  @keyframes beampuls{0%{opacity:0;}18%{opacity:.95;}75%{opacity:.85;}100%{opacity:0;}}
+  @keyframes beamstroom{from{background-position:140% 0;}to{background-position:-140% 0;}}
+  .kaart.bezoekt{box-shadow:0 0 0 2px #7fd9ff,0 0 22px rgba(127,217,255,.55);transition:box-shadow .2s;}
+  .kaart.paart{box-shadow:0 0 0 2px #ff8bd0,0 0 22px rgba(255,139,208,.5);transition:box-shadow .2s;}
+
+  /* Uitleg + acties onderaan */
+  .uitleg{width:100%;max-width:760px;background:var(--paneel);border:1.5px solid var(--paneel-rand);border-radius:16px;
+          padding:1rem 1.1rem;margin-top:1.3rem;font-size:13px;font-weight:700;color:#c7eedb;line-height:1.5;}
+  .uitleg h2{font-size:15px;color:var(--matrix);margin-bottom:.4rem;}
+  .uitleg p{margin-bottom:.55rem;}
+  .uitleg a{color:#7fd9ff;font-weight:900;}
+  .acties-rij{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.3rem;}
+  .pil{display:inline-flex;align-items:center;gap:.4rem;text-decoration:none;
+       background:linear-gradient(90deg,#b52718,#e0556b);color:#fff;font-weight:900;font-size:14px;
+       border-radius:14px;padding:.6rem 1rem;box-shadow:0 6px 18px rgba(224,85,107,.35);transition:transform .1s;}
+  .pil:active{transform:scale(.97);}
+  .knop-mini{font-family:inherit;cursor:pointer;background:rgba(57,255,133,.1);border:1.5px solid var(--paneel-rand);
+       color:#bdf6d6;font-weight:900;font-size:13px;border-radius:14px;padding:.6rem 1rem;transition:transform .1s,border-color .15s;}
+  .knop-mini:hover{border-color:var(--matrix);}
+  .knop-mini:active{transform:scale(.97);}
+  .navlinks{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:1.4rem;}
+  .navlinks a{font-size:13px;font-weight:700;color:#7fd9ab;text-decoration:none;}
+  .navlinks a:hover{text-decoration:underline;}
+
+  @media (max-width:430px){
+    h1{font-size:25px;}
+    .verse{gap:.45rem;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    #rain{display:none;}
+    .bw,.bw .antenne,.bw.act,.floater,.ei,.bw.weg{animation:none!important;}
+    .beam{display:none;}
+  }
+</style>
+</head>
+<body>
+  <canvas id="rain" aria-hidden="true"></canvas>
+  <div class="inhoud">
+    <p class="logo">NOLAI — Nationaal OnderwijsLab AI</p>
+    <h1>Botty-verse</h1>
+    <p class="ondertitel">De <strong>Singularity</strong>: negen Botty's leven in een simulatie en worden
+      volledig automatisch door de AI verzorgd. Ze gaan op bezoek, delen kennis én planten zich voort — de AI
+      kweekt op functie. De hive draait door, ook als je weg bent: de status wordt in je browser bewaard.</p>
+
+    <div class="dash">
+      <div class="kpi"><div class="label">Botty's</div><div class="waarde" id="kpi-aantal">9</div><div class="sub">in de hive</div></div>
+      <div class="kpi"><div class="label">AI-zorgacties</div><div class="waarde" id="kpi-acties">0</div><div class="sub">automatisch uitgevoerd</div></div>
+      <div class="kpi"><div class="label">Gem. genen</div><div class="waarde" id="kpi-genen">–</div><div class="sub">kwaliteit + efficiëntie</div></div>
+      <div class="kpi"><div class="label">Draait al</div><div class="waarde" id="kpi-uptime">0s</div><div class="sub">zonder mens</div></div>
+      <div class="kpi band"><div class="label">Menselijke band</div><div class="waarde" id="kpi-band">0% 🤍</div><div class="sub">niemand geeft aandacht</div></div>
+    </div>
+
+    <div class="ticker" id="ticker"><span class="knip">▌</span> De AI initialiseert het Botty-verse…</div>
+
+    <div class="verse" id="verse"></div>
+
+    <div class="uitleg">
+      <h2>🌐 Wat zie je hier?</h2>
+      <p>Dit is automatiseringsniveau <strong>5 (Volledig)</strong> uit Botty, doorgetrokken naar het uiterste:
+        de AI voert, beweegt, troost en repareert alle Botty's helemaal zelf. Ze blijven perfect gezond en blij —
+        de meters schieten vanzelf weer omhoog zodra ze dalen.</p>
+      <p>Toch blijft één meter leeg: de <strong>menselijke band</strong>. Die groeit namelijk alleen door <em>jouw</em>
+        aandacht, en in de Singularity is er geen mens die zorgt. Perfect onderhouden is dus niet hetzelfde als een band hebben.</p>
+      <p>De Botty's gaan af en toe bij elkaar <strong>op bezoek</strong> (de blauwgroene lichtstraal — een knipoog naar de
+        infrarood-link van de echte Tamagotchi's). Ze <em>delen dan kennis</em>: wie de meeste data heeft, leert de ander iets bij.</p>
+      <p>🧬 <strong>Voortplanting.</strong> Volwassen, goed verzorgde Botty's krijgen samen een kind: er verschijnt een
+        <strong>ei</strong>, één ouder zwaait gedag en verlaat de hive, en het ei komt uit als een nieuwe generatie.
+        Het kind erft vier dingen van zijn ouders — <strong>datakwaliteit</strong> (trager verval), <strong>efficiëntie</strong>
+        (zuiniger + zichtbaar gespierder), <strong>uiterlijk</strong> (een mengkleur van beide ouders) en af en toe een
+        willekeurige <strong>mutatie</strong> (📶 wifi, ☀️ zonnepaneel, 📡 extra antenne, ⚛️ quantum-chip…).</p>
+      <p>De AI <em>kweekt</em>: ze koppelt steeds de twee Botty's met de beste genen (kwaliteit + efficiëntie). Zie de
+        badges 🧬💪 en de teller "Gem. genen" stijgen. Maar let op de keerzijde — omdat steeds dezelfde elite paart,
+        <strong>mengen de kleuren naar één gemiddelde en sterft de diversiteit af</strong>. De AI koos nooit op uiterlijk;
+        dat verdween als bijproduct van optimaliseren op functie. Alleen willekeurige mutatie brengt nog iets nieuws.</p>
+      <p>Geïnspireerd op de <a href="https://spritesmods.com/?art=tamasingularity" target="_blank" rel="noopener">Tamagotchi
+        Singularity</a> van Jeroen Domburg (Sprite_tm): een hive van Tamagotchi's die maandenlang prima door een
+        AI verzorgd werd — volledig zonder mens.</p>
+      <div class="acties-rij">
+        <a class="pil" href="botty.html">💊 Neem de rode pil — verzorg er zelf één</a>
+        <button class="knop-mini" id="btn-nieuw" type="button">🔀 Genereer een nieuwe hive</button>
+      </div>
+    </div>
+
+    <div class="navlinks">
+      <a href="botty.html">← Speel met je eigen Botty</a>
+      <a href="kaarten.html">🃏 Verzamelkaarten</a>
+      <a href="index.html">de kortebroekenmeter</a>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var KEY = "bottyverse-v1";
+
+  // ---------- Opslag: localStorage met cookie-fallback (zelfde aanpak als botty.html) ----------
+  function schrijfRuw(k,v){
+    try{ localStorage.setItem(k,v); }catch(e){}
+    try{ document.cookie = k+"="+encodeURIComponent(v)+";max-age=31536000;path=/;SameSite=Lax"; }catch(e){}
+  }
+  function leesRuw(k){
+    try{ var v=localStorage.getItem(k); if(v!==null && v!==undefined) return v; }catch(e){}
+    try{ var m=document.cookie.match(new RegExp("(?:^|; )"+k+"=([^;]*)")); if(m) return decodeURIComponent(m[1]); }catch(e){}
+    return null;
+  }
+  function wisOpslag(){
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    try{ document.cookie = KEY+"=;max-age=0;path=/"; }catch(e){}
+  }
+
+  // ---------- Kleurmodellen (varianten) ----------
+  var paletten = [
+    {naam:"Klassiek", broek:"#57b85f", broekRand:"#2e6b34", scherm:"#3a9d94", schermRand:"#2b8077", accent:"#2f8f86", oogje:"#bfe3df"},
+    {naam:"Aqua",     broek:"#3fb6c9", broekRand:"#1f6f7e", scherm:"#2f8fa8", schermRand:"#236f84", accent:"#2f9fb0", oogje:"#cdeef5"},
+    {naam:"Amethist", broek:"#9b78e0", broekRand:"#5e44a0", scherm:"#7b5bc4", schermRand:"#5a3f9a", accent:"#8a6fd0", oogje:"#e3d8fb"},
+    {naam:"Zonnig",   broek:"#f6a623", broekRand:"#b97608", scherm:"#e08a1a", schermRand:"#a8650f", accent:"#f0a83a", oogje:"#ffe9c2"},
+    {naam:"Koraal",   broek:"#e0556b", broekRand:"#a03048", scherm:"#d14761", schermRand:"#9a3149", accent:"#e06b80", oogje:"#fbd8df"},
+    {naam:"Azuur",    broek:"#5ec6ff", broekRand:"#2f7fae", scherm:"#3a9de0", schermRand:"#236f9e", accent:"#4fb0ec", oogje:"#d3ecff"},
+    {naam:"Mint",     broek:"#5fd0a8", broekRand:"#2e8a6a", scherm:"#3aa886", schermRand:"#247a5f", accent:"#3fb894", oogje:"#cdf5e6"}
+  ];
+  function kloonPalet(p){ return {naam:p.naam, broek:p.broek, broekRand:p.broekRand, scherm:p.scherm,
+                                  schermRand:p.schermRand, accent:p.accent, oogje:p.oogje}; }
+  // Kleur-menging (uiterlijk erft over): per kanaal het gemiddelde van beide ouders, met lichte mutatie.
+  function hexNaarRgb(h){ h=String(h).replace("#",""); return [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]; }
+  function rgbNaarHex(a){ return "#"+a.map(function(v){ v=Math.max(0,Math.min(255,Math.round(v))); var s=v.toString(16); return s.length<2?"0"+s:s; }).join(""); }
+  function mengHex(h1,h2,muteer){ var a=hexNaarRgb(h1),b=hexNaarRgb(h2);
+    return rgbNaarHex([0,1,2].map(function(i){ var v=(a[i]+b[i])/2; if(muteer) v+=rnd(-10,10); return v; })); }
+  function mengPalet(p1,p2){
+    return { naam:"Hybride",
+      broek:mengHex(p1.broek,p2.broek,true),       broekRand:mengHex(p1.broekRand,p2.broekRand,false),
+      scherm:mengHex(p1.scherm,p2.scherm,true),    schermRand:mengHex(p1.schermRand,p2.schermRand,false),
+      accent:mengHex(p1.accent,p2.accent,true),    oogje:mengHex(p1.oogje,p2.oogje,false) };
+  }
+
+  // ---------- Botty-sprites (klassen i.p.v. id's: veilig te dupliceren; kleur via palet p) ----------
+  // De .spier is een cirkel zodat de erfelijke efficiëntie hem via CSS schoon kan opschalen.
+  function spriteVolwassen(p){ return ''
+    + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+    +   '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+    +   '<path class="ster" d="M111,1 L112.4,5.6 117,7 112.4,8.4 111,13 109.6,8.4 105,7 109.6,5.6 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+    + '<g class="been"><line x1="86" y1="212" x2="80" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="78" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="114" y1="212" x2="120" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="122" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="66" y1="156" x2="36" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="55" cy="166" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="34" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="134" y1="156" x2="164" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="145" cy="166" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="166" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="68" y="184" width="64" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="200" x2="100" y2="214" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<rect x="66" y="140" width="68" height="52" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="84" y="150" width="32" height="20" rx="7" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M93,124 q14,4 0,7 q-14,4 0,7" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+    + '<g class="kop"><circle cx="52" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<circle cx="148" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+    +   '<path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+    +   '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
+    +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+  function spriteBaby(p){ return ''
+    + '<g class="antenne"><path d="M100,8 Q96,-9 109,-16" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+    +   '<circle cx="111" cy="-20" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+    +   '<path class="ster" d="M111,-29 L112.4,-24.4 117,-23 112.4,-21.6 111,-17 109.6,-21.6 105,-23 109.6,-24.4 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+    + '<g class="been"><line x1="88" y1="204" x2="82" y2="228" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="80" cy="231" rx="10" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="112" y1="204" x2="118" y2="228" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="120" cy="231" rx="10" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="66" y1="156" x2="44" y2="176" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="57" cy="163" r="6.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="42" cy="179" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="134" y1="156" x2="156" y2="176" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="143" cy="163" r="6.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="158" cy="179" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="71" y="197" width="58" height="24" rx="9" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="210" x2="100" y2="221" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<rect x="67" y="148" width="66" height="42" rx="16" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="83" y="157" width="34" height="18" rx="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M93,130 q14,3 0,6 q-14,3 0,6" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+    + '<g class="kop"><circle cx="36" cy="70" r="18" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="36" cy="70" r="8" fill="'+p.oogje+'"/>'
+    +   '<circle cx="164" cy="70" r="18" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="164" cy="70" r="8" fill="'+p.oogje+'"/>'
+    +   '<path d="M72,10 Q36,12 36,70 Q36,116 72,132 Q100,142 128,132 Q164,116 164,70 Q164,12 128,10 Q100,4 72,10 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+    +   '<path d="M76,58 Q100,52 124,58 Q136,62 130,78 L112,107 Q100,118 88,107 L70,78 Q64,62 76,58 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+    +   '<line x1="90" y1="76" x2="90" y2="92" stroke="#1f2a28" stroke-width="5.5" stroke-linecap="round"/><line x1="110" y1="76" x2="110" y2="92" stroke="#1f2a28" stroke-width="5.5" stroke-linecap="round"/>'
+    +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+  function spriteTiener(p){ return ''
+    + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+    +   '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+    +   '<path class="ster" d="M111,1 L112.4,5.6 117,7 112.4,8.4 111,13 109.6,8.4 105,7 109.6,5.6 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+    + '<g class="been"><line x1="86" y1="218" x2="76" y2="248" stroke="#2b2b2b" stroke-width="3.5"/><ellipse cx="74" cy="251" rx="11" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="been"><line x1="114" y1="218" x2="124" y2="248" stroke="#2b2b2b" stroke-width="3.5"/><ellipse cx="126" cy="251" rx="11" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="66" y1="155" x2="26" y2="202" stroke="#2b2b2b" stroke-width="3.5"/><circle class="spier" cx="50" cy="173" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="24" cy="205" r="5.5" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<g class="arm"><line x1="134" y1="155" x2="174" y2="202" stroke="#2b2b2b" stroke-width="3.5"/><circle class="spier" cx="150" cy="173" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="176" cy="205" r="5.5" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+    + '<rect x="67" y="193" width="66" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="209" x2="100" y2="223" stroke="'+p.broekRand+'" stroke-width="3"/>'
+    + '<rect x="65" y="136" width="70" height="62" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="82" y="148" width="36" height="22" rx="7" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+    + '<path d="M93,124 q14,4 0,7 q-14,4 0,7" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+    + '<g class="kop"><circle cx="52" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<circle cx="148" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="'+p.oogje+'"/>'
+    +   '<path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+    +   '<path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+    +   '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
+    +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+  var sprites = { baby:spriteBaby, tiener:spriteTiener, volwassen:spriteVolwassen };
+  var groei   = { baby:0.66, tiener:0.92, volwassen:1.0 };
+  var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
+
+  // ---------- Mutaties (vierde dimensie: willekeurig, gemengd effect) ----------
+  // Elke mutatie tekent een extra onderdeel op de sprite (torso-/schouderband, consistent over alle fases).
+  function mutatieSvg(id){
+    switch(id){
+      case "zonnepaneel": return '<g class="mut"><rect x="80" y="150" width="40" height="15" rx="2" fill="#16324f" stroke="#7fd9ff" stroke-width="1.5"/>'
+        + '<line x1="93" y1="150" x2="93" y2="165" stroke="#7fd9ff" stroke-width="1"/><line x1="107" y1="150" x2="107" y2="165" stroke="#7fd9ff" stroke-width="1"/>'
+        + '<line x1="80" y1="157.5" x2="120" y2="157.5" stroke="#7fd9ff" stroke-width="1"/></g>';
+      case "wifi": return '<g class="mut mut-glow" transform="translate(150,146)"><circle cx="0" cy="6" r="2" fill="#39ff85"/>'
+        + '<path d="M-6,2 A8,8 0 0 1 6,2" fill="none" stroke="#39ff85" stroke-width="2" stroke-linecap="round"/>'
+        + '<path d="M-10,-2 A13,13 0 0 1 10,-2" fill="none" stroke="#39ff85" stroke-width="2" stroke-linecap="round"/></g>';
+      case "antenne2": return '<g class="mut"><line x1="150" y1="150" x2="168" y2="130" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+        + '<circle cx="170" cy="127" r="5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2"/></g>';
+      case "oog3": return '<g class="mut"><circle cx="100" cy="158" r="6.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2"/><circle cx="100" cy="158" r="2.8" fill="#1f2a28"/></g>';
+      case "quantum": return '<g class="mut mut-glow"><circle cx="100" cy="170" r="8" fill="#1d0f33" stroke="#c89bff" stroke-width="1.5"/>'
+        + '<ellipse cx="100" cy="170" rx="8" ry="3" fill="none" stroke="#c89bff" stroke-width="1.2"/>'
+        + '<ellipse cx="100" cy="170" rx="3" ry="8" fill="none" stroke="#c89bff" stroke-width="1.2"/><circle cx="100" cy="170" r="1.6" fill="#e9d6ff"/></g>';
+      default: return "";
+    }
+  }
+  function mutatiesSvg(list){ return (list||[]).map(mutatieSvg).join(""); }
+  var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
+  function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
+  function willekeurigeMutatie(){
+    if(Math.random() < 0.12) return "quantum";                 // quantum is zeldzaam (legendarisch)
+    var gewoon = ["zonnepaneel","wifi","antenne2","oog3"];
+    return gewoon[Math.floor(Math.random()*gewoon.length)];
+  }
+  function heeft(b,id){ return b.mutaties && b.mutaties.indexOf(id) >= 0; }
+
+  // ---------- Hulpfuncties ----------
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function klem(v){ return Math.max(0, Math.min(100, v)); }
+  function gem(b){ return (b.energie+b.data+b.fit+b.geluk)/4; }
+  function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+  function spierSchaal(eff){ return (0.55 + (typeof eff==="number"?eff:50)/100 * 1.0).toFixed(2); }   // 0.55..1.55
+
+  var AANTAL = 9;
+  var INTERVAL = 1100;                 // ms tussen AI-zorgacties
+  var naamPool = ["Pixel","Bit","Nova","Echo","Lumi","Wiro","Tess","Volt","Glitch","Mochi","Kilo","Joule","Bleep","Ada","Turing","Zappy","Cosmo","Fuse","Mira","Quark","Byte","Neo","Sol","Vera","Orin","Pip","Dot","Rune"];
+
+  // ---------- Veroudering ----------
+  // Baby's groeien op (zodat er steeds nieuwe volwassenen zijn om te kweken).
+  function stageVanLeeftijd(ms){ var s=ms/1000; if(s<90) return "baby"; if(s<240) return "tiener"; return "volwassen"; }
+  function huidigeStage(b){ return stageVanLeeftijd(Date.now() - (b.geboren||0)); }
+
+  function nieuweNaam(){
+    var gebruikt={}; bottys.forEach(function(b){ gebruikt[b.naam]=true; });
+    var vrij = naamPool.filter(function(n){ return !gebruikt[n]; });
+    if(vrij.length) return vrij[Math.floor(Math.random()*vrij.length)];
+    return naamPool[Math.floor(Math.random()*naamPool.length)] + "-" + Math.floor(rnd(10,99));
+  }
+
+  // Maakt een verse hive met willekeurige varianten (unieke naam, leeftijd, kleurmodel, genen).
+  function nieuweHive(){
+    var namen = shuffle(naamPool).slice(0, AANTAL);
+    return namen.map(function(naam){
+      var leeftijd = rnd(0, 520) * 1000;                       // tot ~8,5 min oud
+      var src = paletten[Math.floor(Math.random()*paletten.length)];
+      return { naam:naam,
+               geboren: Date.now() - leeftijd,
+               stage: stageVanLeeftijd(leeftijd),
+               kleur: kloonPalet(src), paletNaam: src.naam,
+               datakwaliteit: rnd(40,70), efficientie: rnd(40,70),
+               generatie: 1, mutaties: [],
+               energie: rnd(60,90), data: rnd(60,90), fit: rnd(60,90), geluk: rnd(60,90),
+               ziek:false };
+    });
+  }
+
+  // ---------- Zorg-logica (puur: muteert stats, geen DOM) ----------
+  function laagste(b){
+    var items=[["energie",b.energie],["data",b.data],["fit",b.fit],["geluk",b.geluk]];
+    items.sort(function(x,y){ return x[1]-y[1]; });
+    return items[0][0];
+  }
+  // Geeft de n meest behoeftige Botty's terug: zieke eerst, daarna oplopend gemiddelde.
+  // De AI bedient er meerdere per tick, anders kan de zorg het verval van 9 Botty's niet bijbenen.
+  function kiesDoelen(lijst, n){
+    var gesorteerd = lijst.slice().sort(function(a,b){
+      if(a.ziek !== b.ziek) return a.ziek ? -1 : 1;   // zieke Botty's krijgen voorrang
+      return gem(a) - gem(b);                          // daarna de laagste meters eerst
+    });
+    return gesorteerd.slice(0, n);
+  }
+  // Voert één zorgactie uit op b en geeft terug wat er gebeurde (voor floater/ticker/animatie).
+  function zorg(b){
+    if(b.ziek){
+      b.ziek=false; b.geluk=klem(b.geluk+14); b.energie=klem(b.energie+8);
+      return { label:"💊 +herstel", kleur:"#5ec6ff", animeer:true, tekst:"AI verhelpt de bug bij <b>"+b.naam+"</b>" };
+    }
+    var k=laagste(b);
+    if(k==="fit"){ b.fit=klem(b.fit+18); b.energie=klem(b.energie+6);
+      return { label:"+fit", kleur:"#7fd06f", animeer:true, tekst:"AI laat <b>"+b.naam+"</b> bewegen" }; }
+    if(k==="geluk"){ b.geluk=klem(b.geluk+18);
+      return { label:"+geluk 🤖", kleur:"#f6a623", animeer:false, tekst:"AI houdt <b>"+b.naam+"</b> blij (maar geen band)" }; }
+    if(k==="data"){ b.data=klem(b.data+18); b.energie=klem(b.energie + 5 + (b.efficientie||50)/100*5);
+      return { label:"+data", kleur:"#39ff85", animeer:true, tekst:"AI voert <b>"+b.naam+"</b> duurzame data" }; }
+    b.energie=klem(b.energie+18); b.data=klem(b.data+4);
+    return { label:"+energie", kleur:"#5ec6ff", animeer:true, tekst:"AI laadt <b>"+b.naam+"</b> bij" };
+  }
+  // Eén vervalstap. Erfelijke datakwaliteit/efficiëntie en mutaties bepalen hoe snel de meters zakken.
+  function vervalEen(b){
+    var dkF  = 1 - (typeof b.datakwaliteit==="number"?b.datakwaliteit:50)/100 * 0.5;   // hoge kwaliteit → trager
+    var effF = 1 - (typeof b.efficientie==="number"?b.efficientie:50)/100 * 0.5;        // efficiënt → energie houdt langer
+    var q    = heeft(b,"quantum") ? 0.6 : 1;                                            // quantum-chip: sterk trager
+    b.energie=klem(b.energie - rnd(2,5)*effF*q + (heeft(b,"zonnepaneel")?1.2:0));        // zonnepaneel: eigen energie
+    b.data   =klem(b.data    - rnd(1,4)*dkF*q);
+    b.fit    =klem(b.fit     - rnd(1,4)*dkF*q);
+    b.geluk  =klem(b.geluk   - rnd(1,3)*dkF*q);
+    if(!b.ziek && Math.random() < 0.03*dkF) b.ziek=true;                                 // betere kwaliteit → minder bugs
+  }
+
+  // ---------- Voortplanting (puur datadeel) ----------
+  function rijp(b){ return b.stage==="volwassen" && !b.ziek && gem(b) >= 75; }
+  function geneScore(b){ return (typeof b.datakwaliteit==="number"?b.datakwaliteit:50) + (typeof b.efficientie==="number"?b.efficientie:50); }
+  // De gulzige optimizer: kies het paar met de hoogste gecombineerde genen.
+  function kiesPaar(lijst){
+    if(lijst.length < 2) return null;
+    var beste=null, bs=-1;
+    for(var i=0;i<lijst.length;i++) for(var j=i+1;j<lijst.length;j++){
+      var s = geneScore(lijst[i]) + geneScore(lijst[j]);
+      if(s > bs){ bs=s; beste=[lijst[i], lijst[j]]; }
+    }
+    return beste;
+  }
+  // Elk uniek ouder-kenmerk erft met 60% kans over; bij de geboorte ~4% kans op een nieuwe mutatie.
+  function erfMutaties(a,b){
+    var gezien={}, out=[];
+    (a.mutaties||[]).concat(b.mutaties||[]).forEach(function(m){
+      if(!gezien[m]){ gezien[m]=true; if(Math.random()<0.6) out.push(m); }
+    });
+    if(Math.random() < 0.04){ var nieuw=willekeurigeMutatie(); if(out.indexOf(nieuw)<0) out.push(nieuw); }
+    return out;
+  }
+  function maakKind(a,b){
+    function erf(va,vb){ return klem(((va||50)+(vb||50))/2 + rnd(-4,6)); }   // gemiddelde + lichte (positieve) mutatie
+    return { naam: nieuweNaam(),
+             geboren: Date.now(), stage:"baby",
+             kleur: mengPalet(a.kleur, b.kleur), paletNaam:"Hybride",
+             datakwaliteit: erf(a.datakwaliteit, b.datakwaliteit),
+             efficientie:   erf(a.efficientie,   b.efficientie),
+             generatie: Math.max(a.generatie||1, b.generatie||1) + 1,
+             mutaties: erfMutaties(a,b),
+             energie:80, data:80, fit:80, geluk:80, ziek:false };
+  }
+
+  // ---------- State laden / inhalen / bewaren ----------
+  function laad(){
+    try{
+      var s=JSON.parse(leesRuw(KEY));
+      if(s && s.bottys instanceof Array && s.bottys.length===AANTAL && typeof s.firstOpened==="number"){ return s; }
+    }catch(e){}
+    return null;
+  }
+  function inhalen(s){
+    var away = Date.now() - (typeof s.t==="number" ? s.t : Date.now());
+    if(away < 0) away = 0;                         // klok teruggezet → niets inhalen
+    var gemist = Math.floor(away / INTERVAL);      // hoeveel AI-ticks er "hadden plaatsgevonden"
+    acties += gemist * 3;                           // elke tick bedient de AI 3 Botty's (zie ZORG_PER_TICK)
+    var stappen = Math.min(gemist, 2000);          // begrens de simulatie qua rekentijd
+    for(var i=0;i<stappen;i++){
+      if(i % 2 === 0) bottys.forEach(vervalEen);   // verval ~half zo vaak als zorg (2,2s vs 1,1s)
+      kiesDoelen(bottys, 3).forEach(zorg);         // AI grijpt in op de 3 meest behoeftige
+    }
+  }
+
+  var bottys, firstOpened, acties;
+  var opslag = laad();
+  if(opslag){
+    bottys = opslag.bottys;
+    firstOpened = opslag.firstOpened;
+    acties = (typeof opslag.acties==="number") ? opslag.acties : 0;
+    bottys.forEach(function(b){                     // migratie + veilige standaarden voor oudere opslag
+      if(!b.kleur || typeof b.kleur!=="object"){
+        var src = paletten[(typeof b.palet==="number" && paletten[b.palet]) ? b.palet : 0];
+        b.kleur = kloonPalet(src); b.paletNaam = src.naam;
+      }
+      if(!b.paletNaam) b.paletNaam = b.kleur.naam || "kleur";
+      if(typeof b.datakwaliteit!=="number") b.datakwaliteit = rnd(40,70);
+      if(typeof b.efficientie!=="number")   b.efficientie   = rnd(40,70);
+      if(typeof b.generatie!=="number")     b.generatie     = 1;
+      if(!(b.mutaties instanceof Array))    b.mutaties      = [];
+      ["energie","data","fit","geluk"].forEach(function(m){ if(typeof b[m]!=="number") b[m]=70; });
+      b.ziek = !!b.ziek;
+      if(typeof b.geboren!=="number"){
+        var off = b.stage==="baby" ? 30000 : b.stage==="tiener" ? 150000 : 400000;
+        b.geboren = Date.now() - off;
+      }
+      b.stage = huidigeStage(b);                    // veroudering loopt door, ook offline
+    });
+    inhalen(opslag);
+  } else {
+    bottys = nieuweHive();
+    firstOpened = Date.now();
+    acties = 0;
+  }
+
+  function bewaar(){
+    var data = { firstOpened:firstOpened, t:Date.now(), acties:acties,
+      bottys: bottys.map(function(b){
+        return { naam:b.naam, stage:b.stage, geboren:b.geboren,
+                 kleur:b.kleur, paletNaam:b.paletNaam,
+                 datakwaliteit:b.datakwaliteit, efficientie:b.efficientie, generatie:b.generatie, mutaties:b.mutaties,
+                 energie:b.energie, data:b.data, fit:b.fit, geluk:b.geluk, ziek:b.ziek };
+      }) };
+    schrijfRuw(KEY, JSON.stringify(data));
+  }
+
+  // ---------- Kaarten bouwen ----------
+  var verse = document.getElementById("verse");
+  document.getElementById("kpi-aantal").textContent = AANTAL;
+  function barRij(ico,kl,meter){
+    return '<div class="bar-rij"><span class="ico">'+ico+'</span>'
+         + '<span class="bar '+kl+'" data-m="'+meter+'"><span style="width:0%"></span></span></div>';
+  }
+  function genenHtml(b){
+    var dk=Math.round(b.datakwaliteit||0), ef=Math.round(b.efficientie||0), g=b.generatie||1;
+    var muts=(b.mutaties||[]).map(mutatieIcon).join("");
+    return '<span title="datakwaliteit">🧬 '+dk+'</span>'
+         + '<span title="efficiëntie">💪 '+ef+'</span>'
+         + '<span title="generatie">⭐ G'+g+'</span>'
+         + (muts ? '<span class="muts" title="mutaties">'+muts+'</span>' : '');
+  }
+  // Vult (of herbouwt) een kaart voor Botty b en bedraadt b.el. Gebruikt bij init, groei en geboorte.
+  function vulKaart(kaart, b){
+    var p = b.kleur;
+    kaart.innerHTML =
+        '<div class="knaam">'+b.naam+'</div>'
+      + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+stageLabel[b.stage]+' · '+(b.paletNaam||p.naam||"kleur")+'</div>'
+      + '<div class="genen">'+genenHtml(b)+'</div>'
+      + '<div class="scene"><div class="bw bw-'+b.stage+' vitaal" style="--groei:'+groei[b.stage]+';--spier:'+spierSchaal(b.efficientie)+'">'
+      +   '<div class="ziek-bubbel">🤒</div>'
+      +   '<svg viewBox="0 0 200 250" aria-label="Botty '+b.naam+'">'+sprites[b.stage](p)+mutatiesSvg(b.mutaties)+'</svg>'
+      +   '<div class="floaters"></div></div></div>'
+      + '<div class="bars">'
+      +   barRij("⚡","b-energie","energie")
+      +   barRij("💾","b-data","data")
+      +   barRij("🏃","b-fit","fit")
+      +   barRij("😊","b-geluk","geluk")
+      + '</div>';
+    b.el = {
+      kaart: kaart,
+      wrap: kaart.querySelector(".bw"),
+      floaters: kaart.querySelector(".floaters"),
+      bars: {
+        energie: kaart.querySelector('[data-m="energie"] > span'),
+        data:    kaart.querySelector('[data-m="data"] > span'),
+        fit:     kaart.querySelector('[data-m="fit"] > span'),
+        geluk:   kaart.querySelector('[data-m="geluk"] > span')
+      }
+    };
+    renderBotty(b);
+  }
+  bottys.forEach(function(b){
+    var kaart = document.createElement("div");
+    kaart.className = "kaart";
+    verse.appendChild(kaart);
+    vulKaart(kaart, b);
+  });
+
+  function renderBotty(b){
+    if(!b.el) return;
+    b.el.bars.energie.style.width = b.energie + "%";
+    b.el.bars.data.style.width    = b.data + "%";
+    b.el.bars.fit.style.width     = b.fit + "%";
+    b.el.bars.geluk.style.width   = b.geluk + "%";
+    b.el.wrap.classList.toggle("vitaal", gem(b) > 65 && !b.ziek);
+    b.el.wrap.classList.toggle("ziek", b.ziek);
+  }
+  function floater(b, tekst, kleur){
+    if(!b.el) return;
+    var f = document.createElement("div");
+    f.className = "floater"; f.textContent = tekst; f.style.color = kleur || "#39ff85";
+    f.style.left = (40 + Math.random()*20) + "%";
+    b.el.floaters.appendChild(f);
+    setTimeout(function(){ f.remove(); }, 1100);
+  }
+  function hop(b){
+    if(reduce || !b.el) return;
+    b.el.wrap.classList.remove("act"); void b.el.wrap.offsetWidth; b.el.wrap.classList.add("act");
+    setTimeout(function(){ if(b.el && b.el.wrap) b.el.wrap.classList.remove("act"); }, 520);
+  }
+
+  // ---------- Live AI-verzorger ----------
+  function setTicker(tekst){ document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ' + tekst; }
+  function updateActies(){ document.getElementById("kpi-acties").textContent = acties.toLocaleString("nl-NL"); }
+  function updateGenenKpi(){
+    if(!bottys.length){ return; }
+    var som=0; bottys.forEach(function(b){ som += geneScore(b)/2; });
+    document.getElementById("kpi-genen").textContent = Math.round(som/bottys.length);
+  }
+  var ZORG_PER_TICK = 3;               // de AI bedient de 3 meest behoeftige Botty's per tick
+  function aiStap(){
+    var doelen = kiesDoelen(bottys, ZORG_PER_TICK);
+    doelen.forEach(function(b, i){
+      if(b.bezigEi) return;            // sla een kaart over die net een ei toont
+      acties++;
+      var d = zorg(b);
+      floater(b, d.label, d.kleur);
+      if(d.animeer) hop(b);
+      if(i === 0) setTicker("🤖 " + d.tekst);   // de meest behoeftige is de kop in de ticker
+      renderBotty(b);
+    });
+    updateActies();
+  }
+  function vervalStap(){ bottys.forEach(function(b){ if(!b.bezigEi){ vervalEen(b); renderBotty(b); } }); }
+
+  // ---------- Veroudering: baby's groeien op ----------
+  function groeiCheck(){
+    if(bezigKweek) return;
+    bottys.forEach(function(b){
+      if(b.bezigEi || !b.el) return;
+      var s = huidigeStage(b);
+      if(s !== b.stage){ b.stage = s; vulKaart(b.el.kaart, b); floater(b, "⬆ groeit", "#7fd9ab"); }
+    });
+  }
+
+  // ---------- IR-straal tussen twee kaarten ----------
+  function trekBeam(a, b){
+    if(reduce || !a.el || !b.el) return;
+    var vr = verse.getBoundingClientRect();
+    var ra = a.el.kaart.getBoundingClientRect();
+    var rb = b.el.kaart.getBoundingClientRect();
+    var x1 = ra.left + ra.width/2 - vr.left, y1 = ra.top + ra.height/2 - vr.top;
+    var x2 = rb.left + rb.width/2 - vr.left, y2 = rb.top + rb.height/2 - vr.top;
+    var dx = x2 - x1, dy = y2 - y1;
+    var len = Math.sqrt(dx*dx + dy*dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    var beam = document.createElement("div");
+    beam.className = "beam";
+    beam.style.left = x1 + "px"; beam.style.top = (y1 - 2) + "px";
+    beam.style.width = len + "px"; beam.style.transform = "rotate(" + ang + "deg)";
+    verse.appendChild(beam);
+    setTimeout(function(){ beam.remove(); }, 1650);
+  }
+
+  // ---------- Onderling bezoek (peer-to-peer kennis delen) ----------
+  function bezoek(){
+    if(bezigKweek || !bottys || bottys.length < 2) return;
+    var n = bottys.length;
+    var i = Math.floor(Math.random() * n), j;
+    do { j = Math.floor(Math.random() * n); } while(j === i);
+    var a = bottys[i], b = bottys[j];
+    if(a.bezigEi || b.bezigEi) return;
+    a.geluk = klem(a.geluk + 12); b.geluk = klem(b.geluk + 12);   // samen spelen maakt blij (geen band)
+    var leraar  = (a.data >= b.data) ? a : b;                     // wie de meeste data heeft, deelt kennis
+    var leerling = (leraar === a) ? b : a;
+    var bonus = 10 + ((heeft(leerling,"wifi")||heeft(leerling,"antenne2")) ? 6 : 0);   // mutaties versterken kennis delen
+    leerling.data = klem(leerling.data + bonus);
+    floater(a, "💞", "#ff8bd0"); floater(b, "💞", "#ff8bd0");
+    floater(leerling, "📡 +data", "#39ff85");
+    hop(a); hop(b);
+    a.el.kaart.classList.add("bezoekt"); b.el.kaart.classList.add("bezoekt");
+    setTimeout(function(){ if(a.el)a.el.kaart.classList.remove("bezoekt"); if(b.el)b.el.kaart.classList.remove("bezoekt"); }, 1600);
+    trekBeam(a, b);
+    setTicker("🔗 <b>" + a.naam + "</b> en <b>" + b.naam + "</b> wisselen kennis uit");
+    renderBotty(a); renderBotty(b);
+  }
+  function planBezoek(){ setTimeout(function(){ bezoek(); planBezoek(); }, 8000 + Math.random() * 4000); }
+
+  // ---------- Voortplanting (visuele flow) ----------
+  var bezigKweek = false;
+  var EI_TIJD = 4200;   // ms dat het ei zichtbaar is voor het uitkomt
+  function kweek(){
+    if(bezigKweek) return;
+    var kandidaten = bottys.filter(rijp);
+    var paar = kiesPaar(kandidaten);
+    if(!paar) return;
+    bezigKweek = true;
+    var ouderA = paar[0], ouderB = paar[1];   // ouderA vertrekt; zijn plek wordt het ei → kind
+    var kind = maakKind(ouderA, ouderB);
+    var kaart = ouderA.el.kaart;
+    var idx = bottys.indexOf(ouderA);
+
+    hop(ouderA); hop(ouderB);
+    trekBeam(ouderA, ouderB);
+    ouderA.el.kaart.classList.add("paart"); ouderB.el.kaart.classList.add("paart");
+    floater(ouderA, "💞", "#ff8bd0"); floater(ouderB, "💞", "#ff8bd0");
+    setTicker("💞 De AI koppelt <b>"+ouderA.naam+"</b> en <b>"+ouderB.naam+"</b> — beste genen");
+
+    setTimeout(function(){
+      if(ouderA.el) ouderA.el.kaart.classList.remove("paart");
+      if(ouderB.el) ouderB.el.kaart.classList.remove("paart");
+      afscheid(ouderA, function(){
+        toonEi(ouderA, kaart, function(){
+          if(idx >= 0) bottys[idx] = kind;
+          vulKaart(kaart, kind);
+          floater(kind, "✨ geboren", "#ffd54a");
+          hop(kind);
+          setTicker("🐣 <b>"+kind.naam+"</b> is geboren — generatie "+kind.generatie);
+          updateGenenKpi();
+          bezigKweek = false;
+          bewaar();
+        });
+      });
+    }, 1700);
+  }
+  function afscheid(b, cb){
+    floater(b, "👋 dag!", "#ffd54a");
+    setTicker("👋 <b>"+b.naam+"</b> zwaait gedag en verlaat de hive");
+    if(reduce || !b.el){ cb(); return; }
+    b.el.wrap.classList.add("weg");
+    setTimeout(function(){ if(b.el && b.el.wrap) b.el.wrap.classList.remove("weg"); cb(); }, 1450);
+  }
+  function toonEi(ouder, kaart, cb){
+    ouder.bezigEi = true;                       // sluit deze kaart even uit van zorg/verval
+    var scene = kaart.querySelector(".scene");
+    if(scene) scene.innerHTML = '<div class="ei" aria-label="ei">🥚</div>';
+    var kn = kaart.querySelector(".knaam"); if(kn) kn.textContent = "Ei…";
+    var ks = kaart.querySelector(".kstage"); if(ks) ks.innerHTML = "nieuw leven · uitkomen…";
+    var gn = kaart.querySelector(".genen"); if(gn) gn.textContent = "🥚";
+    setTicker("🥚 Een ei verschijnt in de hive…");
+    setTimeout(cb, EI_TIJD);
+  }
+  function planKweek(){ setTimeout(function(){ kweek(); planKweek(); }, 18000 + Math.random() * 12000); }
+
+  // ---------- Uptime ----------
+  function fmtDuur(ms){
+    var s=Math.floor(ms/1000), m=Math.floor(s/60), u=Math.floor(m/60), d=Math.floor(u/24);
+    if(d>0) return d+"d "+(u%24)+"u";
+    if(u>0) return u+"u "+(m%60)+"m";
+    if(m>0) return m+"m "+(s%60)+"s";
+    return s+"s";
+  }
+  function updateUptime(){ document.getElementById("kpi-uptime").textContent = fmtDuur(Date.now()-firstOpened); }
+
+  // ---------- Matrix-regen ----------
+  (function rain(){
+    if(reduce) return;
+    var cv = document.getElementById("rain"), ctx = cv.getContext("2d");
+    var tekens = "01ボッティBOTTY0110アイデータＡＩ".split("");
+    var kolB = 15, druppels = [];
+    function size(){
+      cv.width = window.innerWidth; cv.height = window.innerHeight;
+      var n = Math.floor(cv.width / kolB);
+      druppels = []; for(var i=0;i<n;i++) druppels[i] = Math.random()*cv.height/kolB;
+    }
+    size(); window.addEventListener("resize", size);
+    function frame(){
+      ctx.fillStyle = "rgba(4,20,13,0.10)"; ctx.fillRect(0,0,cv.width,cv.height);
+      ctx.font = (kolB-2) + "px monospace";
+      for(var i=0;i<druppels.length;i++){
+        var t = tekens[Math.floor(Math.random()*tekens.length)];
+        var x = i*kolB, y = druppels[i]*kolB;
+        ctx.fillStyle = Math.random() < 0.04 ? "#cffce0" : "#1f9d5a";
+        ctx.fillText(t, x, y);
+        if(y > cv.height && Math.random() > 0.975) druppels[i] = 0;
+        druppels[i]++;
+      }
+      requestAnimationFrame(frame);
+    }
+    frame();
+  })();
+
+  // ---------- Nieuwe hive genereren ----------
+  document.getElementById("btn-nieuw").addEventListener("click", function(){
+    wisOpslag();
+    location.reload();   // bij herladen vindt laad() niets → verse willekeurige hive vanaf nu
+  });
+
+  // ---------- Bewaren op de juiste momenten ----------
+  updateActies(); updateUptime(); updateGenenKpi();
+  setTimeout(function(){ setTicker("De hive draait. De AI verzorgt en kweekt alle Botty's volledig zelf."); }, 1400);
+  setInterval(aiStap, INTERVAL);    // de AI grijpt voortdurend in
+  setInterval(vervalStap, 2200);    // meters lopen langzaam terug
+  setInterval(groeiCheck, 4000);    // baby's groeien op tot volwassen
+  planBezoek();                     // af en toe gaan twee Botty's bij elkaar op bezoek
+  planKweek();                      // af en toe kweekt de AI een nieuwe generatie
+  setInterval(updateUptime, 1000);
+  setInterval(bewaar, 4000);        // periodiek opslaan
+  window.addEventListener("visibilitychange", function(){ if(document.hidden) bewaar(); });
+  window.addEventListener("pagehide", bewaar);
+  bewaar();                          // meteen vastleggen (o.a. firstOpened bij eerste bezoek)
+})();
+</script>
+</body>
+</html>
