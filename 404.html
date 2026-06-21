@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>404 — Bottys in de Moestuin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --matrix:#39ff85;
+  --paars:#c89bff;
+  --bg:#04140d;
+  --paneel:rgba(8,30,21,.62);
+  --paneel-rand:rgba(57,255,133,.16);
+  --paneel-rand-sterk:rgba(57,255,133,.32);
+  --licht:#dff7ea;
+  --zacht:#a8d4be;
+  --dim:#6f9a86;
+  --schaduw:0 8px 30px rgba(0,0,0,.45);
+  --tomaat:#ff4d4d;
+  --groen-blad:#2ecc71;
+}
+html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--licht);overflow-x:hidden}
+body{
+  background:
+    radial-gradient(1100px 600px at 18% -8%,rgba(57,255,133,.10),transparent 60%),
+    radial-gradient(900px 600px at 88% 4%,rgba(200,155,255,.10),transparent 55%),
+    radial-gradient(800px 700px at 50% 120%,rgba(47,143,134,.12),transparent 60%),
+    var(--bg);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Matrix rain */
+#matrix-canvas{
+  position:fixed;inset:0;z-index:0;opacity:.18;pointer-events:none;
+}
+
+.wrapper{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;
+  gap:2rem;padding:2rem 1rem;
+  max-width:680px;width:100%;
+}
+
+/* 404 big display */
+.groot-getal{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(5rem,18vw,10rem);
+  font-weight:800;
+  line-height:1;
+  background:linear-gradient(135deg,var(--matrix) 0%,var(--paars) 60%,var(--tomaat) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(57,255,133,.35));
+  animation:glans 8s linear infinite;
+}
+@keyframes glans{
+  0%{filter:drop-shadow(0 0 30px rgba(57,255,133,.3))}
+  50%{filter:drop-shadow(0 0 55px rgba(200,155,255,.5))}
+  100%{filter:drop-shadow(0 0 30px rgba(57,255,133,.3))}
+}
+
+/* Glassmorphism panel */
+.paneel{
+  background:var(--paneel);
+  border:1px solid var(--paneel-rand);
+  border-radius:20px;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-shadow:var(--schaduw),inset 0 1px 0 rgba(57,255,133,.08);
+  padding:2rem 2.2rem;
+  width:100%;
+  text-align:center;
+}
+.paneel h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(1.2rem,4vw,1.7rem);
+  font-weight:700;
+  color:var(--licht);
+  margin-bottom:.6rem;
+}
+.paneel p{
+  color:var(--zacht);
+  font-size:1rem;
+  line-height:1.7;
+  margin-bottom:.5rem;
+}
+.paneel p:last-child{margin-bottom:0}
+.paneel .acc{color:var(--matrix);font-weight:700}
+.paneel .tomaat{color:var(--tomaat);font-weight:700}
+
+/* Moestuin scene */
+.moestuin-scene{
+  width:100%;display:flex;justify-content:center;align-items:flex-end;
+  gap:1.5rem;padding:1.5rem 1rem 0;
+  min-height:200px;
+  position:relative;
+}
+.grond{
+  position:absolute;bottom:0;left:0;right:0;
+  height:40px;
+  background:linear-gradient(180deg,rgba(101,67,33,.7),rgba(60,30,10,.9));
+  border-top:2px solid rgba(101,67,33,.5);
+  border-radius:0 0 16px 16px;
+}
+
+/* Botty sprites */
+.botty-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  gap:.4rem;position:relative;z-index:2;
+  animation:zwaai 2.5s ease-in-out infinite;
+}
+.botty-wrap:nth-child(2){animation-delay:.5s;animation-duration:3.1s}
+.botty-wrap:nth-child(3){animation-delay:1.1s;animation-duration:2.7s}
+@keyframes zwaai{
+  0%,100%{transform:rotate(-4deg) translateY(0)}
+  50%{transform:rotate(4deg) translateY(-6px)}
+}
+.botty-bubbel{
+  background:rgba(8,30,21,.8);
+  border:1px solid var(--paneel-rand-sterk);
+  border-radius:10px;
+  padding:.3rem .6rem;
+  font-size:.72rem;
+  color:var(--zacht);
+  white-space:nowrap;
+  backdrop-filter:blur(8px);
+  position:relative;
+}
+.botty-bubbel::after{
+  content:'';
+  position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
+  border:4px solid transparent;
+  border-top-color:var(--paneel-rand-sterk);
+}
+
+/* Tomato plants */
+.plant-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;z-index:1;
+  animation:wieg 3s ease-in-out infinite;
+}
+.plant-wrap:nth-child(even){animation-delay:1.2s}
+@keyframes wieg{
+  0%,100%{transform:rotate(-2deg)}
+  50%{transform:rotate(2deg)}
+}
+
+/* Footer nav */
+.footer-nav{
+  display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;
+  padding:.5rem 0;
+}
+.footer-nav a{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.5rem 1.1rem;
+  border-radius:50px;
+  background:rgba(8,30,21,.6);
+  border:1px solid var(--paneel-rand);
+  color:var(--zacht);
+  text-decoration:none;
+  font-size:.85rem;
+  font-weight:600;
+  backdrop-filter:blur(10px);
+  transition:border-color .2s,color .2s,transform .2s;
+}
+.footer-nav a:hover{
+  border-color:var(--matrix);
+  color:var(--matrix);
+  transform:translateY(-2px);
+}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(57,255,133,.08);
+  border:1px solid var(--paneel-rand);
+  border-radius:50px;
+  padding:.28rem .85rem;
+  font-size:.78rem;
+  color:var(--dim);
+  font-family:'Space Grotesk',sans-serif;
+  letter-spacing:.04em;
+  margin-bottom:.5rem;
+}
+.puls{
+  width:7px;height:7px;
+  background:var(--tomaat);
+  border-radius:50%;
+  animation:puls 1.5s ease-in-out infinite;
+}
+@keyframes puls{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.5;transform:scale(1.5)}
+}
+</style>
+</head>
+<body>
+<canvas id="matrix-canvas"></canvas>
+
+<div class="wrapper">
+  <div class="groot-getal">404</div>
+
+  <span class="eyebrow"><span class="puls"></span> Pagina vermist &mdash; Botty-verse Hive</span>
+
+  <!-- Moestuin scene -->
+  <div style="width:100%;background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:20px;backdrop-filter:blur(18px);overflow:hidden;box-shadow:var(--schaduw);position:relative">
+    <div class="moestuin-scene">
+
+      <!-- Botty 1: confused -->
+      <div class="botty-wrap">
+        <div class="botty-bubbel">Hoe groeit dit ding?? 🤔</div>
+        <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="29" cy="36" rx="20" ry="22" fill="#1a4a2e" stroke="#39ff85" stroke-width="1.5"/>
+          <ellipse cx="29" cy="32" rx="13" ry="14" fill="#0e2e1a"/>
+          <circle cx="23" cy="30" r="3.5" fill="#39ff85"/>
+          <circle cx="35" cy="30" r="3.5" fill="#39ff85"/>
+          <circle cx="24" cy="29" r="1.5" fill="#04140d"/>
+          <circle cx="36" cy="29" r="1.5" fill="#04140d"/>
+          <!-- Question marks eyes -->
+          <text x="20" y="33" font-size="6" fill="#c89bff" font-family="monospace">?</text>
+          <text x="32" y="33" font-size="6" fill="#c89bff" font-family="monospace">?</text>
+          <!-- Antennae -->
+          <line x1="22" y1="18" x2="16" y2="8" stroke="#39ff85" stroke-width="1.5"/>
+          <circle cx="16" cy="7" r="2.5" fill="#39ff85"/>
+          <line x1="36" y1="18" x2="42" y2="8" stroke="#39ff85" stroke-width="1.5"/>
+          <circle cx="42" cy="7" r="2.5" fill="#39ff85"/>
+          <!-- Arms holding tomato seedling -->
+          <line x1="9" y1="42" x2="29" y2="50" stroke="#39ff85" stroke-width="2"/>
+          <line x1="49" y1="42" x2="29" y2="50" stroke="#39ff85" stroke-width="2"/>
+          <!-- Legs -->
+          <line x1="22" y1="57" x2="18" y2="70" stroke="#39ff85" stroke-width="2"/>
+          <line x1="36" y1="57" x2="40" y2="70" stroke="#39ff85" stroke-width="2"/>
+          <!-- Tiny seedling in hands -->
+          <ellipse cx="29" cy="53" rx="5" ry="3" fill="#2a5a2a"/>
+          <line x1="29" y1="50" x2="29" y2="44" stroke="#2ecc71" stroke-width="1.5"/>
+          <ellipse cx="26" cy="43" rx="3" ry="2" fill="#2ecc71" transform="rotate(-20 26 43)"/>
+          <ellipse cx="32" cy="43" rx="3" ry="2" fill="#2ecc71" transform="rotate(20 32 43)"/>
+        </svg>
+      </div>
+
+      <!-- Tomato plant 1 -->
+      <div class="plant-wrap" style="margin-bottom:12px">
+        <svg width="44" height="90" viewBox="0 0 44 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- stem -->
+          <line x1="22" y1="88" x2="22" y2="20" stroke="#1a6b2a" stroke-width="3"/>
+          <!-- leaves -->
+          <ellipse cx="14" cy="65" rx="12" ry="6" fill="#2ecc71" transform="rotate(-30 14 65)"/>
+          <ellipse cx="30" cy="55" rx="12" ry="6" fill="#27ae60" transform="rotate(30 30 55)"/>
+          <ellipse cx="12" cy="42" rx="10" ry="5" fill="#2ecc71" transform="rotate(-25 12 42)"/>
+          <ellipse cx="32" cy="35" rx="10" ry="5" fill="#27ae60" transform="rotate(25 32 35)"/>
+          <!-- tomato fruit (confused looking) -->
+          <circle cx="22" cy="22" r="10" fill="#e74c3c"/>
+          <ellipse cx="22" cy="13" rx="5" ry="3" fill="#27ae60"/>
+          <!-- face on tomato -->
+          <circle cx="19" cy="21" r="1.5" fill="#7b0000"/>
+          <circle cx="25" cy="21" r="1.5" fill="#7b0000"/>
+          <path d="M19 25 Q22 23 25 25" stroke="#7b0000" stroke-width="1" fill="none"/>
+        </svg>
+      </div>
+
+      <!-- Botty 2: reading manual upside down -->
+      <div class="botty-wrap" style="animation-delay:.8s">
+        <div class="botty-bubbel">Staat er iets over water? 💧</div>
+        <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="29" cy="36" rx="20" ry="22" fill="#1a2a4a" stroke="#c89bff" stroke-width="1.5"/>
+          <ellipse cx="29" cy="32" rx="13" ry="14" fill="#0d1a2e"/>
+          <circle cx="23" cy="30" r="3.5" fill="#c89bff"/>
+          <circle cx="35" cy="30" r="3.5" fill="#c89bff"/>
+          <circle cx="24" cy="29" r="1.5" fill="#04140d"/>
+          <circle cx="36" cy="29" r="1.5" fill="#04140d"/>
+          <!-- Determined expression -->
+          <path d="M22 36 Q29 39 36 36" stroke="#c89bff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- Antenna -->
+          <line x1="29" y1="14" x2="29" y2="4" stroke="#c89bff" stroke-width="1.5"/>
+          <circle cx="29" cy="3" r="2.5" fill="#c89bff"/>
+          <!-- Arms holding book upside down -->
+          <line x1="9" y1="40" x2="18" y2="52" stroke="#c89bff" stroke-width="2"/>
+          <line x1="49" y1="40" x2="40" y2="52" stroke="#c89bff" stroke-width="2"/>
+          <!-- Book (upside down) -->
+          <rect x="16" y="52" width="26" height="17" rx="2" fill="#1a1a3a" stroke="#c89bff" stroke-width="1"/>
+          <text x="19" y="65" font-size="7" fill="#c89bff" transform="rotate(180 29 61)">📖</text>
+          <line x1="29" y1="52" x2="29" y2="69" stroke="#c89bff" stroke-width=".8"/>
+        </svg>
+      </div>
+
+      <!-- Tomato plant 2 -->
+      <div class="plant-wrap" style="margin-bottom:6px">
+        <svg width="38" height="75" viewBox="0 0 38 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="19" y1="73" x2="19" y2="18" stroke="#1a6b2a" stroke-width="2.5"/>
+          <ellipse cx="11" cy="55" rx="10" ry="5" fill="#2ecc71" transform="rotate(-25 11 55)"/>
+          <ellipse cx="27" cy="45" rx="10" ry="5" fill="#27ae60" transform="rotate(25 27 45)"/>
+          <ellipse cx="10" cy="35" rx="8" ry="4" fill="#2ecc71" transform="rotate(-20 10 35)"/>
+          <!-- small tomato, green still -->
+          <circle cx="19" cy="19" r="7" fill="#27ae60"/>
+          <ellipse cx="19" cy="13" rx="4" ry="2.5" fill="#1a6b2a"/>
+          <circle cx="17" cy="18" r="1" fill="#1a4a1a"/>
+          <circle cx="21" cy="18" r="1" fill="#1a4a1a"/>
+        </svg>
+      </div>
+
+      <!-- Botty 3: with tiny watering can -->
+      <div class="botty-wrap" style="animation-delay:1.4s">
+        <div class="botty-bubbel">Zon? Maar... het is nacht? ☀️</div>
+        <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="29" cy="36" rx="20" ry="22" fill="#2a1a0a" stroke="#ff9f43" stroke-width="1.5"/>
+          <ellipse cx="29" cy="32" rx="13" ry="14" fill="#1a0f05"/>
+          <circle cx="23" cy="30" r="3.5" fill="#ff9f43"/>
+          <circle cx="35" cy="30" r="3.5" fill="#ff9f43"/>
+          <circle cx="24" cy="29" r="1.5" fill="#04140d"/>
+          <circle cx="36" cy="29" r="1.5" fill="#04140d"/>
+          <!-- Worried brow -->
+          <path d="M20 26 Q23 24 26 26" stroke="#ff9f43" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M32 26 Q35 24 38 26" stroke="#ff9f43" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- Small sad mouth -->
+          <path d="M23 37 Q29 35 35 37" stroke="#ff9f43" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <!-- Antennae (droopy) -->
+          <path d="M22 18 Q14 14 12 9" stroke="#ff9f43" stroke-width="1.5" fill="none"/>
+          <circle cx="12" cy="8" r="2.5" fill="#ff9f43"/>
+          <path d="M36 18 Q44 14 46 9" stroke="#ff9f43" stroke-width="1.5" fill="none"/>
+          <circle cx="46" cy="8" r="2.5" fill="#ff9f43"/>
+          <!-- Arm holding watering can -->
+          <line x1="9" y1="42" x2="6" y2="55" stroke="#ff9f43" stroke-width="2"/>
+          <!-- Watering can -->
+          <rect x="1" y="53" width="14" height="9" rx="2" fill="#2a1a0a" stroke="#ff9f43" stroke-width="1"/>
+          <path d="M15 55 Q20 53 22 58" stroke="#ff9f43" stroke-width="1.5" fill="none"/>
+          <!-- Water drops (going sideways — wrong direction) -->
+          <circle cx="24" cy="57" r="1.2" fill="#74b9ff" opacity=".8"/>
+          <circle cx="27" cy="59" r="1" fill="#74b9ff" opacity=".6"/>
+          <circle cx="25" cy="61" r=".8" fill="#74b9ff" opacity=".4"/>
+          <!-- Other arm -->
+          <line x1="49" y1="42" x2="52" y2="50" stroke="#ff9f43" stroke-width="2"/>
+          <!-- Legs -->
+          <line x1="22" y1="57" x2="19" y2="70" stroke="#ff9f43" stroke-width="2"/>
+          <line x1="36" y1="57" x2="39" y2="70" stroke="#ff9f43" stroke-width="2"/>
+        </svg>
+      </div>
+
+      <!-- Ground -->
+      <div class="grond"></div>
+    </div>
+  </div>
+
+  <!-- Error panel -->
+  <div class="paneel">
+    <h1>Oeps! De Bottys zijn in de moestuin. 🍅</h1>
+    <p>De pagina die je zocht <span class="tomaat">bestaat niet</span> — maar dat deert de Bottys niet.
+    Ze zijn druk bezig met het uitzoeken hoe je eigenlijk tomaten kweekt.</p>
+    <p>Tot nu toe hebben ze ontdekt dat je ze <span class="acc">niet kunt debuggen met een git commit</span>,
+    dat zonneschijn <em>"anders werkt dan een stroomkabel"</em>, en dat gietwater
+    niet uit de Supabase-bucket komt.</p>
+    <p style="margin-top:.8rem;color:var(--dim);font-size:.88rem">Vooruitgang: <span class="tomaat">0.3 tomaten</span> per generatie. Verwachte eerste oogst: nooit.</p>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="footer-nav">
+    <a href="index.html">🏠 Terug naar de Hive</a>
+    <a href="evolutie.html">🧬 Evolutie &amp; Emoties</a>
+    <a href="kaarten.html">🃏 Verzamelkaarten</a>
+  </nav>
+</div>
+
+<script>
+// Matrix rain
+const cv = document.getElementById('matrix-canvas');
+const cx = cv.getContext('2d');
+let cols, drops;
+function resize() {
+  cv.width = window.innerWidth;
+  cv.height = window.innerHeight;
+  cols = Math.floor(cv.width / 18);
+  drops = Array(cols).fill(1);
+}
+window.addEventListener('resize', resize);
+resize();
+const CHARS = '01アイウエオカキクケコtomaat🍅groeiendata';
+function rain() {
+  cx.fillStyle = 'rgba(4,20,13,.18)';
+  cx.fillRect(0, 0, cv.width, cv.height);
+  cx.fillStyle = '#39ff85';
+  cx.font = '14px monospace';
+  drops.forEach((y, i) => {
+    const ch = CHARS[Math.floor(Math.random() * CHARS.length)];
+    cx.fillText(ch, i * 18, y * 18);
+    if (y * 18 > cv.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  });
+}
+setInterval(rain, 60);
+</script>
+</body>
+</html>
