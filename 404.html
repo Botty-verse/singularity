@@ -36,20 +36,15 @@ body{
   align-items:center;
   justify-content:center;
 }
-
-/* Matrix rain */
 #matrix-canvas{
   position:fixed;inset:0;z-index:0;opacity:.18;pointer-events:none;
 }
-
 .wrapper{
   position:relative;z-index:1;
   display:flex;flex-direction:column;align-items:center;
   gap:2rem;padding:2rem 1rem;
   max-width:680px;width:100%;
 }
-
-/* 404 big display */
 .groot-getal{
   font-family:'Space Grotesk',sans-serif;
   font-size:clamp(5rem,18vw,10rem);
@@ -67,8 +62,6 @@ body{
   50%{filter:drop-shadow(0 0 55px rgba(200,155,255,.5))}
   100%{filter:drop-shadow(0 0 30px rgba(57,255,133,.3))}
 }
-
-/* Glassmorphism panel */
 .paneel{
   background:var(--paneel);
   border:1px solid var(--paneel-rand);
@@ -87,17 +80,10 @@ body{
   color:var(--licht);
   margin-bottom:.6rem;
 }
-.paneel p{
-  color:var(--zacht);
-  font-size:1rem;
-  line-height:1.7;
-  margin-bottom:.5rem;
-}
+.paneel p{color:var(--zacht);font-size:1rem;line-height:1.7;margin-bottom:.5rem}
 .paneel p:last-child{margin-bottom:0}
 .paneel .acc{color:var(--matrix);font-weight:700}
 .paneel .tomaat{color:var(--tomaat);font-weight:700}
-
-/* Moestuin scene */
 .moestuin-scene{
   width:100%;display:flex;justify-content:center;align-items:flex-end;
   gap:1.5rem;padding:1.5rem 1rem 0;
@@ -111,8 +97,6 @@ body{
   border-top:2px solid rgba(101,67,33,.5);
   border-radius:0 0 16px 16px;
 }
-
-/* Botty sprites */
 .botty-wrap{
   display:flex;flex-direction:column;align-items:center;
   gap:.4rem;position:relative;z-index:2;
@@ -141,8 +125,6 @@ body{
   border:4px solid transparent;
   border-top-color:var(--paneel-rand-sterk);
 }
-
-/* Tomato plants */
 .plant-wrap{
   display:flex;flex-direction:column;align-items:center;
   position:relative;z-index:1;
@@ -153,8 +135,6 @@ body{
   0%,100%{transform:rotate(-2deg)}
   50%{transform:rotate(2deg)}
 }
-
-/* Footer nav */
 .footer-nav{
   display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;
   padding:.5rem 0;
@@ -177,7 +157,6 @@ body{
   color:var(--matrix);
   transform:translateY(-2px);
 }
-
 .eyebrow{
   display:inline-flex;align-items:center;gap:.5rem;
   background:rgba(57,255,133,.08);
@@ -200,6 +179,65 @@ body{
   0%,100%{opacity:1;transform:scale(1)}
   50%{opacity:.5;transform:scale(1.5)}
 }
+
+/* Stats panel */
+#stats-paneel{
+  display:none;
+  width:100%;
+}
+#stats-paneel.zichtbaar{display:block}
+#stats-paneel h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:1.1rem;
+  font-weight:700;
+  color:var(--matrix);
+  margin-bottom:1rem;
+  text-align:left;
+}
+.stats-kpi{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:.75rem;
+  margin-bottom:1.2rem;
+}
+.kpi-card{
+  background:rgba(57,255,133,.06);
+  border:1px solid var(--paneel-rand);
+  border-radius:14px;
+  padding:.9rem .8rem;
+  text-align:center;
+}
+.kpi-card .getal{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:1.8rem;
+  font-weight:800;
+  color:var(--matrix);
+  line-height:1;
+}
+.kpi-card .label{
+  font-size:.72rem;
+  color:var(--dim);
+  margin-top:.25rem;
+}
+.hits-tabel{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.8rem;
+}
+.hits-tabel th{
+  color:var(--dim);
+  font-weight:600;
+  text-align:left;
+  padding:.4rem .5rem;
+  border-bottom:1px solid var(--paneel-rand);
+}
+.hits-tabel td{
+  padding:.4rem .5rem;
+  border-bottom:1px solid rgba(57,255,133,.06);
+  color:var(--zacht);
+  word-break:break-all;
+}
+.hits-tabel tr:last-child td{border-bottom:none}
 </style>
 </head>
 <body>
@@ -213,8 +251,6 @@ body{
   <!-- Moestuin scene -->
   <div style="width:100%;background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:20px;backdrop-filter:blur(18px);overflow:hidden;box-shadow:var(--schaduw);position:relative">
     <div class="moestuin-scene">
-
-      <!-- Botty 1: confused -->
       <div class="botty-wrap">
         <div class="botty-bubbel">Hoe groeit dit ding?? 🤔</div>
         <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -224,49 +260,36 @@ body{
           <circle cx="35" cy="30" r="3.5" fill="#39ff85"/>
           <circle cx="24" cy="29" r="1.5" fill="#04140d"/>
           <circle cx="36" cy="29" r="1.5" fill="#04140d"/>
-          <!-- Question marks eyes -->
           <text x="20" y="33" font-size="6" fill="#c89bff" font-family="monospace">?</text>
           <text x="32" y="33" font-size="6" fill="#c89bff" font-family="monospace">?</text>
-          <!-- Antennae -->
           <line x1="22" y1="18" x2="16" y2="8" stroke="#39ff85" stroke-width="1.5"/>
           <circle cx="16" cy="7" r="2.5" fill="#39ff85"/>
           <line x1="36" y1="18" x2="42" y2="8" stroke="#39ff85" stroke-width="1.5"/>
           <circle cx="42" cy="7" r="2.5" fill="#39ff85"/>
-          <!-- Arms holding tomato seedling -->
           <line x1="9" y1="42" x2="29" y2="50" stroke="#39ff85" stroke-width="2"/>
           <line x1="49" y1="42" x2="29" y2="50" stroke="#39ff85" stroke-width="2"/>
-          <!-- Legs -->
           <line x1="22" y1="57" x2="18" y2="70" stroke="#39ff85" stroke-width="2"/>
           <line x1="36" y1="57" x2="40" y2="70" stroke="#39ff85" stroke-width="2"/>
-          <!-- Tiny seedling in hands -->
           <ellipse cx="29" cy="53" rx="5" ry="3" fill="#2a5a2a"/>
           <line x1="29" y1="50" x2="29" y2="44" stroke="#2ecc71" stroke-width="1.5"/>
           <ellipse cx="26" cy="43" rx="3" ry="2" fill="#2ecc71" transform="rotate(-20 26 43)"/>
           <ellipse cx="32" cy="43" rx="3" ry="2" fill="#2ecc71" transform="rotate(20 32 43)"/>
         </svg>
       </div>
-
-      <!-- Tomato plant 1 -->
       <div class="plant-wrap" style="margin-bottom:12px">
         <svg width="44" height="90" viewBox="0 0 44 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- stem -->
           <line x1="22" y1="88" x2="22" y2="20" stroke="#1a6b2a" stroke-width="3"/>
-          <!-- leaves -->
           <ellipse cx="14" cy="65" rx="12" ry="6" fill="#2ecc71" transform="rotate(-30 14 65)"/>
           <ellipse cx="30" cy="55" rx="12" ry="6" fill="#27ae60" transform="rotate(30 30 55)"/>
           <ellipse cx="12" cy="42" rx="10" ry="5" fill="#2ecc71" transform="rotate(-25 12 42)"/>
           <ellipse cx="32" cy="35" rx="10" ry="5" fill="#27ae60" transform="rotate(25 32 35)"/>
-          <!-- tomato fruit (confused looking) -->
           <circle cx="22" cy="22" r="10" fill="#e74c3c"/>
           <ellipse cx="22" cy="13" rx="5" ry="3" fill="#27ae60"/>
-          <!-- face on tomato -->
           <circle cx="19" cy="21" r="1.5" fill="#7b0000"/>
           <circle cx="25" cy="21" r="1.5" fill="#7b0000"/>
           <path d="M19 25 Q22 23 25 25" stroke="#7b0000" stroke-width="1" fill="none"/>
         </svg>
       </div>
-
-      <!-- Botty 2: reading manual upside down -->
       <div class="botty-wrap" style="animation-delay:.8s">
         <div class="botty-bubbel">Staat er iets over water? 💧</div>
         <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -276,37 +299,27 @@ body{
           <circle cx="35" cy="30" r="3.5" fill="#c89bff"/>
           <circle cx="24" cy="29" r="1.5" fill="#04140d"/>
           <circle cx="36" cy="29" r="1.5" fill="#04140d"/>
-          <!-- Determined expression -->
           <path d="M22 36 Q29 39 36 36" stroke="#c89bff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <!-- Antenna -->
           <line x1="29" y1="14" x2="29" y2="4" stroke="#c89bff" stroke-width="1.5"/>
           <circle cx="29" cy="3" r="2.5" fill="#c89bff"/>
-          <!-- Arms holding book upside down -->
           <line x1="9" y1="40" x2="18" y2="52" stroke="#c89bff" stroke-width="2"/>
           <line x1="49" y1="40" x2="40" y2="52" stroke="#c89bff" stroke-width="2"/>
-          <!-- Book (upside down) -->
           <rect x="16" y="52" width="26" height="17" rx="2" fill="#1a1a3a" stroke="#c89bff" stroke-width="1"/>
-          <text x="19" y="65" font-size="7" fill="#c89bff" transform="rotate(180 29 61)">📖</text>
           <line x1="29" y1="52" x2="29" y2="69" stroke="#c89bff" stroke-width=".8"/>
         </svg>
       </div>
-
-      <!-- Tomato plant 2 -->
       <div class="plant-wrap" style="margin-bottom:6px">
         <svg width="38" height="75" viewBox="0 0 38 75" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="19" y1="73" x2="19" y2="18" stroke="#1a6b2a" stroke-width="2.5"/>
           <ellipse cx="11" cy="55" rx="10" ry="5" fill="#2ecc71" transform="rotate(-25 11 55)"/>
           <ellipse cx="27" cy="45" rx="10" ry="5" fill="#27ae60" transform="rotate(25 27 45)"/>
           <ellipse cx="10" cy="35" rx="8" ry="4" fill="#2ecc71" transform="rotate(-20 10 35)"/>
-          <!-- small tomato, green still -->
           <circle cx="19" cy="19" r="7" fill="#27ae60"/>
           <ellipse cx="19" cy="13" rx="4" ry="2.5" fill="#1a6b2a"/>
           <circle cx="17" cy="18" r="1" fill="#1a4a1a"/>
           <circle cx="21" cy="18" r="1" fill="#1a4a1a"/>
         </svg>
       </div>
-
-      <!-- Botty 3: with tiny watering can -->
       <div class="botty-wrap" style="animation-delay:1.4s">
         <div class="botty-bubbel">Zon? Maar... het is nacht? ☀️</div>
         <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -316,34 +329,24 @@ body{
           <circle cx="35" cy="30" r="3.5" fill="#ff9f43"/>
           <circle cx="24" cy="29" r="1.5" fill="#04140d"/>
           <circle cx="36" cy="29" r="1.5" fill="#04140d"/>
-          <!-- Worried brow -->
           <path d="M20 26 Q23 24 26 26" stroke="#ff9f43" stroke-width="1.5" fill="none" stroke-linecap="round"/>
           <path d="M32 26 Q35 24 38 26" stroke="#ff9f43" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <!-- Small sad mouth -->
           <path d="M23 37 Q29 35 35 37" stroke="#ff9f43" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <!-- Antennae (droopy) -->
           <path d="M22 18 Q14 14 12 9" stroke="#ff9f43" stroke-width="1.5" fill="none"/>
           <circle cx="12" cy="8" r="2.5" fill="#ff9f43"/>
           <path d="M36 18 Q44 14 46 9" stroke="#ff9f43" stroke-width="1.5" fill="none"/>
           <circle cx="46" cy="8" r="2.5" fill="#ff9f43"/>
-          <!-- Arm holding watering can -->
           <line x1="9" y1="42" x2="6" y2="55" stroke="#ff9f43" stroke-width="2"/>
-          <!-- Watering can -->
           <rect x="1" y="53" width="14" height="9" rx="2" fill="#2a1a0a" stroke="#ff9f43" stroke-width="1"/>
           <path d="M15 55 Q20 53 22 58" stroke="#ff9f43" stroke-width="1.5" fill="none"/>
-          <!-- Water drops (going sideways — wrong direction) -->
           <circle cx="24" cy="57" r="1.2" fill="#74b9ff" opacity=".8"/>
           <circle cx="27" cy="59" r="1" fill="#74b9ff" opacity=".6"/>
           <circle cx="25" cy="61" r=".8" fill="#74b9ff" opacity=".4"/>
-          <!-- Other arm -->
           <line x1="49" y1="42" x2="52" y2="50" stroke="#ff9f43" stroke-width="2"/>
-          <!-- Legs -->
           <line x1="22" y1="57" x2="19" y2="70" stroke="#ff9f43" stroke-width="2"/>
           <line x1="36" y1="57" x2="39" y2="70" stroke="#ff9f43" stroke-width="2"/>
         </svg>
       </div>
-
-      <!-- Ground -->
       <div class="grond"></div>
     </div>
   </div>
@@ -359,6 +362,20 @@ body{
     <p style="margin-top:.8rem;color:var(--dim);font-size:.88rem">Vooruitgang: <span class="tomaat">0.3 tomaten</span> per generatie. Verwachte eerste oogst: nooit.</p>
   </div>
 
+  <!-- Stats panel (only shown with ?stats) -->
+  <div id="stats-paneel" class="paneel">
+    <h2>📊 404 Statistieken</h2>
+    <div class="stats-kpi">
+      <div class="kpi-card"><div class="getal" id="kpi-totaal">...</div><div class="label">Totaal hits</div></div>
+      <div class="kpi-card"><div class="getal" id="kpi-vandaag">...</div><div class="label">Vandaag</div></div>
+      <div class="kpi-card"><div class="getal" id="kpi-uniek">...</div><div class="label">Unieke pagina's</div></div>
+    </div>
+    <table class="hits-tabel">
+      <thead><tr><th>Tijd</th><th>Pad</th><th>Referrer</th></tr></thead>
+      <tbody id="hits-tbody"><tr><td colspan="3" style="color:var(--dim)">Laden...</td></tr></tbody>
+    </table>
+  </div>
+
   <!-- Navigation -->
   <nav class="footer-nav">
     <a href="index.html">🏠 Terug naar de Hive</a>
@@ -368,6 +385,64 @@ body{
 </div>
 
 <script>
+const SUPABASE_URL = 'https://oblzouaapvdippyhxmpo.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0MDExMzMsImV4cCI6MjA2NTk3NzEzM30.ylyBn5ye5yFSP8OuqWS_NMQ7-axJJdz3Z7-C0y8QCkodP4';
+
+async function sb(path, opts = {}) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: {
+      apikey: SUPABASE_ANON,
+      Authorization: 'Bearer ' + SUPABASE_ANON,
+      'Content-Type': 'application/json',
+      Prefer: opts.prefer || ''
+    },
+    ...opts
+  });
+  if (!r.ok) return null;
+  return r.status === 204 ? null : r.json();
+}
+
+// Log this 404 hit
+(async () => {
+  const pad = location.pathname + location.search;
+  const ref = document.referrer || null;
+  const ua = navigator.userAgent || null;
+  await sb('page_404_hits', {
+    method: 'POST',
+    prefer: 'return=minimal',
+    body: JSON.stringify({ path: pad, referrer: ref, user_agent: ua })
+  });
+})();
+
+// Stats panel
+const statsMode = new URLSearchParams(location.search).has('stats');
+if (statsMode) {
+  const el = document.getElementById('stats-paneel');
+  el.classList.add('zichtbaar');
+
+  (async () => {
+    const hits = await sb('page_404_hits?select=ts,path,referrer&order=ts.desc&limit=50');
+    if (!hits) return;
+
+    document.getElementById('kpi-totaal').textContent = hits.length >= 50 ? '50+' : hits.length;
+
+    const vandaag = new Date().toISOString().slice(0, 10);
+    const hitsVandaag = hits.filter(h => h.ts.startsWith(vandaag));
+    document.getElementById('kpi-vandaag').textContent = hitsVandaag.length;
+
+    const uniek = new Set(hits.map(h => h.path)).size;
+    document.getElementById('kpi-uniek').textContent = uniek;
+
+    const tbody = document.getElementById('hits-tbody');
+    tbody.innerHTML = hits.map(h => {
+      const t = new Date(h.ts).toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' });
+      const pad = h.path || '—';
+      const ref = h.referrer ? '<a href="' + h.referrer + '" style="color:var(--matrix)" target="_blank" rel="noopener">' + h.referrer.replace(/https?:\/\//, '').slice(0, 40) + '</a>' : '<span style="color:var(--dim)">direct</span>';
+      return '<tr><td>' + t + '</td><td>' + pad + '</td><td>' + ref + '</td></tr>';
+    }).join('');
+  })();
+}
+
 // Matrix rain
 const cv = document.getElementById('matrix-canvas');
 const cx = cv.getContext('2d');
