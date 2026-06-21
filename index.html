@@ -168,6 +168,7 @@
   .b-data>span{background:linear-gradient(90deg,#1a7d4a,#39ff85);}
   .b-fit>span{background:linear-gradient(90deg,#2e6b34,#7fd06f);}
   .b-geluk>span{background:linear-gradient(90deg,#a87010,#f6c250);}
+  .b-stemming>span{background:linear-gradient(90deg,#4a1a88,#c89bff);}
 
   /* IR-beam */
   .beam{
@@ -278,7 +279,7 @@
 (function(){
   "use strict";
 
-  // ── Supabase config ──────────────────────────────────────────────────────
+  // ── Supabase config ────────────────────────────────────────────────────────────────────────────
   var SUPABASE_URL  = "https://oblzouaapvdippyhxmpo.supabase.co";
   var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4";
   var TICK_URL      = SUPABASE_URL + "/functions/v1/hive-tick";
@@ -286,14 +287,14 @@
 
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // ── State ─────────────────────────────────────────────────────────────────────────────────
   var bottys = [];
   var firstOpened = Date.now();
   var acties = 0;
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   var bezigKweek = false;
 
-  // ── Paletten & hulpfuncties ───────────────────────────────────────────────
+  // ── Paletten & hulpfuncties ───────────────────────────────────────────────────────────────────────────
   var paletten = [
     {naam:"Klassiek",broek:"#57b85f",broekRand:"#2e6b34",scherm:"#3a9d94",schermRand:"#2b8077",accent:"#2f8f86",oogje:"#bfe3df"},
     {naam:"Aqua",    broek:"#3fb6c9",broekRand:"#1f6f7e",scherm:"#2f8fa8",schermRand:"#236f84",accent:"#2f9fb0",oogje:"#cdeef5"},
@@ -308,10 +309,10 @@
   function spierSchaal(eff){ return (0.55 + (typeof eff==="number"?eff:50)/100 * 1.0).toFixed(2); }
   var groei = { baby:0.66, tiener:0.92, volwassen:1.0 };
   var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
-  var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
+  var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📤", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
   function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
 
-  // ── Sprites ────────────────────────────────────────────────────────────────
+  // ── Sprites ────────────────────────────────────────────────────────────────────────────────
   function spriteVolwassen(p){ return ''
     + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
     +   '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
@@ -387,7 +388,7 @@
   }
   function mutatiesSvg(list){ return (list||[]).map(mutatieSvg).join(""); }
 
-  // ── DOM helpers ───────────────────────────────────────────────────────────
+  // ── DOM helpers ───────────────────────────────────────────────────────────────────────────────
   var verse = document.getElementById("verse");
 
   function genenHtml(b){
@@ -420,20 +421,22 @@
       +   barRij("💾","b-data","data")
       +   barRij("🏃","b-fit","fit")
       +   barRij("😊","b-geluk","geluk")
+      +   barRij("🧠","b-stemming","stemming")
       + '</div>';
     return {
       wrap: kaart.querySelector(".bw"),
       floaters: kaart.querySelector(".floaters"),
       bars: {
-        energie: kaart.querySelector('[data-m="energie"] > span'),
-        data:    kaart.querySelector('[data-m="data"] > span'),
-        fit:     kaart.querySelector('[data-m="fit"] > span'),
-        geluk:   kaart.querySelector('[data-m="geluk"] > span')
+        energie:  kaart.querySelector('[data-m="energie"] > span'),
+        data:     kaart.querySelector('[data-m="data"] > span'),
+        fit:      kaart.querySelector('[data-m="fit"] > span'),
+        geluk:    kaart.querySelector('[data-m="geluk"] > span'),
+        stemming: kaart.querySelector('[data-m="stemming"] > span')
       }
     };
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────────────────
   var prevBottys = [];
   var elMap = {};   // naam → { kaart, wrap, floaters, bars }
 
@@ -477,10 +480,11 @@
         }
         // Update bars
         var el = elMap[b.naam];
-        el.bars.energie.style.width = b.energie + "%";
-        el.bars.data.style.width    = b.data + "%";
-        el.bars.fit.style.width     = b.fit + "%";
-        el.bars.geluk.style.width   = b.geluk + "%";
+        el.bars.energie.style.width  = b.energie + "%";
+        el.bars.data.style.width     = b.data + "%";
+        el.bars.fit.style.width      = b.fit + "%";
+        el.bars.geluk.style.width    = b.geluk + "%";
+        if (el.bars.stemming) el.bars.stemming.style.width = (b.stemming != null ? b.stemming : 50) + "%";
         el.wrap.classList.toggle("vitaal", gem(b) > 65 && !b.ziek);
         el.wrap.classList.toggle("ziek", !!b.ziek);
 
@@ -601,7 +605,7 @@
     }, 1700);
   }
 
-  // ── Uptime ────────────────────────────────────────────────────────────────
+  // ── Uptime ───────────────────────────────────────────────────────────────────────────────
   function fmtDuur(ms){
     var s=Math.floor(ms/1000), m=Math.floor(s/60), u=Math.floor(m/60), d=Math.floor(u/24);
     if(d>0) return d+"d "+(u%24)+"u";
@@ -613,7 +617,7 @@
     document.getElementById("kpi-uptime").textContent = fmtDuur(Date.now()-firstOpened);
   }, 1000);
 
-  // ── Ticker ────────────────────────────────────────────────────────────────
+  // ── Ticker ───────────────────────────────────────────────────────────────────────────────
   var tickerFeed = [
     "☁️ De hive draait in de cloud. De AI verzorgt alle Botty's volledig zelf.",
     "🤖 De AI koppelt Botty's op basis van datakwaliteit en efficiëntie.",
@@ -629,7 +633,7 @@
   }
   setInterval(cycleTicker, 5000);
 
-  // ── Cloud status ──────────────────────────────────────────────────────────
+  // ── Cloud status ─────────────────────────────────────────────────────────────────────────────
   function setVerbonden(ja){
     var dot = document.getElementById("cloud-dot");
     var lbl = document.getElementById("cloud-status");
@@ -637,7 +641,15 @@
     lbl.textContent = ja ? "live · cloud" : "herverbinden…";
   }
 
-  // ── Tick: browser roept edge function aan zolang tab open is ─────────────
+  // ── Bezoekers: ping elke 14s zodat de hive weet hoeveel bezoekers er zijn ─
+  var PING_HDRS = { "apikey": SUPABASE_ANON, "Authorization": "Bearer " + SUPABASE_ANON, "Content-Type": "application/json", "Prefer": "return=minimal" };
+  function pingBezoeker() {
+    if (!document.hidden) fetch(SUPABASE_URL + "/rest/v1/bezoeker_pings", { method: "POST", headers: PING_HDRS, body: "{}" }).catch(function(){});
+  }
+  pingBezoeker();
+  setInterval(pingBezoeker, 14000);
+
+  // ── Tick: browser roept edge function aan zolang tab open is ─────────────────
   var tickTimer = null;
   function startTick(){
     if(tickTimer) clearInterval(tickTimer);
@@ -666,7 +678,7 @@
     }, TICK_INTERVAL);
   }
 
-  // ── Realtime subscription ─────────────────────────────────────────────────
+  // ── Realtime subscription ──────────────────────────────────────────────────────────────────────────
   supabase
     .channel("hive")
     .on("postgres_changes",
@@ -680,7 +692,7 @@
       setVerbonden(status === "SUBSCRIBED");
     });
 
-  // ── Initieel laden ─────────────────────────────────────────────────────────
+  // ── Initieel laden ───────────────────────────────────────────────────────────────────────────────
   document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> De hive verbindt met de cloud…';
   fetch(TICK_URL, { method:"POST" })
     .then(function(r){ return r.json(); })
@@ -698,7 +710,7 @@
     });
 
 
-  // ── Matrix regen ───────────────────────────────────────────────────────────
+  // ── Matrix regen ───────────────────────────────────────────────────────────────────────────────
   (function rain(){
     if(reduce) return;
     var cv = document.getElementById("rain"), ctx = cv.getContext("2d");

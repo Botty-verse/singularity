@@ -202,6 +202,7 @@ h1{
 .b-data>span{background:linear-gradient(90deg,#1a7d4a,#39ff85);}
 .b-fit>span{background:linear-gradient(90deg,#2e6b34,#7fd06f);}
 .b-geluk>span{background:linear-gradient(90deg,#a87010,#f6c250);}
+.b-stemming>span{background:linear-gradient(90deg,#4a1a88,#c89bff);}
 
 .beam{position:absolute;height:3px;background:linear-gradient(90deg,transparent,#2f8f86,#39ff85,#2f8f86,transparent);transform-origin:left center;border-radius:2px;pointer-events:none;z-index:5;box-shadow:0 0 8px rgba(57,255,133,.5);animation:beamfade .9s ease-out forwards;}
 @keyframes beamfade{0%{opacity:.9}100%{opacity:0}}
@@ -408,7 +409,7 @@ var TICK_INTERVAL = 1500;
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-// ── State ──────────────────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────────────────
 var bottys = [];
 var acties = 0;
 var bezigKweek = false;
@@ -417,7 +418,7 @@ var genData = {};
 var aiLog = [];
 var positieveEmoties = new Set(["enthousiast","blij","kalm","nieuwsgierig","trots"]);
 
-// ── Emoties ────────────────────────────────────────────────────────────────
+// ── Emoties ────────────────────────────────────────────────────────────────────────────
 var EMOTIES = {
   enthousiast: { emoji:"🤩", label:"enthousiast", kleur:"#ffd54a", sprong:-10, gewicht:0.6 },
   blij:        { emoji:"😊", label:"blij",         kleur:"#39ff85", sprong:-8,  gewicht:0.8 },
@@ -437,27 +438,29 @@ function bepaalEmotie(b) {
   var mn = Math.min(b.energie, b.data, b.fit, b.geluk);
   var mx = Math.max(b.energie, b.data, b.fit, b.geluk);
   var spread = mx - mn;
-  if (gem > 86) return "enthousiast";
-  if (b.geluk < 28 || (b.energie < 22 && b.fit < 22)) return "verdrietig";
-  if (mn < 20) return "angstig";
-  if (spread > 52) return "verward";
-  if ((b.generatie || 1) >= 4 && gem > 60) return "trots";
-  if (gem > 70) return "blij";
-  if (b.data > 72 && b.geluk > 55) return "nieuwsgierig";
-  if (b.geluk < 48 && gem < 60) return "eenzaam";
-  if (spread < 22 && gem > 48) return "kalm";
-  return "blij";
+  var st = (b.stemming != null) ? b.stemming : 50;
+
+  if (gem > 86 || (gem > 72 && st > 82)) return "enthousiast";
+  if (b.geluk < 28 || (b.energie < 22 && b.fit < 22) || st < 12) return "verdrietig";
+  if (mn < 20 || (mn < 32 && st < 22)) return "angstig";
+  if (spread > 52 || (spread > 40 && st < 28)) return "verward";
+  if ((b.generatie || 1) >= 4 && gem > 60 && st > 62) return "trots";
+  if (gem > 70 && st > 44) return "blij";
+  if (b.data > 72 && b.geluk > 55 && st > 52) return "nieuwsgierig";
+  if ((b.geluk < 48 && gem < 60) || (gem < 65 && st < 30)) return "eenzaam";
+  if (spread < 22 && gem > 48 && st > 38) return "kalm";
+  return st > 56 ? "blij" : "eenzaam";
 }
 
 var EMOTIE_ZORG = {
   enthousiast: function(naam){ return { tekst: "🎉 " + naam + " bruist van energie — de AI viert mee!",       label:"+🎉",  kleur:"#ffd54a", type:"emotie" }; },
-  blij:        function(naam){ return { tekst: "😊 " + naam + " is blij. De AI geeft een bemoedigend tikje.",  label:"+💚",  kleur:"#39ff85", type:"data"   }; },
+  blij:        function(naam,b){ var st=b&&b.stemming!=null?Math.round(b.stemming):50; return { tekst: "😊 " + naam + " is blij (stemming "+st+"). De AI geeft een bemoedigend tikje.",  label:"+💚",  kleur:"#39ff85", type:"data"   }; },
   kalm:        function(naam){ return { tekst: "😌 " + naam + " is kalm. De AI laat ze rustig zijn.",          label:"~",   kleur:"#5ec6ff", type:"data"   }; },
   nieuwsgierig:function(naam){ return { tekst: "🤔 " + naam + " is nieuwsgierig — AI geeft extra data!",       label:"+💾",  kleur:"#c89bff", type:"data"   }; },
   trots:       function(naam){ return { tekst: "😎 " + naam + " is trots. AI erkent de prestatie!",            label:"+⭐", kleur:"#f6a623", type:"emotie" }; },
   eenzaam:     function(naam){ return { tekst: "😔 " + naam + " voelt zich eenzaam. AI regelt snel een bezoek!",label:"+💕",  kleur:"#7fb89a", type:"geluk"  }; },
   verdrietig:  function(naam){ return { tekst: "😢 " + naam + " is verdrietig. AI geeft troost en extra geluk.",label:"+💙",  kleur:"#6699cc", type:"geluk"  }; },
-  angstig:     function(naam){ return { tekst: "😰 " + naam + " is angstig. AI geeft veiligheid en energie.",  label:"+🫂",  kleur:"#e08a1a", type:"energie"}; },
+  angstig:     function(naam){ return { tekst: "😰 " + naam + " is angstig. AI geeft veiligheid en energie.",  label:"+🫸",  kleur:"#e08a1a", type:"energie"}; },
   verward:     function(naam){ return { tekst: "😵 " + naam + " is verward. AI balanceert alle statistieken.",  label:"+⚖️", kleur:"#e0556b", type:"emotie" }; },
   ziek:        function(naam){ return { tekst: "🤒 " + naam + " is ziek! AI start volledig herstelprotocol.",  label:"💊",  kleur:"#ff8bd0", type:"ziek"   }; },
 };
@@ -468,7 +471,7 @@ function voegAiLogToe(item) {
   renderAiLog();
 }
 
-// ── Gravity physics ────────────────────────────────────────────────────────
+// ── Gravity physics ────────────────────────────────────────────────────────────────────────────
 var physics = {};
 var GRAVITY = 0.38;
 var STUIT   = 0.45;
@@ -511,7 +514,7 @@ function physicsLoop() {
   requestAnimationFrame(physicsLoop);
 }
 
-// ── Paletten & sprites ─────────────────────────────────────────────────────
+// ── Paletten & sprites ─────────────────────────────────────────────────────────────────────────────
 var paletten = [
   {naam:"Klassiek",broek:"#57b85f",broekRand:"#2e6b34",scherm:"#3a9d94",schermRand:"#2b8077",accent:"#2f8f86",oogje:"#bfe3df"},
   {naam:"Aqua",    broek:"#3fb6c9",broekRand:"#1f6f7e",scherm:"#2f8fa8",schermRand:"#236f84",accent:"#2f9fb0",oogje:"#cdeef5"},
@@ -526,7 +529,7 @@ function gem(b){ return (b.energie+b.data+b.fit+b.geluk)/4; }
 function spierSchaal(eff){ return (0.55 + (typeof eff==="number"?eff:50)/100*1.0).toFixed(2); }
 var groei = { baby:0.58, tiener:0.82, volwassen:1.0 };
 var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
-var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
+var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📤", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
 function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
 
 function spriteVolwassen(p){ return ''
@@ -579,7 +582,7 @@ function mutatieSvg(id){
 }
 function mutatiesSvg(list){ return (list||[]).map(mutatieSvg).join(""); }
 
-// ── DOM helpers ────────────────────────────────────────────────────────────
+// ── DOM helpers ──────────────────────────────────────────────────────────────────────────────
 var verse  = document.getElementById("verse");
 var elMap  = {};
 var prevBottys = [];
@@ -608,7 +611,7 @@ function vulKaart(kaart, b){
     + '<div style="text-align:center"><span class="emotie-badge"><span class="eico">'+em.emoji+'</span><span class="enaam">'+em.label+'</span></span></div>'
     + '<div class="genen">'+genenHtml(b)+'</div>'
     + '<div class="scene">'
-    +   '<div class="bw bw-'+b.stage+'" style="--groei:'+(groei[b.stage]||1)+';--spier:'+spierSchaal(b.efficientie)+'">'
+    +   '<div class="bw bw-'+b.stage+'" style="--groei:'+(groei[b.stage]||1)+';--spier:'+spierSchaal(b.efficientie)+'">' 
     +     '<div class="emotie-bubbel">'+em.emoji+'</div>'
     +     '<svg viewBox="0 0 200 250" aria-label="Botty '+b.naam+'">'+(sprites[b.stage]||spriteVolwassen)(p)+mutatiesSvg(b.mutaties)+'</svg>'
     +     '<div class="floaters"></div>'
@@ -620,6 +623,7 @@ function vulKaart(kaart, b){
     +   barRij("💾","b-data","data")
     +   barRij("🏃","b-fit","fit")
     +   barRij("😊","b-geluk","geluk")
+    +   barRij("🧠","b-stemming","stemming")
     + '</div>';
 
   kaart.className = "kaart emotie-" + emotie;
@@ -631,16 +635,17 @@ function vulKaart(kaart, b){
     bubelEl:  kaart.querySelector(".emotie-bubbel"),
     badgeEl:  kaart.querySelector(".emotie-badge"),
     bars: {
-      energie: kaart.querySelector('[data-m="energie"] > span'),
-      data:    kaart.querySelector('[data-m="data"] > span'),
-      fit:     kaart.querySelector('[data-m="fit"] > span'),
-      geluk:   kaart.querySelector('[data-m="geluk"] > span')
+      energie:  kaart.querySelector('[data-m="energie"] > span'),
+      data:     kaart.querySelector('[data-m="data"] > span'),
+      fit:      kaart.querySelector('[data-m="fit"] > span'),
+      geluk:    kaart.querySelector('[data-m="geluk"] > span'),
+      stemming: kaart.querySelector('[data-m="stemming"] > span')
     },
     emotie: emotie
   };
 }
 
-// ── Generatie data tracking ───────────────────────────────────────────────────
+// ── Generatie data tracking ────────────────────────────────────────────────────────────────────────────────
 function updateGenData(b) {
   var g = b.generatie || 1;
   if (!genData[g]) genData[g] = { gen:g, dk:[], ef:[], geluk:[], mutaties:new Set(), count:0 };
@@ -750,7 +755,7 @@ function renderAiLog() {
   }).join("") || '<div style="color:#4a7a62;font-size:.72rem">Wacht op AI acties…</div>';
 }
 
-// ── Render ────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────────────────
 function renderState(state){
   if (!state || !state.bottys) return;
   var nieuweBottys = state.bottys;
@@ -792,10 +797,11 @@ function renderState(state){
         existing.badgeEl  = els2.badgeEl;
         existing.bars     = els2.bars;
       } else {
-        existing.bars.energie.style.width = b.energie + "%";
-        existing.bars.data.style.width    = b.data    + "%";
-        existing.bars.fit.style.width     = b.fit     + "%";
-        existing.bars.geluk.style.width   = b.geluk   + "%";
+        existing.bars.energie.style.width  = b.energie + "%";
+        existing.bars.data.style.width     = b.data    + "%";
+        existing.bars.fit.style.width      = b.fit     + "%";
+        existing.bars.geluk.style.width    = b.geluk   + "%";
+        if (existing.bars.stemming) existing.bars.stemming.style.width = (b.stemming != null ? b.stemming : 50) + "%";
 
         if (emotie !== prevEmotie){
           existing.emotie = emotie;
@@ -929,7 +935,7 @@ function toonKweek(ev){
   }, 1700);
 }
 
-// ── Cloud status ─────────────────────────────────────────────────────────
+// ── Cloud status ────────────────────────────────────────────────────────────────────────────
 function setVerbonden(ja){
   var dot = document.getElementById("cloud-dot");
   var lbl = document.getElementById("cloud-status");
@@ -937,7 +943,7 @@ function setVerbonden(ja){
   lbl.textContent = ja ? "live · cloud" : "herverbinden…";
 }
 
-// ── Tick ──────────────────────────────────────────────────────────────────
+// ── Tick ───────────────────────────────────────────────────────────────────────────────
 var tickTimer = null;
 function startTick(){
   if (tickTimer) clearInterval(tickTimer);
