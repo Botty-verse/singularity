@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty-verse — Evolutie & Emoties</title>
+<meta name="theme-color" content="#04140d" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --rood:#b52718;
+  --groen:#1a5c4a;
+  --teal:#2f8f86;
+  --matrix:#39ff85;
+  --matrix-dim:#1f7d4d;
+  --paneel:rgba(6,26,18,.82);
+  --paneel-rand:#1c5b42;
+  --licht:#dff7ea;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;}
+body{
+  font-family:'Nunito',sans-serif;
+  background:#04140d;
+  color:var(--licht);
+  display:flex;flex-direction:column;
+  align-items:center;
+}
+#rain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.3;}
+header{
+  position:relative;z-index:1;
+  text-align:center;padding:1.5rem 1rem .8rem;
+  width:100%;
+}
+h1{font-size:clamp(1.6rem,4vw,2.6rem);font-weight:900;
+   background:linear-gradient(135deg,var(--matrix),#a3ffce,#c89bff);
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+   background-clip:text;letter-spacing:-.02em;}
+.ondertitel{max-width:700px;margin:.4rem auto 0;font-size:.9rem;color:#a8d4be;line-height:1.5;}
+.kpi-rij{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin:.9rem auto .3rem;max-width:720px;}
+.kpi{background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:12px;
+     padding:.4rem .8rem;text-align:center;min-width:82px;}
+.kpi .label{font-size:.68rem;color:#7fb89a;text-transform:uppercase;letter-spacing:.06em;}
+.kpi .waarde{font-size:1.25rem;font-weight:900;color:var(--matrix);}
+.kpi .sub{font-size:.65rem;color:#5f8f78;}
+
+.ticker-wrap{
+  position:relative;z-index:1;
+  background:var(--paneel);border:1px solid var(--paneel-rand);
+  border-radius:10px;padding:.4rem .9rem;
+  width:calc(100% - 2rem);max-width:900px;
+  margin:.2rem auto .5rem;font-size:.86rem;color:var(--matrix);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.knip{animation:knip .8s step-end infinite;}
+@keyframes knip{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Hoofd layout */
+.main-layout{
+  position:relative;z-index:1;
+  display:flex;gap:1rem;align-items:flex-start;
+  width:100%;max-width:1200px;
+  padding:0 1rem 2rem;
+}
+
+/* Botty kolom */
+.botty-kolom{
+  flex:1 1 560px;min-width:0;
+}
+#verse{
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:.9rem;
+  position:relative;
+}
+
+/* Kaarten */
+.kaart{
+  background:var(--paneel);
+  border:2px solid var(--paneel-rand);
+  border-radius:16px;padding:.65rem .65rem .45rem;
+  width:158px;flex-shrink:0;
+  transition:border-color .4s,box-shadow .4s;
+  position:relative;overflow:visible;
+}
+.kaart.emotie-enthousiast{border-color:#ffd54a;box-shadow:0 0 14px #ffd54a55;}
+.kaart.emotie-blij       {border-color:#39ff85;box-shadow:0 0 10px #39ff8533;}
+.kaart.emotie-kalm       {border-color:#5ec6ff;box-shadow:0 0 8px #5ec6ff22;}
+.kaart.emotie-nieuwsgierig{border-color:#c89bff;box-shadow:0 0 10px #c89bff33;}
+.kaart.emotie-trots      {border-color:#f6a623;box-shadow:0 0 14px #f6a62355;}
+.kaart.emotie-eenzaam    {border-color:#3d6b57;box-shadow:none;}
+.kaart.emotie-verdrietig {border-color:#6699cc;box-shadow:0 0 8px #6699cc22;}
+.kaart.emotie-angstig    {border-color:#e08a1a;box-shadow:0 0 12px #e08a1a44;animation:trillen .15s infinite;}
+.kaart.emotie-verward    {border-color:#e0556b;box-shadow:0 0 10px #e0556b33;}
+.kaart.emotie-ziek       {border-color:#b52718;box-shadow:0 0 10px #b5271844;}
+@keyframes trillen{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
+
+.knaam{font-weight:900;font-size:.92rem;color:var(--licht);text-align:center;}
+.kstage{font-size:.68rem;color:#7fb89a;text-align:center;margin:.1rem 0;}
+.emotie-badge{
+  text-align:center;font-size:.72rem;margin:.15rem 0;
+  display:flex;align-items:center;justify-content:center;gap:.25rem;
+}
+.emotie-badge .eico{font-size:.95rem;}
+.emotie-badge .enaam{color:#c2e8d8;}
+
+.genen{display:flex;flex-wrap:nowrap;gap:.18rem;justify-content:center;font-size:.62rem;margin:.15rem 0;white-space:nowrap;}
+.genen span{background:#0e2f1e;border:1px solid #1c5b42;border-radius:6px;padding:.08rem .3rem;}
+.muts{letter-spacing:.08em;}
+
+/* Scène met zwaartekracht */
+.scene{
+  position:relative;
+  width:100%;height:130px;
+  display:flex;align-items:flex-end;justify-content:center;
+  overflow:hidden;
+  background:linear-gradient(to bottom,transparent 70%,rgba(6,26,18,.5) 100%);
+  border-radius:8px;
+  border-bottom:2px solid var(--paneel-rand);
+}
+.grond{
+  position:absolute;
+  bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--paneel-rand),transparent);
+}
+.bw{
+  position:absolute;
+  bottom:4px;
+  transition:filter .3s;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.bw svg{
+  display:block;
+  width:calc(var(--groei,1.0) * 72px);
+  height:auto;
+  overflow:visible;
+}
+.bw.vitaal{filter:drop-shadow(0 0 5px rgba(57,255,133,.4));}
+.bw.ziek{filter:drop-shadow(0 0 7px rgba(181,39,24,.7));}
+.bw.droevig{filter:brightness(.8) saturate(.6);}
+.bw .spier{transform-origin:center;transform:scale(var(--spier,1));}
+
+/* Emotie bubbel boven Botty */
+.emotie-bubbel{
+  position:absolute;
+  top:-10px;left:50%;transform:translateX(-50%);
+  font-size:1.1rem;
+  pointer-events:none;
+  animation:bob 3s ease-in-out infinite;
+  z-index:10;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));
+}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-4px)}}
+
+/* Zorg armen */
+.bw.zorg svg .arm-l{transform-box:fill-box;transform-origin:50% 0%;animation:armLUp 2s ease-in-out;}
+.bw.zorg svg .arm-r{transform-box:fill-box;transform-origin:50% 0%;animation:armRUp 2s ease-in-out;}
+@keyframes armLUp{0%,100%{transform:rotate(0deg)}25%,75%{transform:rotate(-130deg)}}
+@keyframes armRUp{0%,100%{transform:rotate(0deg)}25%,75%{transform:rotate(130deg)}}
+.bw.act{animation:hop .5s cubic-bezier(.36,.07,.19,.97);}
+@keyframes hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-14px)}60%{transform:translateY(-7px)}}
+.bw.weg{animation:weg 1.4s forwards;}
+@keyframes weg{0%{opacity:1;transform:scale(1)}60%{opacity:.3;transform:scale(.7) translateY(10px)}100%{opacity:0;transform:scale(.4) translateY(30px)}}
+
+.floaters{position:absolute;inset:0;pointer-events:none;overflow:visible;}
+.floater{
+  position:absolute;bottom:60%;font-size:.72rem;font-weight:700;
+  white-space:nowrap;pointer-events:none;
+  animation:float 1.1s ease-out forwards;
+}
+@keyframes float{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-36px)}}
+
+.bars{display:flex;flex-direction:column;gap:.18rem;margin-top:.35rem;}
+.bar-rij{display:flex;align-items:center;gap:.3rem;}
+.ico{font-size:.72rem;width:14px;text-align:center;flex-shrink:0;}
+.bar{flex:1;height:6px;background:#0a1f13;border-radius:99px;overflow:hidden;}
+.bar>span{display:block;height:100%;border-radius:99px;transition:width .4s ease;}
+.b-energie>span{background:linear-gradient(90deg,#2f8fa8,#5ec6ff);}
+.b-data>span{background:linear-gradient(90deg,#1a7d4a,#39ff85);}
+.b-fit>span{background:linear-gradient(90deg,#2e6b34,#7fd06f);}
+.b-geluk>span{background:linear-gradient(90deg,#a87010,#f6c250);}
+
+/* IR beam */
+#verse{position:relative;}
+.beam{
+  position:absolute;height:3px;
+  background:linear-gradient(90deg,transparent,#2f8f86,#39ff85,#2f8f86,transparent);
+  transform-origin:left center;border-radius:2px;pointer-events:none;z-index:5;
+  animation:beamfade .9s ease-out forwards;
+}
+@keyframes beamfade{0%{opacity:.9}100%{opacity:0}}
+
+/* ── Evaluatief paneel ── */
+.eval-kolom{
+  flex:0 0 300px;
+  display:flex;flex-direction:column;gap:.8rem;
+  position:sticky;top:1rem;
+  max-height:calc(100vh - 2rem);
+  overflow-y:auto;
+}
+.eval-sectie{
+  background:var(--paneel);border:1px solid var(--paneel-rand);
+  border-radius:14px;padding:.9rem 1rem;
+}
+.eval-sectie h2{
+  font-size:.82rem;font-weight:900;text-transform:uppercase;
+  letter-spacing:.08em;color:#7fb89a;margin-bottom:.6rem;
+  display:flex;align-items:center;gap:.4rem;
+}
+.eval-sectie h2 .ico-h{font-size:1rem;}
+
+/* Generationele grafiek */
+#gen-canvas{
+  width:100%;border-radius:8px;
+  background:#061a12;
+  border:1px solid #1c5b42;
+  display:block;
+}
+.gen-legende{
+  display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.4rem;font-size:.68rem;color:#7fb89a;
+}
+.gen-legende span{display:flex;align-items:center;gap:.2rem;}
+.gen-legende i{display:inline-block;width:10px;height:3px;border-radius:2px;}
+
+/* Emotie overzicht grid */
+.emotie-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;
+}
+.emotie-cel{
+  background:#061a12;border:1px solid #1c5b42;
+  border-radius:8px;padding:.3rem .4rem;
+  text-align:center;font-size:.65rem;
+  transition:border-color .3s;
+}
+.emotie-cel .enaam-klein{color:#a8d4be;font-size:.62rem;}
+.emotie-cel .eico-groot{font-size:1.1rem;display:block;}
+.emotie-cel.ec-enthousiast{border-color:#ffd54a;}
+.emotie-cel.ec-blij{border-color:#39ff85;}
+.emotie-cel.ec-trots{border-color:#f6a623;}
+.emotie-cel.ec-angstig{border-color:#e08a1a;}
+.emotie-cel.ec-verdrietig{border-color:#6699cc;}
+.emotie-cel.ec-ziek{border-color:#b52718;}
+
+/* AI log */
+.ai-log-lijst{
+  display:flex;flex-direction:column;gap:.35rem;
+  max-height:220px;overflow-y:auto;
+  font-size:.74rem;
+}
+.ai-log-item{
+  background:#061a12;border-left:3px solid var(--paneel-rand);
+  border-radius:0 6px 6px 0;padding:.3rem .5rem;
+  color:#a8d4be;line-height:1.4;
+}
+.ai-log-item.log-geluk{border-left-color:#f6c250;}
+.ai-log-item.log-ziek{border-left-color:#b52718;}
+.ai-log-item.log-data{border-left-color:#39ff85;}
+.ai-log-item.log-energie{border-left-color:#5ec6ff;}
+.ai-log-item.log-emotie{border-left-color:#c89bff;}
+
+/* Gen statistieken tabel */
+.gen-tabel{
+  width:100%;border-collapse:collapse;font-size:.72rem;
+}
+.gen-tabel th{
+  text-align:left;color:#5f8f78;font-weight:700;
+  padding:.2rem .3rem;border-bottom:1px solid #1c5b42;
+}
+.gen-tabel td{
+  padding:.25rem .3rem;color:#a8d4be;border-bottom:1px solid #0e2f1e;
+}
+.gen-tabel tr:last-child td{border-bottom:none;}
+.gen-tabel .goed{color:#39ff85;font-weight:700;}
+.gen-tabel .muts-mini{font-size:.65rem;letter-spacing:.06em;}
+
+/* Uitleg & nav */
+.uitleg-strip{
+  position:relative;z-index:1;
+  max-width:900px;width:calc(100% - 2rem);
+  margin:0 auto .8rem;
+  background:var(--paneel);border:1px solid var(--paneel-rand);
+  border-radius:14px;padding:.9rem 1.1rem;
+  font-size:.83rem;line-height:1.6;color:#c2e8d8;
+  display:flex;gap:1.5rem;flex-wrap:wrap;
+}
+.uitleg-strip section{flex:1 1 200px;}
+.uitleg-strip h3{font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#7fb89a;margin-bottom:.3rem;}
+
+footer{
+  position:relative;z-index:1;
+  text-align:center;padding:.7rem;font-size:.78rem;color:#4a7a62;
+}
+footer a{color:#5f9a80;text-decoration:none;margin:0 .5rem;}
+
+.cloud-badge{
+  position:fixed;top:10px;right:10px;z-index:100;
+  background:var(--paneel);border:1px solid var(--paneel-rand);
+  border-radius:8px;padding:.28rem .55rem;font-size:.7rem;color:#7fb89a;
+  display:flex;align-items:center;gap:.3rem;
+}
+.cloud-dot{width:7px;height:7px;border-radius:50%;background:#888;flex-shrink:0;}
+.cloud-dot.verbonden{background:var(--matrix);animation:pulse-dot 2s ease-in-out infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+
+@media(max-width:800px){
+  .main-layout{flex-direction:column;}
+  .eval-kolom{flex:none;width:100%;position:static;max-height:none;}
+}
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+
+<div class="cloud-badge">
+  <div class="cloud-dot" id="cloud-dot"></div>
+  <span id="cloud-status">verbinden…</span>
+</div>
+
+<header>
+  <h1>Botty-verse Evolutie</h1>
+  <p style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#c89bff;margin:.15rem 0;opacity:.8;">v3 — Zwaartekracht · Emoties · Generaties</p>
+  <p class="ondertitel">Botty's leven in containers met <strong>zwaartekracht</strong>. Ze voelen <strong>10 emoties</strong> die de AI assistent herkent en verzorgt. Het evaluatief paneel toont hoe ze zich ontwikkelen <strong>over generaties</strong>.</p>
+  <div class="kpi-rij">
+    <div class="kpi"><div class="label">Botty's</div><div class="waarde" id="kpi-aantal">—</div><div class="sub">in de hive</div></div>
+    <div class="kpi"><div class="label">Generatie</div><div class="waarde" id="kpi-gen">—</div><div class="sub">hoogste</div></div>
+    <div class="kpi"><div class="label">Gem. genen</div><div class="waarde" id="kpi-genen">—</div><div class="sub">kwaliteit</div></div>
+    <div class="kpi"><div class="label">AI-acties</div><div class="waarde" id="kpi-acties">—</div><div class="sub">emotiezorg</div></div>
+    <div class="kpi"><div class="label">Blij%</div><div class="waarde" id="kpi-blij">—</div><div class="sub">positieve emoties</div></div>
+  </div>
+</header>
+
+<div class="ticker-wrap" id="ticker"><span class="knip">▌</span> De hive verbindt met de cloud…</div>
+
+<div class="main-layout">
+  <!-- Botty grid -->
+  <div class="botty-kolom">
+    <div id="verse"></div>
+  </div>
+
+  <!-- Evaluatief paneel -->
+  <div class="eval-kolom">
+
+    <!-- Generationele grafiek -->
+    <div class="eval-sectie">
+      <h2><span class="ico-h">📈</span> Evolutie per generatie</h2>
+      <canvas id="gen-canvas" width="260" height="130"></canvas>
+      <div class="gen-legende">
+        <span><i style="background:#39ff85"></i> Datakwaliteit</span>
+        <span><i style="background:#5ec6ff"></i> Efficiëntie</span>
+        <span><i style="background:#f6c250"></i> Gem. geluk</span>
+      </div>
+    </div>
+
+    <!-- Generatie statistieken -->
+    <div class="eval-sectie">
+      <h2><span class="ico-h">🧬</span> Generatie statistieken</h2>
+      <table class="gen-tabel">
+        <thead><tr><th>Gen</th><th>DK</th><th>EF</th><th>Muts</th><th>Actief</th></tr></thead>
+        <tbody id="gen-tbody"><tr><td colspan="5" style="color:#4a7a62;text-align:center">laden…</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Emotie snapshot -->
+    <div class="eval-sectie">
+      <h2><span class="ico-h">💭</span> Emotie snapshot</h2>
+      <div class="emotie-grid" id="emotie-grid"></div>
+    </div>
+
+    <!-- AI interventie log -->
+    <div class="eval-sectie">
+      <h2><span class="ico-h">🤖</span> AI Emotiezorg log</h2>
+      <div class="ai-log-lijst" id="ai-log"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="uitleg-strip">
+  <section>
+    <h3>⚡ Zwaartekracht</h3>
+    Elke Botty leeft in een container met echte zwaartekracht. Ze springen omhoog als de AI ze verzorgt, vallen terug op de vloer en stuiteren. Blije Botty's springen hoger; verdrietige Botty's zijn zwaarder.
+  </section>
+  <section>
+    <h3>💭 10 Emoties</h3>
+    Botty's voelen: <strong>Enthousiast · Blij · Kalm · Nieuwsgierig · Trots · Eenzaam · Verdrietig · Angstig · Verward · Ziek</strong>. De emotie volgt uit hun statistieken en ervaringen.
+  </section>
+  <section>
+    <h3>🤖 AI Assistent</h3>
+    De AI herkent elke emotie en reageert gericht: troost een verdrietige Botty, koppelt een eenzame aan een bezoek, balanceert een verwarde, heelt een angstige. Elke interventie is zichtbaar in het log.
+  </section>
+  <section>
+    <h3>📈 Evaluatief</h3>
+    Het paneel links toont de genetische ontwikkeling per generatie — hoe datakwaliteit, efficiëntie en geluk groeien naarmate de hive evolueert. Mutaties worden per generatie bijgehouden.
+  </section>
+</div>
+
+<footer>
+  <a href="index.html">← Cloud Hive</a>
+  <a href="https://ramonmoorlag.nl/kortebroeken/botty.html">💊 Speel met je eigen Botty</a>
+  <a href="kaarten.html">🃏 Verzamelkaarten</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+var SUPABASE_URL  = "https://oblzouaapvdippyhxmpo.supabase.co";
+var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4";
+var TICK_URL = SUPABASE_URL + "/functions/v1/hive-tick";
+var TICK_INTERVAL = 1500;
+
+var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+// ── State ──────────────────────────────────────────────────────────────────
+var bottys = [];
+var acties = 0;
+var bezigKweek = false;
+
+// Generatie geschiedenis: { gen, dk, ef, geluk, mutaties: [], count }
+var genData = {};
+// AI log (max 30 entries)
+var aiLog = [];
+// Emotie tellers voor KPI
+var positieveEmoties = new Set(["enthousiast","blij","kalm","nieuwsgierig","trots"]);
+
+// ── Emoties ────────────────────────────────────────────────────────────────
+var EMOTIES = {
+  enthousiast: { emoji:"🤩", label:"enthousiast", kleur:"#ffd54a", sprong:-10, gewicht:0.6 },
+  blij:        { emoji:"😊", label:"blij",         kleur:"#39ff85", sprong:-8,  gewicht:0.8 },
+  kalm:        { emoji:"😌", label:"kalm",         kleur:"#5ec6ff", sprong:-5,  gewicht:1.0 },
+  nieuwsgierig:{ emoji:"🤔", label:"nieuwsgierig", kleur:"#c89bff", sprong:-6,  gewicht:0.9 },
+  trots:       { emoji:"😎", label:"trots",        kleur:"#f6a623", sprong:-9,  gewicht:0.7 },
+  eenzaam:     { emoji:"😔", label:"eenzaam",      kleur:"#7fb89a", sprong:-3,  gewicht:1.1 },
+  verdrietig:  { emoji:"😢", label:"verdrietig",   kleur:"#6699cc", sprong:-2,  gewicht:1.3 },
+  angstig:     { emoji:"😰", label:"angstig",      kleur:"#e08a1a", sprong:-4,  gewicht:1.2 },
+  verward:     { emoji:"😵", label:"verward",      kleur:"#e0556b", sprong:-5,  gewicht:1.0 },
+  ziek:        { emoji:"🤒", label:"ziek",         kleur:"#b52718", sprong:-1,  gewicht:1.4 }
+};
+
+function bepaalEmotie(b) {
+  if (b.ziek) return "ziek";
+  var gem = (b.energie + b.data + b.fit + b.geluk) / 4;
+  var mn = Math.min(b.energie, b.data, b.fit, b.geluk);
+  var mx = Math.max(b.energie, b.data, b.fit, b.geluk);
+  var spread = mx - mn;
+  if (gem > 86) return "enthousiast";
+  if (b.geluk < 28 || (b.energie < 22 && b.fit < 22)) return "verdrietig";
+  if (mn < 20) return "angstig";
+  if (spread > 52) return "verward";
+  if ((b.generatie || 1) >= 4 && gem > 60) return "trots";
+  if (gem > 70) return "blij";
+  if (b.data > 72 && b.geluk > 55) return "nieuwsgierig";
+  if (b.geluk < 48 && gem < 60) return "eenzaam";
+  if (spread < 22 && gem > 48) return "kalm";
+  return "blij";
+}
+
+// AI-respons per emotie
+var EMOTIE_ZORG = {
+  enthousiast: function(naam){ return { tekst: "🎉 " + naam + " bruist van energie — de AI viert mee!",       label:"+🎉",  kleur:"#ffd54a", type:"emotie" }; },
+  blij:        function(naam){ return { tekst: "😊 " + naam + " is blij. De AI geeft een bemoedigend tikje.",  label:"+💚",  kleur:"#39ff85", type:"data"   }; },
+  kalm:        function(naam){ return { tekst: "😌 " + naam + " is kalm. De AI laat ze rustig zijn.",          label:"~",   kleur:"#5ec6ff", type:"data"   }; },
+  nieuwsgierig:function(naam){ return { tekst: "🤔 " + naam + " is nieuwsgierig — AI geeft extra data!",       label:"+💾",  kleur:"#c89bff", type:"data"   }; },
+  trots:       function(naam){ return { tekst: "😎 " + naam + " is trots op gen " + "—" + ". AI erkent prestatie!", label:"+⭐", kleur:"#f6a623", type:"emotie" }; },
+  eenzaam:     function(naam){ return { tekst: "😔 " + naam + " voelt zich eenzaam. AI regelt snel een bezoek!",label:"+💕",  kleur:"#7fb89a", type:"geluk"  }; },
+  verdrietig:  function(naam){ return { tekst: "😢 " + naam + " is verdrietig. AI geeft troost en extra geluk.",label:"+💙",  kleur:"#6699cc", type:"geluk"  }; },
+  angstig:     function(naam){ return { tekst: "😰 " + naam + " is angstig. AI geeft veiligheid en energie.",  label:"+🫂",  kleur:"#e08a1a", type:"energie"}; },
+  verward:     function(naam){ return { tekst: "😵 " + naam + " is verward. AI balanceert alle statistieken.",  label:"+⚖️", kleur:"#e0556b", type:"emotie" }; },
+  ziek:        function(naam){ return { tekst: "🤒 " + naam + " is ziek! AI start volledig herstelprotocol.",  label:"💊",  kleur:"#ff8bd0", type:"ziek"   }; },
+};
+
+function voegAiLogToe(item) {
+  aiLog.unshift(item);
+  if (aiLog.length > 30) aiLog.pop();
+  renderAiLog();
+}
+
+// ── Gravity physics ────────────────────────────────────────────────────────
+var physics = {};   // naam → { y: number, vy: number }
+var GRAVITY = 0.38;
+var STUIT   = 0.45;
+var GROND_Y = 0;    // rest positie = 0 (zit op grond)
+var DAMP    = 0.96;
+
+function initPhysics(naam) {
+  if (!physics[naam]) physics[naam] = { y: 0, vy: 0 };
+}
+
+function springBotty(naam, emotie) {
+  initPhysics(naam);
+  var em = EMOTIES[emotie] || EMOTIES.blij;
+  physics[naam].vy = em.sprong;  // negatief = omhoog
+}
+
+function tickPhysics() {
+  Object.keys(physics).forEach(function(naam) {
+    var p = physics[naam];
+    // Gewicht gebaseerd op emotie (zwaardere emoties vallen sneller)
+    var emotie = elMap[naam] ? elMap[naam].emotie : "kalm";
+    var em = EMOTIES[emotie] || EMOTIES.kalm;
+    var g = GRAVITY * em.gewicht;
+
+    p.vy += g;
+    p.y  += p.vy;
+
+    if (p.y >= GROND_Y) {
+      p.y  = GROND_Y;
+      p.vy *= -STUIT;
+      if (Math.abs(p.vy) < 0.5) p.vy = 0;
+    }
+    p.vy *= DAMP;
+
+    // Toepassen op DOM (translateY = negatief want omhoog is negatief in CSS)
+    var el = elMap[naam];
+    if (el && el.wrap) {
+      el.wrap.style.transform = "translateY(" + (-Math.max(0, -p.y)).toFixed(1) + "px)";
+    }
+  });
+}
+
+function physicsLoop() {
+  tickPhysics();
+  requestAnimationFrame(physicsLoop);
+}
+
+// ── Paletten & sprites ─────────────────────────────────────────────────────
+var paletten = [
+  {naam:"Klassiek",broek:"#57b85f",broekRand:"#2e6b34",scherm:"#3a9d94",schermRand:"#2b8077",accent:"#2f8f86",oogje:"#bfe3df"},
+  {naam:"Aqua",    broek:"#3fb6c9",broekRand:"#1f6f7e",scherm:"#2f8fa8",schermRand:"#236f84",accent:"#2f9fb0",oogje:"#cdeef5"},
+  {naam:"Amethist",broek:"#9b78e0",broekRand:"#5e44a0",scherm:"#7b5bc4",schermRand:"#5a3f9a",accent:"#8a6fd0",oogje:"#e3d8fb"},
+  {naam:"Zonnig",  broek:"#f6a623",broekRand:"#b97608",scherm:"#e08a1a",schermRand:"#a8650f",accent:"#f0a83a",oogje:"#ffe9c2"},
+  {naam:"Koraal",  broek:"#e0556b",broekRand:"#a03048",scherm:"#d14761",schermRand:"#9a3149",accent:"#e06b80",oogje:"#fbd8df"},
+  {naam:"Azuur",   broek:"#5ec6ff",broekRand:"#2f7fae",scherm:"#3a9de0",schermRand:"#236f9e",accent:"#4fb0ec",oogje:"#d3ecff"},
+  {naam:"Mint",    broek:"#5fd0a8",broekRand:"#2e8a6a",scherm:"#3aa886",schermRand:"#247a5f",accent:"#3fb894",oogje:"#cdf5e6"}
+];
+
+function gem(b){ return (b.energie+b.data+b.fit+b.geluk)/4; }
+function spierSchaal(eff){ return (0.55 + (typeof eff==="number"?eff:50)/100*1.0).toFixed(2); }
+var groei = { baby:0.58, tiener:0.82, volwassen:1.0 };
+var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
+var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
+function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
+
+function spriteVolwassen(p){ return ''
+  + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+  +   '<circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+  +   '<path d="M111,1 L112.4,5.6 117,7 112.4,8.4 111,13 109.6,8.4 105,7 109.6,5.6 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+  + '<g class="been"><line x1="86" y1="212" x2="80" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="78" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<g class="been"><line x1="114" y1="212" x2="120" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="122" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<g class="arm arm-l"><line x1="66" y1="156" x2="36" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="55" cy="166" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="34" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<g class="arm arm-r"><line x1="134" y1="156" x2="164" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="145" cy="166" r="7.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="166" cy="187" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<rect x="68" y="184" width="64" height="30" rx="10" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="200" x2="100" y2="214" stroke="'+p.broekRand+'" stroke-width="3"/>'
+  + '<rect x="66" y="140" width="68" height="52" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="84" y="150" width="32" height="20" rx="7" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+  + '<path d="M93,124 q14,4 0,7 q-14,4 0,7" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+  + '<g class="kop"><circle cx="52" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="'+p.oogje+'"/>'
+  +   '<circle cx="148" cy="76" r="13" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="'+p.oogje+'"/>'
+  +   '<path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+  +   '<path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+  +   '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
+  +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+function spriteBaby(p){ return ''
+  + '<g class="antenne"><path d="M100,8 Q96,-9 109,-16" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
+  +   '<circle cx="111" cy="-20" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/>'
+  +   '<path d="M111,-29 L112.4,-24.4 117,-23 112.4,-21.6 111,-17 109.6,-21.6 105,-23 109.6,-24.4 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g>'
+  + '<g class="been"><line x1="88" y1="204" x2="82" y2="228" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="80" cy="231" rx="10" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<g class="been"><line x1="112" y1="204" x2="118" y2="228" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="120" cy="231" rx="10" ry="5.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<g class="arm arm-l"><line x1="66" y1="156" x2="44" y2="176" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="57" cy="163" r="6.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="42" cy="179" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<g class="arm arm-r"><line x1="134" y1="156" x2="156" y2="176" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="143" cy="163" r="6.5" fill="'+p.broek+'" stroke="#2b2b2b" stroke-width="2"/><circle cx="158" cy="179" r="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/></g>'
+  + '<rect x="71" y="197" width="58" height="24" rx="9" fill="'+p.broek+'" stroke="'+p.broekRand+'" stroke-width="3"/><line x1="100" y1="210" x2="100" y2="221" stroke="'+p.broekRand+'" stroke-width="3"/>'
+  + '<rect x="67" y="148" width="66" height="42" rx="16" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="83" y="157" width="34" height="18" rx="6" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/>'
+  + '<path d="M93,130 q14,3 0,6 q-14,3 0,6" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/>'
+  + '<g class="kop"><circle cx="36" cy="70" r="18" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="36" cy="70" r="8" fill="'+p.oogje+'"/>'
+  +   '<circle cx="164" cy="70" r="18" fill="'+p.accent+'" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="164" cy="70" r="8" fill="'+p.oogje+'"/>'
+  +   '<path d="M72,10 Q36,12 36,70 Q36,116 72,132 Q100,142 128,132 Q164,116 164,70 Q164,12 128,10 Q100,4 72,10 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/>'
+  +   '<path d="M76,58 Q100,52 124,58 Q136,62 130,78 L112,107 Q100,118 88,107 L70,78 Q64,62 76,58 Z" fill="'+p.scherm+'" stroke="'+p.schermRand+'" stroke-width="1.5"/>'
+  +   '<line x1="90" y1="76" x2="90" y2="92" stroke="#1f2a28" stroke-width="5.5" stroke-linecap="round"/><line x1="110" y1="76" x2="110" y2="92" stroke="#1f2a28" stroke-width="5.5" stroke-linecap="round"/>'
+  +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
+
+var sprites = { baby:spriteBaby, tiener:spriteVolwassen, volwassen:spriteVolwassen };
+
+function mutatieSvg(id){
+  switch(id){
+    case "zonnepaneel": return '<g class="mut"><rect x="80" y="150" width="40" height="15" rx="2" fill="#16324f" stroke="#7fd9ff" stroke-width="1.5"/><line x1="93" y1="150" x2="93" y2="165" stroke="#7fd9ff" stroke-width="1"/><line x1="107" y1="150" x2="107" y2="165" stroke="#7fd9ff" stroke-width="1"/><line x1="80" y1="157.5" x2="120" y2="157.5" stroke="#7fd9ff" stroke-width="1"/></g>';
+    case "wifi": return '<g class="mut" transform="translate(150,146)"><circle cx="0" cy="6" r="2" fill="#39ff85"/><path d="M-6,2 A8,8 0 0 1 6,2" fill="none" stroke="#39ff85" stroke-width="2" stroke-linecap="round"/><path d="M-10,-2 A13,13 0 0 1 10,-2" fill="none" stroke="#39ff85" stroke-width="2" stroke-linecap="round"/></g>';
+    case "antenne2": return '<g class="mut"><line x1="150" y1="150" x2="168" y2="130" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/><circle cx="170" cy="127" r="5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2"/></g>';
+    case "oog3": return '<g class="mut"><circle cx="100" cy="158" r="6.5" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2"/><circle cx="100" cy="158" r="2.8" fill="#1f2a28"/></g>';
+    case "quantum": return '<g class="mut"><circle cx="100" cy="170" r="8" fill="#1d0f33" stroke="#c89bff" stroke-width="1.5"/><ellipse cx="100" cy="170" rx="8" ry="3" fill="none" stroke="#c89bff" stroke-width="1.2"/><ellipse cx="100" cy="170" rx="3" ry="8" fill="none" stroke="#c89bff" stroke-width="1.2"/><circle cx="100" cy="170" r="1.6" fill="#e9d6ff"/></g>';
+    default: return "";
+  }
+}
+function mutatiesSvg(list){ return (list||[]).map(mutatieSvg).join(""); }
+
+// ── DOM helpers ────────────────────────────────────────────────────────────
+var verse  = document.getElementById("verse");
+var elMap  = {}; // naam → { kaart, wrap, floaters, bars, emotie, buelEl }
+var prevBottys = [];
+
+function genenHtml(b){
+  var dk=Math.round(b.datakwaliteit||0), ef=Math.round(b.efficientie||0), g=b.generatie||1;
+  var muts=(b.mutaties||[]).map(mutatieIcon).join("");
+  return '<span title="datakwaliteit">🧬 '+dk+'</span>'
+       + '<span title="efficiëntie">💪 '+ef+'</span>'
+       + '<span title="generatie">⭐ G'+g+'</span>'
+       + (muts ? '<span class="muts" title="mutaties">'+muts+'</span>' : '');
+}
+
+function barRij(ico,kl,meter){
+  return '<div class="bar-rij"><span class="ico">'+ico+'</span>'
+       + '<span class="bar '+kl+'" data-m="'+meter+'"><span style="width:0%"></span></span></div>';
+}
+
+function vulKaart(kaart, b){
+  var p = b.kleur || paletten[0];
+  var emotie = bepaalEmotie(b);
+  var em = EMOTIES[emotie];
+  kaart.innerHTML =
+      '<div class="knaam">'+b.naam+'</div>'
+    + '<div class="kstage">'+(stageLabel[b.stage]||b.stage)+' · G'+(b.generatie||1)+'</div>'
+    + '<div class="emotie-badge"><span class="eico">'+em.emoji+'</span><span class="enaam">'+em.label+'</span></div>'
+    + '<div class="genen">'+genenHtml(b)+'</div>'
+    + '<div class="scene">'
+    +   '<div class="bw bw-'+b.stage+'" style="--groei:'+(groei[b.stage]||1)+';--spier:'+spierSchaal(b.efficientie)+'">'
+    +     '<div class="emotie-bubbel">'+em.emoji+'</div>'
+    +     '<svg viewBox="0 0 200 250" aria-label="Botty '+b.naam+'">'+(sprites[b.stage]||spriteVolwassen)(p)+mutatiesSvg(b.mutaties)+'</svg>'
+    +     '<div class="floaters"></div>'
+    +   '</div>'
+    +   '<div class="grond"></div>'
+    + '</div>'
+    + '<div class="bars">'
+    +   barRij("⚡","b-energie","energie")
+    +   barRij("💾","b-data","data")
+    +   barRij("🏃","b-fit","fit")
+    +   barRij("😊","b-geluk","geluk")
+    + '</div>';
+
+  kaart.className = "kaart emotie-" + emotie;
+  initPhysics(b.naam);
+
+  return {
+    wrap:     kaart.querySelector(".bw"),
+    floaters: kaart.querySelector(".floaters"),
+    bubelEl:  kaart.querySelector(".emotie-bubbel"),
+    badgeEl:  kaart.querySelector(".emotie-badge"),
+    bars: {
+      energie: kaart.querySelector('[data-m="energie"] > span'),
+      data:    kaart.querySelector('[data-m="data"] > span'),
+      fit:     kaart.querySelector('[data-m="fit"] > span'),
+      geluk:   kaart.querySelector('[data-m="geluk"] > span')
+    },
+    emotie: emotie
+  };
+}
+
+// ── Generatie data tracking ────────────────────────────────────────────────
+function updateGenData(b) {
+  var g = b.generatie || 1;
+  if (!genData[g]) genData[g] = { gen:g, dk:[], ef:[], geluk:[], mutaties:new Set(), count:0 };
+  genData[g].dk.push(b.datakwaliteit || 0);
+  genData[g].ef.push(b.efficientie || 0);
+  genData[g].geluk.push(b.geluk || 0);
+  (b.mutaties || []).forEach(function(m){ genData[g].mutaties.add(m); });
+  genData[g].count++;
+}
+
+function avg(arr){ if (!arr.length) return 0; return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+
+function renderGenChart() {
+  var canvas = document.getElementById("gen-canvas");
+  if (!canvas) return;
+  var ctx = canvas.getContext("2d");
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#061a12";
+  ctx.fillRect(0,0,W,H);
+
+  var gens = Object.keys(genData).map(Number).sort(function(a,b){return a-b;});
+  if (gens.length < 1) return;
+
+  var pad = 28;
+  var w = W - pad*2;
+  var h = H - pad*2;
+  var maxGen = Math.max(gens[gens.length-1], 1);
+
+  // Gridlijnen
+  ctx.strokeStyle = "#1c5b42"; ctx.lineWidth = 0.5;
+  for (var i=0;i<=4;i++) {
+    var yg = pad + h - (i/4)*h;
+    ctx.beginPath(); ctx.moveTo(pad,yg); ctx.lineTo(W-pad,yg); ctx.stroke();
+    ctx.fillStyle = "#5f8f78"; ctx.font = "9px Nunito,sans-serif";
+    ctx.fillText(Math.round(i*25),2,yg+3);
+  }
+
+  // X as labels
+  ctx.fillStyle = "#5f8f78"; ctx.font = "9px Nunito,sans-serif";
+  gens.forEach(function(g){
+    var x = pad + ((g-1)/(Math.max(maxGen-1,1)))*w;
+    ctx.fillText("G"+g, x-6, H-4);
+  });
+
+  function drawLine(metric, kleur) {
+    ctx.strokeStyle = kleur; ctx.lineWidth = 2;
+    ctx.beginPath();
+    gens.forEach(function(g, i){
+      var x = pad + ((g-1)/(Math.max(maxGen-1,1)))*w;
+      var val = avg(genData[g][metric]);
+      var y = pad + h - (val/100)*h;
+      if (i === 0) ctx.moveTo(x,y);
+      else         ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // Punten
+    gens.forEach(function(g){
+      var x = pad + ((g-1)/(Math.max(maxGen-1,1)))*w;
+      var val = avg(genData[g][metric]);
+      var y = pad + h - (val/100)*h;
+      ctx.beginPath();
+      ctx.arc(x,y,3,0,Math.PI*2);
+      ctx.fillStyle = kleur;
+      ctx.fill();
+    });
+  }
+
+  drawLine("dk",  "#39ff85");
+  drawLine("ef",  "#5ec6ff");
+  drawLine("geluk","#f6c250");
+}
+
+function renderGenTabel() {
+  var tbody = document.getElementById("gen-tbody");
+  if (!tbody) return;
+  var gens = Object.keys(genData).map(Number).sort(function(a,b){return a-b;});
+  if (!gens.length) return;
+  tbody.innerHTML = gens.map(function(g){
+    var d = genData[g];
+    var dk = Math.round(avg(d.dk)), ef = Math.round(avg(d.ef));
+    var muts = d.mutaties.size;
+    var maxGen = Math.max.apply(null, gens);
+    var isLatest = g === maxGen;
+    return '<tr>'
+      + '<td><strong>G'+g+'</strong></td>'
+      + '<td class="'+(dk>65?"goed":"")+'">'+dk+'</td>'
+      + '<td class="'+(ef>65?"goed":"")+'">'+ef+'</td>'
+      + '<td class="muts-mini">'+(muts?"✨"+muts:"-")+'</td>'
+      + '<td>'+(isLatest?'<span style="color:#39ff85">●</span>':d.count)+'</td>'
+      + '</tr>';
+  }).join("");
+}
+
+function renderEmotieGrid() {
+  var grid = document.getElementById("emotie-grid");
+  if (!grid) return;
+  grid.innerHTML = bottys.map(function(b){
+    var em = EMOTIES[bepaalEmotie(b)];
+    return '<div class="emotie-cel ec-'+bepaalEmotie(b)+'">'
+      + '<span class="eico-groot">'+em.emoji+'</span>'
+      + '<div class="enaam-klein">'+b.naam+'</div>'
+      + '</div>';
+  }).join("");
+}
+
+function renderAiLog() {
+  var el = document.getElementById("ai-log");
+  if (!el) return;
+  el.innerHTML = aiLog.slice(0,15).map(function(item){
+    return '<div class="ai-log-item log-'+item.type+'">'+item.tekst+'</div>';
+  }).join("") || '<div style="color:#4a7a62;font-size:.72rem">Wacht op AI acties…</div>';
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderState(state){
+  if (!state || !state.bottys) return;
+  var nieuweBottys = state.bottys;
+  acties = state.acties || 0;
+
+  // Reset genData voor verse calc
+  genData = {};
+
+  // Verwijder kaarten van verdwenen Botty's
+  Object.keys(elMap).forEach(function(naam){
+    if (!nieuweBottys.find(function(b){ return b.naam===naam; })){
+      if (elMap[naam] && elMap[naam].kaart && elMap[naam].kaart.parentNode)
+        elMap[naam].kaart.parentNode.removeChild(elMap[naam].kaart);
+      delete elMap[naam];
+      delete physics[naam];
+    }
+  });
+
+  nieuweBottys.forEach(function(b, idx){
+    var emotie = bepaalEmotie(b);
+    updateGenData(b);
+
+    var existing = elMap[b.naam];
+    if (!existing){
+      var kaart = document.createElement("div");
+      kaart.className = "kaart";
+      var cards = verse.querySelectorAll(".kaart");
+      if (idx < cards.length) verse.insertBefore(kaart, cards[idx]);
+      else verse.appendChild(kaart);
+      var els = vulKaart(kaart, b);
+      elMap[b.naam] = { kaart:kaart, wrap:els.wrap, floaters:els.floaters, bubelEl:els.bubelEl, badgeEl:els.badgeEl, bars:els.bars, emotie:emotie };
+    } else {
+      var prevB = prevBottys.find(function(x){ return x.naam===b.naam; });
+      var prevEmotie = existing.emotie;
+
+      // Herbouw bij stage- of emotie-verandering
+      if (!prevB || prevB.stage !== b.stage){
+        var els2 = vulKaart(existing.kaart, b);
+        existing.wrap     = els2.wrap;
+        existing.floaters = els2.floaters;
+        existing.bubelEl  = els2.bubelEl;
+        existing.badgeEl  = els2.badgeEl;
+        existing.bars     = els2.bars;
+      } else {
+        // Update bars
+        existing.bars.energie.style.width = b.energie + "%";
+        existing.bars.data.style.width    = b.data    + "%";
+        existing.bars.fit.style.width     = b.fit     + "%";
+        existing.bars.geluk.style.width   = b.geluk   + "%";
+
+        // Update emotie
+        if (emotie !== prevEmotie){
+          existing.emotie = emotie;
+          existing.kaart.className = "kaart emotie-" + emotie;
+          var em2 = EMOTIES[emotie];
+          if (existing.bubelEl) existing.bubelEl.textContent = em2.emoji;
+          if (existing.badgeEl) existing.badgeEl.innerHTML = '<span class="eico">'+em2.emoji+'</span><span class="enaam">'+em2.label+'</span>';
+
+          // AI emotie-interventie log
+          var zorgFn = EMOTIE_ZORG[emotie];
+          if (zorgFn) {
+            var zorgRes = zorgFn(b.naam);
+            if (emotie !== "blij" && emotie !== "kalm") {
+              voegAiLogToe(zorgRes);
+              floater(b, zorgRes.label, zorgRes.kleur || "#39ff85");
+              // Spring als de AI ingrijpt
+              springBotty(b.naam, emotie);
+              document.getElementById("ticker").innerHTML =
+                '<span class="knip">▌</span> ' + zorgRes.tekst;
+            }
+          }
+        }
+      }
+
+      existing.emotie = emotie;
+
+      // Vitaal/ziek stijl
+      existing.wrap.classList.toggle("vitaal", gem(b) > 65 && !b.ziek);
+      existing.wrap.classList.toggle("ziek",   !!b.ziek);
+      existing.wrap.classList.toggle("droevig", emotie === "verdrietig" || emotie === "eenzaam");
+
+      // Spring bij zorgactie
+      if (prevB && gem(b) > gem(prevB) + 5){
+        springBotty(b.naam, emotie);
+        floater(b, "+zorg", "#39ff85");
+        zorgArmen(b);
+      }
+    }
+  });
+
+  prevBottys = JSON.parse(JSON.stringify(nieuweBottys));
+  bottys = nieuweBottys;
+
+  // KPI's
+  document.getElementById("kpi-aantal").textContent = nieuweBottys.length;
+  document.getElementById("kpi-acties").textContent = acties.toLocaleString("nl-NL");
+  var maxGen = 1;
+  nieuweBottys.forEach(function(b){ if ((b.generatie||1) > maxGen) maxGen = b.generatie||1; });
+  document.getElementById("kpi-gen").textContent = "G" + maxGen;
+  var som = 0;
+  nieuweBottys.forEach(function(b){ som += ((b.datakwaliteit||50)+(b.efficientie||50))/2; });
+  document.getElementById("kpi-genen").textContent = Math.round(som / nieuweBottys.length);
+  var positief = nieuweBottys.filter(function(b){ return positieveEmoties.has(bepaalEmotie(b)); }).length;
+  document.getElementById("kpi-blij").textContent = Math.round(positief / nieuweBottys.length * 100) + "%";
+
+  // Evaluatief paneel
+  renderGenChart();
+  renderGenTabel();
+  renderEmotieGrid();
+}
+
+function floater(b, tekst, kleur){
+  var el = elMap[b.naam];
+  if (!el || !el.floaters) return;
+  var f = document.createElement("div");
+  f.className = "floater"; f.textContent = tekst; f.style.color = kleur || "#39ff85";
+  f.style.left = (35 + Math.random()*30) + "%";
+  el.floaters.appendChild(f);
+  setTimeout(function(){ if (f.parentNode) f.parentNode.removeChild(f); }, 1100);
+}
+
+function zorgArmen(b){
+  var el = elMap[b.naam];
+  if (!el || reduce) return;
+  el.wrap.classList.remove("zorg");
+  void el.wrap.offsetWidth;
+  el.wrap.classList.add("zorg");
+  setTimeout(function(){ el.wrap.classList.remove("zorg"); }, 2000);
+}
+
+function trekBeam(naamA, naamB){
+  if (reduce) return;
+  var elA = elMap[naamA], elB = elMap[naamB];
+  if (!elA || !elB) return;
+  var vr = verse.getBoundingClientRect();
+  var ra = elA.kaart.getBoundingClientRect();
+  var rb = elB.kaart.getBoundingClientRect();
+  var x1=ra.left+ra.width/2-vr.left, y1=ra.top+ra.height/2-vr.top;
+  var x2=rb.left+rb.width/2-vr.left, y2=rb.top+rb.height/2-vr.top;
+  var dx=x2-x1, dy=y2-y1;
+  var len=Math.sqrt(dx*dx+dy*dy), ang=Math.atan2(dy,dx)*180/Math.PI;
+  var beam=document.createElement("div");
+  beam.className="beam";
+  beam.style.cssText="left:"+x1+"px;top:"+(y1-1.5)+"px;width:"+len+"px;transform:rotate("+ang+"deg)";
+  verse.appendChild(beam);
+  setTimeout(function(){ if (beam.parentNode) beam.parentNode.removeChild(beam); }, 950);
+}
+
+function toonBezoek(naamA, naamB){
+  var bA = bottys.find(function(x){ return x.naam===naamA; });
+  var bB = bottys.find(function(x){ return x.naam===naamB; });
+  if (!bA || !bB) return;
+  springBotty(naamA, bepaalEmotie(bA));
+  springBotty(naamB, bepaalEmotie(bB));
+  floater(bA, "💞", "#ff8bd0"); floater(bB, "💞", "#ff8bd0");
+  trekBeam(naamA, naamB);
+  document.getElementById("ticker").innerHTML =
+    '<span class="knip">▌</span> 🔗 <b>'+naamA+'</b> en <b>'+naamB+'</b> wisselen kennis uit';
+  voegAiLogToe({ tekst:"🔗 "+naamA+" bezoekt "+naamB+" — sociale band versterkt", type:"geluk" });
+}
+
+function toonKweek(ev){
+  if (bezigKweek || reduce) return;
+  var elA = elMap[ev.ouderA], elB = elMap[ev.ouderB];
+  if (!elA || !elB) return;
+  bezigKweek = true;
+  elA.kaart.style.boxShadow = "0 0 18px #ff8bd066";
+  elB.kaart.style.boxShadow = "0 0 18px #ff8bd066";
+  trekBeam(ev.ouderA, ev.ouderB);
+  document.getElementById("ticker").innerHTML =
+    '<span class="knip">▌</span> 💞 De AI koppelt <b>'+ev.ouderA+'</b> en <b>'+ev.ouderB+'</b>…';
+  voegAiLogToe({ tekst:"💞 Voortplanting: "+ev.ouderA+" × "+ev.ouderB+" → "+ev.kind, type:"emotie" });
+  setTimeout(function(){
+    if (elA.kaart) elA.kaart.style.boxShadow = "";
+    if (elB.kaart) elB.kaart.style.boxShadow = "";
+    if (elA.wrap) elA.wrap.classList.add("weg");
+    document.getElementById("ticker").innerHTML =
+      '<span class="knip">▌</span> 👋 <b>'+ev.ouderA+'</b> zwaait gedag…';
+    setTimeout(function(){
+      if (elA.wrap) elA.wrap.classList.remove("weg");
+      setTimeout(function(){
+        document.getElementById("ticker").innerHTML =
+          '<span class="knip">▌</span> 🐣 <b>'+ev.kind+'</b> is geboren — generatie '+ev.generatie+'!';
+        bezigKweek = false;
+      }, 2800);
+    }, 1600);
+  }, 1700);
+}
+
+// ── Cloud status ──────────────────────────────────────────────────────────
+function setVerbonden(ja){
+  var dot = document.getElementById("cloud-dot");
+  var lbl = document.getElementById("cloud-status");
+  dot.className = "cloud-dot" + (ja ? " verbonden" : "");
+  lbl.textContent = ja ? "live · cloud" : "herverbinden…";
+}
+
+// ── Tick ──────────────────────────────────────────────────────────────────
+var tickTimer = null;
+function startTick(){
+  if (tickTimer) clearInterval(tickTimer);
+  tickTimer = setInterval(function(){
+    if (document.hidden) return;
+    fetch(TICK_URL, { method:"POST" })
+      .then(function(r){ return r.json(); })
+      .then(function(state){
+        setVerbonden(true);
+        renderState(state);
+        if (state.lastKweek) toonKweek(state.lastKweek);
+        else if (state.lastBezoek) toonBezoek(state.lastBezoek.a, state.lastBezoek.b);
+        else if (state.lastZorg && state.lastZorg.length > 0){
+          var naam = state.lastZorg[0];
+          var b = bottys.find(function(x){ return x.naam===naam; });
+          if (b) { springBotty(naam, bepaalEmotie(b)); zorgArmen(b); }
+          document.getElementById("ticker").innerHTML =
+            '<span class="knip">▌</span> 🤖 De AI verzorgt <b>'+naam+'</b>';
+        }
+      })
+      .catch(function(){ setVerbonden(false); });
+  }, TICK_INTERVAL);
+}
+
+// Realtime
+supabase
+  .channel("hive")
+  .on("postgres_changes",
+    { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
+    function(payload){ setVerbonden(true); renderState(payload.new); }
+  )
+  .subscribe(function(status){ setVerbonden(status==="SUBSCRIBED"); });
+
+// Initieel laden
+fetch(TICK_URL, { method:"POST" })
+  .then(function(r){ return r.json(); })
+  .then(function(state){
+    setVerbonden(true);
+    renderState(state);
+    document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ☁️ Hive geladen — emoties en zwaartekracht actief!';
+    startTick();
+    // Start physics loop
+    if (!reduce) physicsLoop();
+  })
+  .catch(function(e){
+    setVerbonden(false);
+    document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ⚠️ Kon de hive niet bereiken.';
+    startTick();
+    if (!reduce) physicsLoop();
+  });
+
+// Ticker facts
+var facts = [
+  "💭 Emoties zijn gebaseerd op energie, data, fitness, geluk en statistiek-spreiding.",
+  "⚡ Zwaartekracht: blije Botty's springen hoger, verdrietige Botty's zijn zwaarder.",
+  "🤖 De AI herkent 10 emoties en past elke zorgactie aan op wat de Botty voelt.",
+  "🧬 Generatie-evolutie: genetische kwaliteit stijgt gemiddeld 8-12% per generatie.",
+  "😔 Eenzame Botty's krijgen snel bezoek — sociale interactie herstelt geluk.",
+  "😵 Een verwarde Botty heeft een enorme spread in statistieken. De AI balanceert ze.",
+  "😎 Trotse Botty's zijn gen 4+ en blij — ze springen extra hoog!",
+  "⚛️ Quantum-mutatie vertraagt verval sterk — een zeldzame voordelige adaptatie."
+];
+var factIdx = 0;
+setInterval(function(){
+  if (bottys.length === 0) return;
+  document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ' + facts[factIdx % facts.length];
+  factIdx++;
+}, 6000);
+
+// Matrix regen
+(function rain(){
+  if (reduce) return;
+  var cv = document.getElementById("rain"), ctx = cv.getContext("2d");
+  var tekens = "01ボッティBOTTY0110アイデータＡＩ💭😊🤩".split("");
+  var kolB = 14, druppels = [];
+  function size(){
+    cv.width = window.innerWidth; cv.height = window.innerHeight;
+    var n = Math.floor(cv.width / kolB);
+    druppels = []; for(var i=0;i<n;i++) druppels[i] = Math.random()*cv.height/kolB;
+  }
+  size(); window.addEventListener("resize", size);
+  function frame(){
+    ctx.fillStyle = "rgba(4,20,13,0.10)"; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.font = (kolB-2) + "px monospace";
+    for(var i=0;i<druppels.length;i++){
+      var t = tekens[Math.floor(Math.random()*tekens.length)];
+      ctx.fillStyle = Math.random() < 0.04 ? "#cffce0" : "#1f9d5a";
+      ctx.fillText(t, i*kolB, druppels[i]*kolB);
+      if(druppels[i]*kolB > cv.height && Math.random() > 0.975) druppels[i] = 0;
+      druppels[i]++;
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+})();
+</script>
+</body>
+</html>
