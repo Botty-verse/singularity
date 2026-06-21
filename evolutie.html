@@ -7,7 +7,8 @@
 <meta name="theme-color" content="#04140d" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
 :root{
   --rood:#b52718;
@@ -15,145 +16,170 @@
   --teal:#2f8f86;
   --matrix:#39ff85;
   --matrix-dim:#1f7d4d;
-  --paneel:rgba(6,26,18,.82);
-  --paneel-rand:#1c5b42;
+  --paars:#c89bff;
+  --bg:#04140d;
+  --paneel:rgba(8,30,21,.62);
+  --paneel-rand:rgba(57,255,133,.16);
+  --paneel-rand-sterk:rgba(57,255,133,.32);
   --licht:#dff7ea;
+  --zacht:#a8d4be;
+  --dim:#6f9a86;
+  --schaduw:0 8px 30px rgba(0,0,0,.45);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{min-height:100vh;}
 body{
   font-family:'Nunito',sans-serif;
-  background:#04140d;
   color:var(--licht);
-  display:flex;flex-direction:column;
-  align-items:center;
+  display:flex;flex-direction:column;align-items:center;
+  background:
+    radial-gradient(1100px 600px at 18% -8%, rgba(57,255,133,.10), transparent 60%),
+    radial-gradient(900px 600px at 88% 4%, rgba(200,155,255,.10), transparent 55%),
+    radial-gradient(800px 700px at 50% 120%, rgba(47,143,134,.12), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
 }
-#rain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.3;}
-header{
-  position:relative;z-index:1;
-  text-align:center;padding:1.5rem 1rem .8rem;
-  width:100%;
+#rain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.22;}
+
+/* Glas-helper */
+.glas{
+  background:var(--paneel);
+  border:1px solid var(--paneel-rand);
+  border-radius:18px;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:var(--schaduw);
 }
-h1{font-size:clamp(1.6rem,4vw,2.6rem);font-weight:900;
-   background:linear-gradient(135deg,var(--matrix),#a3ffce,#c89bff);
-   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-   background-clip:text;letter-spacing:-.02em;}
-.ondertitel{max-width:700px;margin:.4rem auto 0;font-size:.9rem;color:#a8d4be;line-height:1.5;}
-.kpi-rij{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin:.9rem auto .3rem;max-width:720px;}
-.kpi{background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:12px;
-     padding:.4rem .8rem;text-align:center;min-width:82px;}
-.kpi .label{font-size:.68rem;color:#7fb89a;text-transform:uppercase;letter-spacing:.06em;}
-.kpi .waarde{font-size:1.25rem;font-weight:900;color:var(--matrix);}
-.kpi .sub{font-size:.65rem;color:#5f8f78;}
+
+header{position:relative;z-index:1;text-align:center;padding:2.2rem 1rem 1rem;width:100%;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.45rem;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:.66rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--paars);
+  padding:.3rem .8rem;border-radius:999px;
+  border:1px solid rgba(200,155,255,.28);
+  background:rgba(200,155,255,.07);
+  margin-bottom:.9rem;
+}
+.eyebrow .puls{width:7px;height:7px;border-radius:50%;background:var(--paars);box-shadow:0 0 8px var(--paars);animation:pulse-dot 2s ease-in-out infinite;}
+h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(2rem,5.5vw,3.4rem);font-weight:700;line-height:1.05;letter-spacing:-.02em;
+  background:linear-gradient(100deg,var(--matrix),#a3ffce 40%,var(--paars) 90%);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:glans 8s linear infinite;
+}
+@keyframes glans{to{background-position:200% center;}}
+.ondertitel{max-width:660px;margin:.7rem auto 0;font-size:.95rem;color:var(--zacht);line-height:1.6;}
+.ondertitel strong{color:var(--licht);font-weight:800;}
+
+.kpi-rij{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin:1.4rem auto .3rem;max-width:760px;}
+.kpi{
+  position:relative;overflow:hidden;
+  background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:14px;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  padding:.6rem 1rem .55rem;text-align:center;min-width:96px;
+  transition:transform .25s ease,border-color .25s ease;
+}
+.kpi::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,var(--matrix),var(--paars));opacity:.7;}
+.kpi:hover{transform:translateY(-3px);border-color:var(--paneel-rand-sterk);}
+.kpi .label{font-size:.64rem;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-weight:700;}
+.kpi .waarde{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;color:var(--matrix);line-height:1.1;margin:.1rem 0;}
+.kpi .sub{font-size:.62rem;color:var(--dim);}
 
 .ticker-wrap{
   position:relative;z-index:1;
   background:var(--paneel);border:1px solid var(--paneel-rand);
-  border-radius:10px;padding:.4rem .9rem;
-  width:calc(100% - 2rem);max-width:900px;
-  margin:.2rem auto .5rem;font-size:.86rem;color:var(--matrix);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-radius:12px;padding:.55rem 1.1rem;
+  width:calc(100% - 2rem);max-width:940px;
+  margin:.6rem auto .4rem;font-size:.88rem;color:var(--matrix);font-weight:700;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:var(--schaduw);
 }
-.knip{animation:knip .8s step-end infinite;}
+.knip{animation:knip .8s step-end infinite;color:var(--matrix);}
 @keyframes knip{0%,100%{opacity:1}50%{opacity:0}}
 
-/* Hoofd layout */
 .main-layout{
   position:relative;z-index:1;
-  display:flex;gap:1rem;align-items:flex-start;
-  width:100%;max-width:1200px;
-  padding:0 1rem 2rem;
+  display:flex;gap:1.2rem;align-items:flex-start;
+  width:100%;max-width:1240px;padding:.6rem 1rem 2rem;
 }
-
-/* Botty kolom */
-.botty-kolom{
-  flex:1 1 560px;min-width:0;
-}
-#verse{
-  display:flex;flex-wrap:wrap;justify-content:center;
-  gap:.9rem;
-  position:relative;
-}
+.botty-kolom{flex:1 1 560px;min-width:0;}
+#verse{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;position:relative;}
 
 /* Kaarten */
 .kaart{
-  background:var(--paneel);
-  border:2px solid var(--paneel-rand);
-  border-radius:16px;padding:.65rem .65rem .45rem;
-  width:158px;flex-shrink:0;
-  transition:border-color .4s,box-shadow .4s;
   position:relative;overflow:visible;
+  background:linear-gradient(180deg,rgba(12,38,27,.7),rgba(6,22,15,.7));
+  border:1.5px solid var(--paneel-rand);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-radius:20px;padding:.8rem .75rem .6rem;
+  width:166px;flex-shrink:0;
+  box-shadow:var(--schaduw);
+  transition:border-color .4s,box-shadow .4s,transform .25s ease;
 }
-.kaart.emotie-enthousiast{border-color:#ffd54a;box-shadow:0 0 14px #ffd54a55;}
-.kaart.emotie-blij       {border-color:#39ff85;box-shadow:0 0 10px #39ff8533;}
-.kaart.emotie-kalm       {border-color:#5ec6ff;box-shadow:0 0 8px #5ec6ff22;}
-.kaart.emotie-nieuwsgierig{border-color:#c89bff;box-shadow:0 0 10px #c89bff33;}
-.kaart.emotie-trots      {border-color:#f6a623;box-shadow:0 0 14px #f6a62355;}
-.kaart.emotie-eenzaam    {border-color:#3d6b57;box-shadow:none;}
-.kaart.emotie-verdrietig {border-color:#6699cc;box-shadow:0 0 8px #6699cc22;}
-.kaart.emotie-angstig    {border-color:#e08a1a;box-shadow:0 0 12px #e08a1a44;animation:trillen .15s infinite;}
-.kaart.emotie-verward    {border-color:#e0556b;box-shadow:0 0 10px #e0556b33;}
-.kaart.emotie-ziek       {border-color:#b52718;box-shadow:0 0 10px #b5271844;}
-@keyframes trillen{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
+.kaart:hover{transform:translateY(-4px);}
+.kaart.emotie-enthousiast{border-color:#ffd54a;box-shadow:0 0 22px #ffd54a44,var(--schaduw);}
+.kaart.emotie-blij       {border-color:rgba(57,255,133,.55);box-shadow:0 0 18px #39ff8533,var(--schaduw);}
+.kaart.emotie-kalm       {border-color:rgba(94,198,255,.5);box-shadow:0 0 16px #5ec6ff22,var(--schaduw);}
+.kaart.emotie-nieuwsgierig{border-color:rgba(200,155,255,.55);box-shadow:0 0 18px #c89bff33,var(--schaduw);}
+.kaart.emotie-trots      {border-color:#f6a623;box-shadow:0 0 22px #f6a62344,var(--schaduw);}
+.kaart.emotie-eenzaam    {border-color:rgba(127,184,154,.4);box-shadow:var(--schaduw);}
+.kaart.emotie-verdrietig {border-color:#6699cc;box-shadow:0 0 16px #6699cc33,var(--schaduw);}
+.kaart.emotie-angstig    {border-color:#e08a1a;box-shadow:0 0 18px #e08a1a44,var(--schaduw);animation:trillen .16s infinite;}
+.kaart.emotie-verward    {border-color:#e0556b;box-shadow:0 0 18px #e0556b33,var(--schaduw);}
+.kaart.emotie-ziek       {border-color:#b52718;box-shadow:0 0 18px #b5271855,var(--schaduw);}
+@keyframes trillen{0%,100%{transform:translateX(0)}50%{transform:translateX(1.5px)}}
 
-.knaam{font-weight:900;font-size:.92rem;color:var(--licht);text-align:center;}
-.kstage{font-size:.68rem;color:#7fb89a;text-align:center;margin:.1rem 0;}
+.knaam{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:var(--licht);text-align:center;letter-spacing:.01em;}
+.kstage{font-size:.66rem;color:var(--dim);text-align:center;margin:.12rem 0;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
 .emotie-badge{
-  text-align:center;font-size:.72rem;margin:.15rem 0;
-  display:flex;align-items:center;justify-content:center;gap:.25rem;
+  display:inline-flex;align-items:center;justify-content:center;gap:.3rem;
+  margin:.25rem auto;padding:.18rem .6rem;border-radius:999px;
+  font-size:.74rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  width:fit-content;
 }
-.emotie-badge .eico{font-size:.95rem;}
-.emotie-badge .enaam{color:#c2e8d8;}
+.emotie-badge{display:flex;}
+.emotie-badge .eico{font-size:1rem;line-height:1;}
+.emotie-badge .enaam{color:var(--zacht);font-weight:700;text-transform:capitalize;}
 
-.genen{display:flex;flex-wrap:nowrap;gap:.18rem;justify-content:center;font-size:.62rem;margin:.15rem 0;white-space:nowrap;}
-.genen span{background:#0e2f1e;border:1px solid #1c5b42;border-radius:6px;padding:.08rem .3rem;}
-.muts{letter-spacing:.08em;}
+.genen{display:flex;flex-wrap:nowrap;gap:.22rem;justify-content:center;font-size:.62rem;margin:.25rem 0;white-space:nowrap;}
+.genen span{background:rgba(57,255,133,.08);border:1px solid rgba(57,255,133,.18);border-radius:7px;padding:.12rem .36rem;font-weight:700;color:var(--zacht);}
+.muts{letter-spacing:.06em;}
 
 /* Scène met zwaartekracht */
 .scene{
-  position:relative;
-  width:100%;height:130px;
-  display:flex;align-items:flex-end;justify-content:center;
-  overflow:hidden;
-  background:linear-gradient(to bottom,transparent 70%,rgba(6,26,18,.5) 100%);
-  border-radius:8px;
-  border-bottom:2px solid var(--paneel-rand);
+  position:relative;width:100%;height:134px;
+  display:flex;align-items:flex-end;justify-content:center;overflow:hidden;
+  background:
+    radial-gradient(120px 60px at 50% 100%, rgba(57,255,133,.10), transparent 70%),
+    linear-gradient(to bottom,transparent 60%,rgba(4,16,11,.6) 100%);
+  border-radius:12px;margin:.2rem 0;
+  border:1px solid rgba(57,255,133,.08);
+  box-shadow:inset 0 -10px 20px rgba(0,0,0,.3);
 }
 .grond{
-  position:absolute;
-  bottom:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--paneel-rand),transparent);
+  position:absolute;bottom:0;left:8%;right:8%;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,transparent,var(--matrix-dim),var(--matrix),var(--matrix-dim),transparent);
+  opacity:.6;box-shadow:0 0 10px rgba(57,255,133,.4);
 }
-.bw{
-  position:absolute;
-  bottom:4px;
-  transition:filter .3s;
-  display:flex;align-items:flex-end;justify-content:center;
-}
-.bw svg{
-  display:block;
-  width:calc(var(--groei,1.0) * 72px);
-  height:auto;
-  overflow:visible;
-}
-.bw.vitaal{filter:drop-shadow(0 0 5px rgba(57,255,133,.4));}
-.bw.ziek{filter:drop-shadow(0 0 7px rgba(181,39,24,.7));}
+.bw{position:absolute;bottom:5px;transition:filter .3s;display:flex;align-items:flex-end;justify-content:center;}
+.bw svg{display:block;width:calc(var(--groei,1.0) * 74px);height:auto;overflow:visible;}
+.bw.vitaal{filter:drop-shadow(0 0 6px rgba(57,255,133,.45));}
+.bw.ziek{filter:drop-shadow(0 0 8px rgba(181,39,24,.7));}
 .bw.droevig{filter:brightness(.8) saturate(.6);}
 .bw .spier{transform-origin:center;transform:scale(var(--spier,1));}
 
-/* Emotie bubbel boven Botty */
 .emotie-bubbel{
-  position:absolute;
-  top:-10px;left:50%;transform:translateX(-50%);
-  font-size:1.1rem;
-  pointer-events:none;
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  font-size:1.2rem;pointer-events:none;z-index:10;
   animation:bob 3s ease-in-out infinite;
-  z-index:10;
-  filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
 }
-@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-4px)}}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
 
-/* Zorg armen */
 .bw.zorg svg .arm-l{transform-box:fill-box;transform-origin:50% 0%;animation:armLUp 2s ease-in-out;}
 .bw.zorg svg .arm-r{transform-box:fill-box;transform-origin:50% 0%;animation:armRUp 2s ease-in-out;}
 @keyframes armLUp{0%,100%{transform:rotate(0deg)}25%,75%{transform:rotate(-130deg)}}
@@ -164,146 +190,122 @@ h1{font-size:clamp(1.6rem,4vw,2.6rem);font-weight:900;
 @keyframes weg{0%{opacity:1;transform:scale(1)}60%{opacity:.3;transform:scale(.7) translateY(10px)}100%{opacity:0;transform:scale(.4) translateY(30px)}}
 
 .floaters{position:absolute;inset:0;pointer-events:none;overflow:visible;}
-.floater{
-  position:absolute;bottom:60%;font-size:.72rem;font-weight:700;
-  white-space:nowrap;pointer-events:none;
-  animation:float 1.1s ease-out forwards;
-}
-@keyframes float{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-36px)}}
+.floater{position:absolute;bottom:60%;font-size:.74rem;font-weight:800;white-space:nowrap;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.5);animation:float 1.1s ease-out forwards;}
+@keyframes float{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-38px)}}
 
-.bars{display:flex;flex-direction:column;gap:.18rem;margin-top:.35rem;}
-.bar-rij{display:flex;align-items:center;gap:.3rem;}
-.ico{font-size:.72rem;width:14px;text-align:center;flex-shrink:0;}
-.bar{flex:1;height:6px;background:#0a1f13;border-radius:99px;overflow:hidden;}
-.bar>span{display:block;height:100%;border-radius:99px;transition:width .4s ease;}
+.bars{display:flex;flex-direction:column;gap:.24rem;margin-top:.5rem;}
+.bar-rij{display:flex;align-items:center;gap:.35rem;}
+.ico{font-size:.74rem;width:15px;text-align:center;flex-shrink:0;}
+.bar{flex:1;height:7px;background:rgba(0,0,0,.35);border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,.04);}
+.bar>span{display:block;height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);}
 .b-energie>span{background:linear-gradient(90deg,#2f8fa8,#5ec6ff);}
 .b-data>span{background:linear-gradient(90deg,#1a7d4a,#39ff85);}
 .b-fit>span{background:linear-gradient(90deg,#2e6b34,#7fd06f);}
 .b-geluk>span{background:linear-gradient(90deg,#a87010,#f6c250);}
 
-/* IR beam */
-#verse{position:relative;}
-.beam{
-  position:absolute;height:3px;
-  background:linear-gradient(90deg,transparent,#2f8f86,#39ff85,#2f8f86,transparent);
-  transform-origin:left center;border-radius:2px;pointer-events:none;z-index:5;
-  animation:beamfade .9s ease-out forwards;
-}
+.beam{position:absolute;height:3px;background:linear-gradient(90deg,transparent,#2f8f86,#39ff85,#2f8f86,transparent);transform-origin:left center;border-radius:2px;pointer-events:none;z-index:5;box-shadow:0 0 8px rgba(57,255,133,.5);animation:beamfade .9s ease-out forwards;}
 @keyframes beamfade{0%{opacity:.9}100%{opacity:0}}
 
 /* ── Evaluatief paneel ── */
-.eval-kolom{
-  flex:0 0 300px;
-  display:flex;flex-direction:column;gap:.8rem;
-  position:sticky;top:1rem;
-  max-height:calc(100vh - 2rem);
-  overflow-y:auto;
-}
+.eval-kolom{flex:0 0 312px;display:flex;flex-direction:column;gap:1rem;position:sticky;top:1rem;max-height:calc(100vh - 2rem);overflow-y:auto;padding-right:.2rem;}
+.eval-kolom::-webkit-scrollbar{width:6px;}
+.eval-kolom::-webkit-scrollbar-thumb{background:rgba(57,255,133,.2);border-radius:99px;}
 .eval-sectie{
   background:var(--paneel);border:1px solid var(--paneel-rand);
-  border-radius:14px;padding:.9rem 1rem;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-radius:18px;padding:1rem 1.1rem;box-shadow:var(--schaduw);
 }
 .eval-sectie h2{
-  font-size:.82rem;font-weight:900;text-transform:uppercase;
-  letter-spacing:.08em;color:#7fb89a;margin-bottom:.6rem;
-  display:flex;align-items:center;gap:.4rem;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--zacht);
+  margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem;
 }
-.eval-sectie h2 .ico-h{font-size:1rem;}
+.eval-sectie h2 .ico-h{
+  font-size:.95rem;display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border-radius:8px;
+  background:linear-gradient(135deg,rgba(57,255,133,.16),rgba(200,155,255,.16));
+  border:1px solid rgba(57,255,133,.2);
+}
 
-/* Generationele grafiek */
-#gen-canvas{
-  width:100%;border-radius:8px;
-  background:#061a12;
-  border:1px solid #1c5b42;
-  display:block;
-}
-.gen-legende{
-  display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.4rem;font-size:.68rem;color:#7fb89a;
-}
-.gen-legende span{display:flex;align-items:center;gap:.2rem;}
-.gen-legende i{display:inline-block;width:10px;height:3px;border-radius:2px;}
+#gen-canvas{width:100%;border-radius:12px;background:rgba(4,16,11,.6);border:1px solid rgba(57,255,133,.12);display:block;}
+.gen-legende{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.55rem;font-size:.68rem;color:var(--dim);font-weight:700;}
+.gen-legende span{display:flex;align-items:center;gap:.3rem;}
+.gen-legende i{display:inline-block;width:12px;height:3px;border-radius:2px;}
 
-/* Emotie overzicht grid */
-.emotie-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;
-}
+.emotie-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;}
 .emotie-cel{
-  background:#061a12;border:1px solid #1c5b42;
-  border-radius:8px;padding:.3rem .4rem;
-  text-align:center;font-size:.65rem;
-  transition:border-color .3s;
+  background:rgba(4,16,11,.55);border:1px solid rgba(57,255,133,.12);
+  border-radius:12px;padding:.45rem .4rem;text-align:center;font-size:.65rem;
+  transition:border-color .3s,transform .2s;
 }
-.emotie-cel .enaam-klein{color:#a8d4be;font-size:.62rem;}
-.emotie-cel .eico-groot{font-size:1.1rem;display:block;}
+.emotie-cel:hover{transform:translateY(-2px);}
+.emotie-cel .enaam-klein{color:var(--zacht);font-size:.62rem;font-weight:700;margin-top:.1rem;}
+.emotie-cel .eico-groot{font-size:1.25rem;display:block;line-height:1.1;}
 .emotie-cel.ec-enthousiast{border-color:#ffd54a;}
-.emotie-cel.ec-blij{border-color:#39ff85;}
+.emotie-cel.ec-blij{border-color:rgba(57,255,133,.5);}
+.emotie-cel.ec-kalm{border-color:rgba(94,198,255,.45);}
+.emotie-cel.ec-nieuwsgierig{border-color:rgba(200,155,255,.5);}
 .emotie-cel.ec-trots{border-color:#f6a623;}
+.emotie-cel.ec-eenzaam{border-color:rgba(127,184,154,.35);}
 .emotie-cel.ec-angstig{border-color:#e08a1a;}
+.emotie-cel.ec-verward{border-color:#e0556b;}
 .emotie-cel.ec-verdrietig{border-color:#6699cc;}
 .emotie-cel.ec-ziek{border-color:#b52718;}
 
-/* AI log */
-.ai-log-lijst{
-  display:flex;flex-direction:column;gap:.35rem;
-  max-height:220px;overflow-y:auto;
-  font-size:.74rem;
-}
+.ai-log-lijst{display:flex;flex-direction:column;gap:.4rem;max-height:230px;overflow-y:auto;font-size:.75rem;padding-right:.2rem;}
+.ai-log-lijst::-webkit-scrollbar{width:5px;}
+.ai-log-lijst::-webkit-scrollbar-thumb{background:rgba(57,255,133,.2);border-radius:99px;}
 .ai-log-item{
-  background:#061a12;border-left:3px solid var(--paneel-rand);
-  border-radius:0 6px 6px 0;padding:.3rem .5rem;
-  color:#a8d4be;line-height:1.4;
+  background:rgba(4,16,11,.5);border-left:3px solid var(--paneel-rand-sterk);
+  border-radius:0 8px 8px 0;padding:.4rem .6rem;color:var(--zacht);line-height:1.45;
+  animation:login .35s ease;
 }
+@keyframes login{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
 .ai-log-item.log-geluk{border-left-color:#f6c250;}
 .ai-log-item.log-ziek{border-left-color:#b52718;}
 .ai-log-item.log-data{border-left-color:#39ff85;}
 .ai-log-item.log-energie{border-left-color:#5ec6ff;}
 .ai-log-item.log-emotie{border-left-color:#c89bff;}
 
-/* Gen statistieken tabel */
-.gen-tabel{
-  width:100%;border-collapse:collapse;font-size:.72rem;
-}
-.gen-tabel th{
-  text-align:left;color:#5f8f78;font-weight:700;
-  padding:.2rem .3rem;border-bottom:1px solid #1c5b42;
-}
-.gen-tabel td{
-  padding:.25rem .3rem;color:#a8d4be;border-bottom:1px solid #0e2f1e;
-}
+.gen-tabel{width:100%;border-collapse:collapse;font-size:.74rem;}
+.gen-tabel th{text-align:left;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.66rem;padding:.3rem .35rem;border-bottom:1px solid rgba(57,255,133,.15);}
+.gen-tabel td{padding:.35rem .35rem;color:var(--zacht);border-bottom:1px solid rgba(57,255,133,.06);}
 .gen-tabel tr:last-child td{border-bottom:none;}
-.gen-tabel .goed{color:#39ff85;font-weight:700;}
-.gen-tabel .muts-mini{font-size:.65rem;letter-spacing:.06em;}
+.gen-tabel .goed{color:var(--matrix);font-weight:800;}
+.gen-tabel .muts-mini{font-size:.66rem;letter-spacing:.05em;}
 
-/* Uitleg & nav */
 .uitleg-strip{
-  position:relative;z-index:1;
-  max-width:900px;width:calc(100% - 2rem);
-  margin:0 auto .8rem;
+  position:relative;z-index:1;max-width:1240px;width:calc(100% - 2rem);margin:0 auto 1rem;
   background:var(--paneel);border:1px solid var(--paneel-rand);
-  border-radius:14px;padding:.9rem 1.1rem;
-  font-size:.83rem;line-height:1.6;color:#c2e8d8;
-  display:flex;gap:1.5rem;flex-wrap:wrap;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-radius:18px;padding:1.2rem 1.4rem;font-size:.85rem;line-height:1.6;color:var(--zacht);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.4rem;box-shadow:var(--schaduw);
 }
-.uitleg-strip section{flex:1 1 200px;}
-.uitleg-strip h3{font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#7fb89a;margin-bottom:.3rem;}
+.uitleg-strip h3{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.04em;color:var(--licht);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem;}
+.uitleg-strip strong{color:var(--licht);font-weight:800;}
 
-footer{
-  position:relative;z-index:1;
-  text-align:center;padding:.7rem;font-size:.78rem;color:#4a7a62;
+footer{position:relative;z-index:1;text-align:center;padding:.5rem 1rem 1.6rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;}
+footer a{
+  display:inline-flex;align-items:center;gap:.35rem;
+  color:var(--zacht);text-decoration:none;font-weight:700;font-size:.82rem;
+  padding:.5rem .9rem;border-radius:999px;
+  border:1px solid var(--paneel-rand);background:var(--paneel);
+  transition:border-color .25s,color .25s,transform .2s;
 }
-footer a{color:#5f9a80;text-decoration:none;margin:0 .5rem;}
+footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transform:translateY(-2px);}
 
 .cloud-badge{
-  position:fixed;top:10px;right:10px;z-index:100;
+  position:fixed;top:12px;right:12px;z-index:100;
   background:var(--paneel);border:1px solid var(--paneel-rand);
-  border-radius:8px;padding:.28rem .55rem;font-size:.7rem;color:#7fb89a;
-  display:flex;align-items:center;gap:.3rem;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-radius:999px;padding:.35rem .7rem;font-size:.72rem;color:var(--zacht);font-weight:700;
+  display:flex;align-items:center;gap:.4rem;box-shadow:var(--schaduw);
 }
-.cloud-dot{width:7px;height:7px;border-radius:50%;background:#888;flex-shrink:0;}
-.cloud-dot.verbonden{background:var(--matrix);animation:pulse-dot 2s ease-in-out infinite;}
+.cloud-dot{width:8px;height:8px;border-radius:50%;background:#888;flex-shrink:0;}
+.cloud-dot.verbonden{background:var(--matrix);box-shadow:0 0 8px var(--matrix);animation:pulse-dot 2s ease-in-out infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
 
-@media(max-width:800px){
+@media(max-width:860px){
   .main-layout{flex-direction:column;}
   .eval-kolom{flex:none;width:100%;position:static;max-height:none;}
 }
@@ -318,8 +320,8 @@ footer a{color:#5f9a80;text-decoration:none;margin:0 .5rem;}
 </div>
 
 <header>
+  <span class="eyebrow"><span class="puls"></span> v3 · Zwaartekracht · Emoties · Generaties</span>
   <h1>Botty-verse Evolutie</h1>
-  <p style="font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#c89bff;margin:.15rem 0;opacity:.8;">v3 — Zwaartekracht · Emoties · Generaties</p>
   <p class="ondertitel">Botty's leven in containers met <strong>zwaartekracht</strong>. Ze voelen <strong>10 emoties</strong> die de AI assistent herkent en verzorgt. Het evaluatief paneel toont hoe ze zich ontwikkelen <strong>over generaties</strong>.</p>
   <div class="kpi-rij">
     <div class="kpi"><div class="label">Botty's</div><div class="waarde" id="kpi-aantal">—</div><div class="sub">in de hive</div></div>
@@ -333,18 +335,14 @@ footer a{color:#5f9a80;text-decoration:none;margin:0 .5rem;}
 <div class="ticker-wrap" id="ticker"><span class="knip">▌</span> De hive verbindt met de cloud…</div>
 
 <div class="main-layout">
-  <!-- Botty grid -->
   <div class="botty-kolom">
     <div id="verse"></div>
   </div>
 
-  <!-- Evaluatief paneel -->
   <div class="eval-kolom">
-
-    <!-- Generationele grafiek -->
     <div class="eval-sectie">
       <h2><span class="ico-h">📈</span> Evolutie per generatie</h2>
-      <canvas id="gen-canvas" width="260" height="130"></canvas>
+      <canvas id="gen-canvas" width="272" height="134"></canvas>
       <div class="gen-legende">
         <span><i style="background:#39ff85"></i> Datakwaliteit</span>
         <span><i style="background:#5ec6ff"></i> Efficiëntie</span>
@@ -352,7 +350,6 @@ footer a{color:#5f9a80;text-decoration:none;margin:0 .5rem;}
       </div>
     </div>
 
-    <!-- Generatie statistieken -->
     <div class="eval-sectie">
       <h2><span class="ico-h">🧬</span> Generatie statistieken</h2>
       <table class="gen-tabel">
@@ -361,18 +358,15 @@ footer a{color:#5f9a80;text-decoration:none;margin:0 .5rem;}
       </table>
     </div>
 
-    <!-- Emotie snapshot -->
     <div class="eval-sectie">
       <h2><span class="ico-h">💭</span> Emotie snapshot</h2>
       <div class="emotie-grid" id="emotie-grid"></div>
     </div>
 
-    <!-- AI interventie log -->
     <div class="eval-sectie">
       <h2><span class="ico-h">🤖</span> AI Emotiezorg log</h2>
       <div class="ai-log-lijst" id="ai-log"></div>
     </div>
-
   </div>
 </div>
 
@@ -391,7 +385,7 @@ footer a{color:#5f9a80;text-decoration:none;margin:0 .5rem;}
   </section>
   <section>
     <h3>📈 Evaluatief</h3>
-    Het paneel links toont de genetische ontwikkeling per generatie — hoe datakwaliteit, efficiëntie en geluk groeien naarmate de hive evolueert. Mutaties worden per generatie bijgehouden.
+    Het paneel rechts toont de genetische ontwikkeling per generatie — hoe datakwaliteit, efficiëntie en geluk groeien naarmate de hive evolueert. Mutaties worden per generatie bijgehouden.
   </section>
 </div>
 
@@ -419,11 +413,8 @@ var bottys = [];
 var acties = 0;
 var bezigKweek = false;
 
-// Generatie geschiedenis: { gen, dk, ef, geluk, mutaties: [], count }
 var genData = {};
-// AI log (max 30 entries)
 var aiLog = [];
-// Emotie tellers voor KPI
 var positieveEmoties = new Set(["enthousiast","blij","kalm","nieuwsgierig","trots"]);
 
 // ── Emoties ────────────────────────────────────────────────────────────────
@@ -458,13 +449,12 @@ function bepaalEmotie(b) {
   return "blij";
 }
 
-// AI-respons per emotie
 var EMOTIE_ZORG = {
   enthousiast: function(naam){ return { tekst: "🎉 " + naam + " bruist van energie — de AI viert mee!",       label:"+🎉",  kleur:"#ffd54a", type:"emotie" }; },
   blij:        function(naam){ return { tekst: "😊 " + naam + " is blij. De AI geeft een bemoedigend tikje.",  label:"+💚",  kleur:"#39ff85", type:"data"   }; },
   kalm:        function(naam){ return { tekst: "😌 " + naam + " is kalm. De AI laat ze rustig zijn.",          label:"~",   kleur:"#5ec6ff", type:"data"   }; },
   nieuwsgierig:function(naam){ return { tekst: "🤔 " + naam + " is nieuwsgierig — AI geeft extra data!",       label:"+💾",  kleur:"#c89bff", type:"data"   }; },
-  trots:       function(naam){ return { tekst: "😎 " + naam + " is trots op gen " + "—" + ". AI erkent prestatie!", label:"+⭐", kleur:"#f6a623", type:"emotie" }; },
+  trots:       function(naam){ return { tekst: "😎 " + naam + " is trots. AI erkent de prestatie!",            label:"+⭐", kleur:"#f6a623", type:"emotie" }; },
   eenzaam:     function(naam){ return { tekst: "😔 " + naam + " voelt zich eenzaam. AI regelt snel een bezoek!",label:"+💕",  kleur:"#7fb89a", type:"geluk"  }; },
   verdrietig:  function(naam){ return { tekst: "😢 " + naam + " is verdrietig. AI geeft troost en extra geluk.",label:"+💙",  kleur:"#6699cc", type:"geluk"  }; },
   angstig:     function(naam){ return { tekst: "😰 " + naam + " is angstig. AI geeft veiligheid en energie.",  label:"+🫂",  kleur:"#e08a1a", type:"energie"}; },
@@ -479,10 +469,10 @@ function voegAiLogToe(item) {
 }
 
 // ── Gravity physics ────────────────────────────────────────────────────────
-var physics = {};   // naam → { y: number, vy: number }
+var physics = {};
 var GRAVITY = 0.38;
 var STUIT   = 0.45;
-var GROND_Y = 0;    // rest positie = 0 (zit op grond)
+var GROND_Y = 0;
 var DAMP    = 0.96;
 
 function initPhysics(naam) {
@@ -492,28 +482,23 @@ function initPhysics(naam) {
 function springBotty(naam, emotie) {
   initPhysics(naam);
   var em = EMOTIES[emotie] || EMOTIES.blij;
-  physics[naam].vy = em.sprong;  // negatief = omhoog
+  physics[naam].vy = em.sprong;
 }
 
 function tickPhysics() {
   Object.keys(physics).forEach(function(naam) {
     var p = physics[naam];
-    // Gewicht gebaseerd op emotie (zwaardere emoties vallen sneller)
     var emotie = elMap[naam] ? elMap[naam].emotie : "kalm";
     var em = EMOTIES[emotie] || EMOTIES.kalm;
     var g = GRAVITY * em.gewicht;
-
     p.vy += g;
     p.y  += p.vy;
-
     if (p.y >= GROND_Y) {
       p.y  = GROND_Y;
       p.vy *= -STUIT;
       if (Math.abs(p.vy) < 0.5) p.vy = 0;
     }
     p.vy *= DAMP;
-
-    // Toepassen op DOM (translateY = negatief want omhoog is negatief in CSS)
     var el = elMap[naam];
     if (el && el.wrap) {
       el.wrap.style.transform = "translateY(" + (-Math.max(0, -p.y)).toFixed(1) + "px)";
@@ -596,7 +581,7 @@ function mutatiesSvg(list){ return (list||[]).map(mutatieSvg).join(""); }
 
 // ── DOM helpers ────────────────────────────────────────────────────────────
 var verse  = document.getElementById("verse");
-var elMap  = {}; // naam → { kaart, wrap, floaters, bars, emotie, buelEl }
+var elMap  = {};
 var prevBottys = [];
 
 function genenHtml(b){
@@ -620,7 +605,7 @@ function vulKaart(kaart, b){
   kaart.innerHTML =
       '<div class="knaam">'+b.naam+'</div>'
     + '<div class="kstage">'+(stageLabel[b.stage]||b.stage)+' · G'+(b.generatie||1)+'</div>'
-    + '<div class="emotie-badge"><span class="eico">'+em.emoji+'</span><span class="enaam">'+em.label+'</span></div>'
+    + '<div style="text-align:center"><span class="emotie-badge"><span class="eico">'+em.emoji+'</span><span class="enaam">'+em.label+'</span></span></div>'
     + '<div class="genen">'+genenHtml(b)+'</div>'
     + '<div class="scene">'
     +   '<div class="bw bw-'+b.stage+'" style="--groei:'+(groei[b.stage]||1)+';--spier:'+spierSchaal(b.efficientie)+'">'
@@ -655,7 +640,7 @@ function vulKaart(kaart, b){
   };
 }
 
-// ── Generatie data tracking ────────────────────────────────────────────────
+// ── Generatie data tracking ───────────────────────────────────────────────────
 function updateGenData(b) {
   var g = b.generatie || 1;
   if (!genData[g]) genData[g] = { gen:g, dk:[], ef:[], geluk:[], mutaties:new Set(), count:0 };
@@ -674,8 +659,6 @@ function renderGenChart() {
   var ctx = canvas.getContext("2d");
   var W = canvas.width, H = canvas.height;
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle = "#061a12";
-  ctx.fillRect(0,0,W,H);
 
   var gens = Object.keys(genData).map(Number).sort(function(a,b){return a-b;});
   if (gens.length < 1) return;
@@ -685,8 +668,7 @@ function renderGenChart() {
   var h = H - pad*2;
   var maxGen = Math.max(gens[gens.length-1], 1);
 
-  // Gridlijnen
-  ctx.strokeStyle = "#1c5b42"; ctx.lineWidth = 0.5;
+  ctx.strokeStyle = "rgba(57,255,133,.12)"; ctx.lineWidth = 0.5;
   for (var i=0;i<=4;i++) {
     var yg = pad + h - (i/4)*h;
     ctx.beginPath(); ctx.moveTo(pad,yg); ctx.lineTo(W-pad,yg); ctx.stroke();
@@ -694,7 +676,6 @@ function renderGenChart() {
     ctx.fillText(Math.round(i*25),2,yg+3);
   }
 
-  // X as labels
   ctx.fillStyle = "#5f8f78"; ctx.font = "9px Nunito,sans-serif";
   gens.forEach(function(g){
     var x = pad + ((g-1)/(Math.max(maxGen-1,1)))*w;
@@ -702,7 +683,7 @@ function renderGenChart() {
   });
 
   function drawLine(metric, kleur) {
-    ctx.strokeStyle = kleur; ctx.lineWidth = 2;
+    ctx.strokeStyle = kleur; ctx.lineWidth = 2; ctx.lineJoin="round";
     ctx.beginPath();
     gens.forEach(function(g, i){
       var x = pad + ((g-1)/(Math.max(maxGen-1,1)))*w;
@@ -712,7 +693,6 @@ function renderGenChart() {
       else         ctx.lineTo(x,y);
     });
     ctx.stroke();
-    // Punten
     gens.forEach(function(g){
       var x = pad + ((g-1)/(Math.max(maxGen-1,1)))*w;
       var val = avg(genData[g][metric]);
@@ -776,10 +756,8 @@ function renderState(state){
   var nieuweBottys = state.bottys;
   acties = state.acties || 0;
 
-  // Reset genData voor verse calc
   genData = {};
 
-  // Verwijder kaarten van verdwenen Botty's
   Object.keys(elMap).forEach(function(naam){
     if (!nieuweBottys.find(function(b){ return b.naam===naam; })){
       if (elMap[naam] && elMap[naam].kaart && elMap[naam].kaart.parentNode)
@@ -806,7 +784,6 @@ function renderState(state){
       var prevB = prevBottys.find(function(x){ return x.naam===b.naam; });
       var prevEmotie = existing.emotie;
 
-      // Herbouw bij stage- of emotie-verandering
       if (!prevB || prevB.stage !== b.stage){
         var els2 = vulKaart(existing.kaart, b);
         existing.wrap     = els2.wrap;
@@ -815,13 +792,11 @@ function renderState(state){
         existing.badgeEl  = els2.badgeEl;
         existing.bars     = els2.bars;
       } else {
-        // Update bars
         existing.bars.energie.style.width = b.energie + "%";
         existing.bars.data.style.width    = b.data    + "%";
         existing.bars.fit.style.width     = b.fit     + "%";
         existing.bars.geluk.style.width   = b.geluk   + "%";
 
-        // Update emotie
         if (emotie !== prevEmotie){
           existing.emotie = emotie;
           existing.kaart.className = "kaart emotie-" + emotie;
@@ -829,14 +804,12 @@ function renderState(state){
           if (existing.bubelEl) existing.bubelEl.textContent = em2.emoji;
           if (existing.badgeEl) existing.badgeEl.innerHTML = '<span class="eico">'+em2.emoji+'</span><span class="enaam">'+em2.label+'</span>';
 
-          // AI emotie-interventie log
           var zorgFn = EMOTIE_ZORG[emotie];
           if (zorgFn) {
             var zorgRes = zorgFn(b.naam);
             if (emotie !== "blij" && emotie !== "kalm") {
               voegAiLogToe(zorgRes);
               floater(b, zorgRes.label, zorgRes.kleur || "#39ff85");
-              // Spring als de AI ingrijpt
               springBotty(b.naam, emotie);
               document.getElementById("ticker").innerHTML =
                 '<span class="knip">▌</span> ' + zorgRes.tekst;
@@ -847,12 +820,10 @@ function renderState(state){
 
       existing.emotie = emotie;
 
-      // Vitaal/ziek stijl
       existing.wrap.classList.toggle("vitaal", gem(b) > 65 && !b.ziek);
       existing.wrap.classList.toggle("ziek",   !!b.ziek);
       existing.wrap.classList.toggle("droevig", emotie === "verdrietig" || emotie === "eenzaam");
 
-      // Spring bij zorgactie
       if (prevB && gem(b) > gem(prevB) + 5){
         springBotty(b.naam, emotie);
         floater(b, "+zorg", "#39ff85");
@@ -864,7 +835,6 @@ function renderState(state){
   prevBottys = JSON.parse(JSON.stringify(nieuweBottys));
   bottys = nieuweBottys;
 
-  // KPI's
   document.getElementById("kpi-aantal").textContent = nieuweBottys.length;
   document.getElementById("kpi-acties").textContent = acties.toLocaleString("nl-NL");
   var maxGen = 1;
@@ -876,7 +846,6 @@ function renderState(state){
   var positief = nieuweBottys.filter(function(b){ return positieveEmoties.has(bepaalEmotie(b)); }).length;
   document.getElementById("kpi-blij").textContent = Math.round(positief / nieuweBottys.length * 100) + "%";
 
-  // Evaluatief paneel
   renderGenChart();
   renderGenTabel();
   renderEmotieGrid();
@@ -937,8 +906,8 @@ function toonKweek(ev){
   var elA = elMap[ev.ouderA], elB = elMap[ev.ouderB];
   if (!elA || !elB) return;
   bezigKweek = true;
-  elA.kaart.style.boxShadow = "0 0 18px #ff8bd066";
-  elB.kaart.style.boxShadow = "0 0 18px #ff8bd066";
+  elA.kaart.style.boxShadow = "0 0 22px #ff8bd066";
+  elB.kaart.style.boxShadow = "0 0 22px #ff8bd066";
   trekBeam(ev.ouderA, ev.ouderB);
   document.getElementById("ticker").innerHTML =
     '<span class="knip">▌</span> 💞 De AI koppelt <b>'+ev.ouderA+'</b> en <b>'+ev.ouderB+'</b>…';
@@ -960,7 +929,7 @@ function toonKweek(ev){
   }, 1700);
 }
 
-// ── Cloud status ──────────────────────────────────────────────────────────
+// ── Cloud status ─────────────────────────────────────────────────────────
 function setVerbonden(ja){
   var dot = document.getElementById("cloud-dot");
   var lbl = document.getElementById("cloud-status");
@@ -993,7 +962,6 @@ function startTick(){
   }, TICK_INTERVAL);
 }
 
-// Realtime
 supabase
   .channel("hive")
   .on("postgres_changes",
@@ -1002,7 +970,6 @@ supabase
   )
   .subscribe(function(status){ setVerbonden(status==="SUBSCRIBED"); });
 
-// Initieel laden
 fetch(TICK_URL, { method:"POST" })
   .then(function(r){ return r.json(); })
   .then(function(state){
@@ -1010,7 +977,6 @@ fetch(TICK_URL, { method:"POST" })
     renderState(state);
     document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ☁️ Hive geladen — emoties en zwaartekracht actief!';
     startTick();
-    // Start physics loop
     if (!reduce) physicsLoop();
   })
   .catch(function(e){
@@ -1020,7 +986,6 @@ fetch(TICK_URL, { method:"POST" })
     if (!reduce) physicsLoop();
   });
 
-// Ticker facts
 var facts = [
   "💭 Emoties zijn gebaseerd op energie, data, fitness, geluk en statistiek-spreiding.",
   "⚡ Zwaartekracht: blije Botty's springen hoger, verdrietige Botty's zijn zwaarder.",
@@ -1038,7 +1003,6 @@ setInterval(function(){
   factIdx++;
 }, 6000);
 
-// Matrix regen
 (function rain(){
   if (reduce) return;
   var cv = document.getElementById("rain"), ctx = cv.getContext("2d");
