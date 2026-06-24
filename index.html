@@ -564,40 +564,6 @@
     document.getElementById("kpi-uptime").textContent = fmtDuur(Date.now()-firstOpened);
   }, 1000);
 
-  // Lokaal verval tussen server-ticks: energie -3/2.2s, rest -2/2.2s
-  var localBottys = [];   // schaduwkopie voor lokale interpolatie
-  var lastSyncAt  = Date.now();
-  function klem01(v){ return Math.max(0, Math.min(100, v)); }
-  setInterval(function(){
-    if(!localBottys.length) return;
-    var dt = 1; // seconden per interval
-    localBottys.forEach(function(b){
-      if(b.bezigEi) return;
-      b.energie = klem01(b.energie - 3/2.2 * dt);
-      b.data    = klem01(b.data    - 2/2.2 * dt);
-      b.fit     = klem01(b.fit     - 2/2.2 * dt);
-      b.geluk   = klem01(b.geluk   - 2/2.2 * dt);
-      var el = elMap[b.naam];
-      if(!el) return;
-      el.bars.energie.style.width = b.energie + "%";
-      el.bars.data.style.width    = b.data    + "%";
-      el.bars.fit.style.width     = b.fit     + "%";
-      el.bars.geluk.style.width   = b.geluk   + "%";
-      el.wrap.classList.toggle("vitaal", (b.energie+b.data+b.fit+b.geluk)/4 > 65 && !b.ziek);
-      el.wrap.classList.toggle("ziek", !!b.ziek);
-    });
-  }, 1000);
-
-  // Synchroniseer localBottys bij elke server-update
-  var _origRenderState = renderState;
-  renderState = function(state){
-    _origRenderState(state);
-    if(state && state.bottys){
-      localBottys = state.bottys.map(function(b){ return Object.assign({}, b); });
-      lastSyncAt = Date.now();
-    }
-  };
-
   // ── Ticker ────────────────────────────────────────────────────────────────
   var tickerFeed = [
     "☁️ De hive draait in de cloud. De AI verzorgt alle Botty's volledig zelf.",
