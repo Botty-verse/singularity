@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty-verse — Stamboom</title>
+<meta name="theme-color" content="#04140d" />
+<meta name="description" content="De échte stamboom van de Botty-hive: wie stamt van wie af, welke genen en mutaties elke generatie doorgaf." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --matrix:#39ff85;--paneel:rgba(6,26,18,.78);--paneel-rand:#1c5b42;--licht:#dff7ea;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:#04140d;color:var(--licht);min-height:100vh;
+       display:flex;flex-direction:column;align-items:center;}
+  header{text-align:center;padding:2rem 1rem .6rem;width:100%;}
+  h1{font-size:clamp(1.7rem,5vw,2.8rem);font-weight:900;letter-spacing:-.02em;
+     background:linear-gradient(135deg,var(--matrix),#a3ffce);-webkit-background-clip:text;
+     -webkit-text-fill-color:transparent;background-clip:text;}
+  .ondertitel{max-width:640px;margin:.5rem auto 0;font-size:.95rem;color:#a8d4be;line-height:1.5;}
+  .terug{display:inline-block;margin-top:.8rem;color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  .terug:hover{color:var(--matrix);}
+  .kpi-rij{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin:1.2rem auto .4rem;max-width:640px;}
+  .kpi{background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:12px;padding:.5rem .9rem;text-align:center;min-width:96px;}
+  .kpi .label{font-size:.72rem;color:#7fb89a;text-transform:uppercase;letter-spacing:.06em;}
+  .kpi .waarde{font-size:1.35rem;font-weight:900;color:var(--matrix);}
+
+  main{width:100%;max-width:900px;padding:1rem 1rem 3rem;}
+  .melding{background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:14px;
+           padding:1.2rem 1.4rem;text-align:center;color:#c2e8d8;line-height:1.6;font-size:.92rem;}
+
+  /* Boom */
+  ul.boom{list-style:none;}
+  ul.boom ul{list-style:none;margin-left:1.1rem;padding-left:1.1rem;border-left:2px dashed #1f6f49;}
+  li.knoop{margin:.55rem 0;position:relative;}
+  li.knoop::before{content:"";position:absolute;left:-1.1rem;top:1.4rem;width:1.1rem;height:2px;background:#1f6f49;}
+  ul.boom > li.knoop::before{display:none;}
+
+  .node{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.5rem;
+        background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:12px;
+        padding:.5rem .75rem;max-width:100%;}
+  .node.founder{border-color:#3a7d5c;background:rgba(10,40,26,.7);}
+  .naam{font-weight:900;font-size:1rem;}
+  .gen{font-size:.7rem;font-weight:700;color:#04140d;background:var(--matrix);border-radius:99px;padding:.1rem .5rem;}
+  .pill{font-size:.72rem;color:#bfe3df;background:#0e2f1e;border:1px solid #1c5b42;border-radius:7px;padding:.1rem .4rem;white-space:nowrap;}
+  .co{font-size:.78rem;color:#9ec9b6;}
+  .co b{color:var(--licht);}
+  .muts{letter-spacing:.08em;font-size:.8rem;}
+
+  /* DNA strip */
+  .dna{display:inline-flex;align-items:flex-end;gap:2px;height:22px;}
+  .dna i{width:6px;border-radius:2px 2px 0 0;opacity:.85;}
+
+  footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.4rem;flex-wrap:wrap;justify-content:center;
+         border-top:1px solid #103022;width:100%;}
+  footer a{color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  footer a:hover{color:var(--matrix);}
+  .laad{text-align:center;color:#7fb89a;padding:2rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌳 De Stamboom</h1>
+  <p class="ondertitel">De échte afstamming van de hive. Elke geboorte wordt sinds kort vastgelegd —
+    je ziet wie van wie afstamt, welke genen meegingen en waar het muteerde.</p>
+  <a class="terug" href="./">← Terug naar de hive</a>
+  <div class="kpi-rij">
+    <div class="kpi"><div class="label">Geboortes</div><div class="waarde" id="kpi-geboortes">…</div></div>
+    <div class="kpi"><div class="label">Stamouders</div><div class="waarde" id="kpi-founders">…</div></div>
+    <div class="kpi"><div class="label">Hoogste generatie</div><div class="waarde" id="kpi-gen">…</div></div>
+    <div class="kpi"><div class="label">Mutaties totaal</div><div class="waarde" id="kpi-muts">…</div></div>
+  </div>
+</header>
+
+<main>
+  <div id="boom"><div class="laad">⏳ Stamboom laden…</div></div>
+</main>
+
+<footer>
+  <a href="./">🌐 De hive</a>
+  <a href="kaarten.html">🃏 Verzamelkaarten</a>
+  <a href="https://ramonmoorlag.nl/kortebroeken/botty.html">💊 Eigen Botty</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  var SUPABASE_URL  = "https://oblzouaapvdippyhxmpo.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4";
+  var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // ── Genoom-decoder (zelfde als de hive) ──────────────────────────────────
+  var GENOOM_LEN = 16;
+  var genMeta = [
+    ["energie-verval","verval"],["data-verval","verval"],["fit-verval","verval"],
+    ["geluk-verval","verval"],["stemming-verval","verval"],
+    ["energie-zorg","zorg"],["data-zorg","zorg"],["fit-zorg","zorg"],["geluk-zorg","zorg"],
+    ["ziekte-kans","risico"],["herstel-snelheid","zorg"],["sociale gevoeligheid","overig"],
+    ["kleur-tint","overig"],["grootte","overig"],["expressie-bias","overig"],["veroudering","overig"]
+  ];
+  var genKleur = { verval:"#e0556b", zorg:"#5fd0a8", risico:"#f6a623", overig:"#7b9bff" };
+  function genoomBytes(g){
+    var arr = []; for(var i=0;i<GENOOM_LEN;i++) arr[i]=128;
+    if(!g || typeof g!=="string") return arr;
+    try{
+      var b64 = g.replace(/-/g,"+").replace(/_/g,"/");
+      b64 += "=".repeat((4 - (b64.length % 4)) % 4);
+      var bin = atob(b64);
+      for(var j=0;j<GENOOM_LEN && j<bin.length;j++) arr[j]=bin.charCodeAt(j);
+    }catch(e){}
+    return arr;
+  }
+  function dnaHtml(genome){
+    var by = genoomBytes(genome), segs="";
+    for(var i=0;i<GENOOM_LEN;i++){
+      var v=by[i], h=22+Math.abs(v-128)/128*78, afw=Math.round((v/128-1)*100), m=genMeta[i];
+      segs+='<i style="height:'+h.toFixed(0)+'%;background:'+genKleur[m[1]]+'" title="'+m[0]+': '+(afw>=0?"+":"")+afw+'%"></i>';
+    }
+    return '<span class="dna" title="genoom">'+segs+'</span>';
+  }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  // ── Boom bouwen ──────────────────────────────────────────────────────────
+  function nodeHtml(r){
+    var grootte = (r.grootte!=null) ? Number(r.grootte).toFixed(2)+"×" : "?";
+    var muts = (r.mutaties!=null && r.mutaties>0) ? '<span class="muts" title="mutaties bij geboorte">'+("⚛️".repeat(Math.min(r.mutaties,5)))+(r.mutaties>5?("+"+(r.mutaties-5)):"")+'</span>' : '';
+    var split = (r.van_a!=null && r.van_b!=null) ? '<span class="pill" title="genen van elke ouder">'+r.van_a+'+'+r.van_b+' genen</span>' : '';
+    return '<span class="node" id="n-'+esc(r.kind_id)+'">'
+      + '<span class="naam">'+esc(r.kind_naam)+'</span>'
+      + '<span class="gen">G'+esc(r.generatie)+'</span>'
+      + dnaHtml(r.genome)
+      + '<span class="pill" title="erfelijke grootte">📏 '+grootte+'</span>'
+      + split + muts
+      + '<span class="co">— kind van <b>'+esc(r.oudera_naam)+'</b> &amp; <b>'+esc(r.ouderb_naam)+'</b></span>'
+      + '</span>';
+  }
+  function founderHtml(id, naam){
+    return '<span class="node founder"><span class="naam">'+esc(naam||"?")+'</span>'
+      + '<span class="pill">stamouder</span>'
+      + '<span class="co">afstamming van vóór de stamboom-start</span></span>';
+  }
+
+  function bouwBoom(rows){
+    // primaire ouder = ouderA (de plek die de lijn voortzet)
+    var byId = {};               // kind_id -> record
+    rows.forEach(function(r){ byId[r.kind_id] = r; });
+    var kinderenVan = {};        // ouderA_id -> [records]
+    var roots = [];              // synthetische stamouders
+    var founderNaam = {};
+    rows.forEach(function(r){
+      var pid = r.oudera_id || "?";
+      (kinderenVan[pid] = kinderenVan[pid] || []).push(r);
+      if(!byId[pid]){            // ouderA niet zelf vastgelegd → stamouder
+        if(!founderNaam[pid]){ founderNaam[pid] = r.oudera_naam; roots.push(pid); }
+      }
+    });
+
+    function renderKinderen(pid, diepte){
+      var lijst = (kinderenVan[pid]||[]).slice().sort(function(a,b){ return a.id-b.id; });
+      if(!lijst.length || diepte>40) return "";
+      var html = '<ul class="boom">';
+      lijst.forEach(function(r){
+        html += '<li class="knoop">'+nodeHtml(r)+renderKinderen(r.kind_id, diepte+1)+'</li>';
+      });
+      return html + '</ul>';
+    }
+
+    var out = '<ul class="boom">';
+    roots.forEach(function(pid){
+      out += '<li class="knoop">'+founderHtml(pid, founderNaam[pid])+renderKinderen(pid,0)+'</li>';
+    });
+    out += '</ul>';
+    return out;
+  }
+
+  function vulKpis(rows){
+    var founders = {}, maxGen=0, muts=0;
+    var byId={}; rows.forEach(function(r){ byId[r.kind_id]=r; });
+    rows.forEach(function(r){
+      if(!byId[r.oudera_id]) founders[r.oudera_id]=1;
+      if(Number(r.generatie)>maxGen) maxGen=Number(r.generatie);
+      muts += (r.mutaties||0);
+    });
+    document.getElementById("kpi-geboortes").textContent = rows.length;
+    document.getElementById("kpi-founders").textContent  = Object.keys(founders).length;
+    document.getElementById("kpi-gen").textContent       = maxGen || "–";
+    document.getElementById("kpi-muts").textContent      = muts;
+  }
+
+  function laad(){
+    supabase.from("geboorten").select("*").order("id", { ascending:true }).limit(2000)
+      .then(function(res){
+        var rows = res.data || [];
+        var doel = document.getElementById("boom");
+        if(res.error){
+          doel.innerHTML = '<div class="melding">⚠️ Kon de stamboom niet laden.<br><small>'+esc(res.error.message)+'</small></div>';
+          return;
+        }
+        vulKpis(rows);
+        if(!rows.length){
+          doel.innerHTML = '<div class="melding">🌱 <strong>Nog geen geboortes vastgelegd.</strong><br>'
+            + 'De stamboom wordt opgebouwd vanaf het moment dat deze functie live ging. '
+            + 'Zodra de AI twee Botty\'s koppelt, verschijnt hier de eerste tak. '
+            + 'Laat de hive even draaien en kom terug!</div>';
+          return;
+        }
+        doel.innerHTML = bouwBoom(rows);
+      });
+  }
+
+  laad();
+  // ververs af en toe zodat nieuwe geboortes vanzelf verschijnen
+  setInterval(function(){ if(!document.hidden) laad(); }, 20000);
+})();
+</script>
+</body>
+</html>
