@@ -5,9 +5,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const INTERVAL          = 1100;
-const VERVAL_INTERVAL   = 2200;
-const ZORG_PER_TICK     = 1;
+const INTERVAL          = 1000;
+const VERVAL_INTERVAL   = 2000;
+const ZORG_PER_TICK     = 2;
 const MAX_CATCHUP_TICKS = 5000;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -93,22 +93,24 @@ function exprGenoom(g: string | undefined) {
   };
 }
 
-function genoomKruis(a: string | undefined, b: string | undefined): string {
+function genoomKruis(a: string | undefined, b: string | undefined): { genoom: string; vanA: number; vanB: number } {
   const ba = genoomBytes(a), bb = genoomBytes(b);
   const punt = 3 + Math.floor(Math.random() * 10);
   const kind = new Uint8Array(GENOOM_LEN);
   for (let i = 0; i < GENOOM_LEN; i++) kind[i] = i < punt ? ba[i] : bb[i];
-  return bytesNaarGenoom(kind);
+  return { genoom: bytesNaarGenoom(kind), vanA: punt, vanB: GENOOM_LEN - punt };
 }
 
-function genoomMuteer(g: string | undefined, kans = 0.08): string {
+function genoomMuteer(g: string | undefined, kans = 0.08): { genoom: string; aantalMutaties: number } {
   const b = genoomBytes(g);
+  let aantalMutaties = 0;
   for (let i = 0; i < GENOOM_LEN; i++) {
     if (Math.random() < kans) {
       b[i] = Math.max(0, Math.min(255, b[i] + Math.round((Math.random() - 0.5) * 60)));
+      aantalMutaties++;
     }
   }
-  return bytesNaarGenoom(b);
+  return { genoom: bytesNaarGenoom(b), aantalMutaties };
 }
 
 // ─── Kleur-tint via hue-rotate ────────────────────────────────────────────────
@@ -181,7 +183,7 @@ function updateStemming(b: any, bezoekers: number) {
     : stage === "tiener" ? (Math.random() * 4 - 1.5) : 0.4;
   const wifiBonus = heeft(b, "wifi") || heeft(b, "antenne2") ? 1.5 : 0;
   const ziekPenalty = b.ziek ? -5 : 0;
-  const vervalDecay = -1.4 * G.verval.stemming;
+  const vervalDecay = -1.1 * G.verval.stemming;
   b.stemming = klem(
     (b.stemming ?? 50) + vervalDecay + genBonus + bezoekersBonus + stageEffect + wifiBonus + ziekPenalty
   );
@@ -192,10 +194,10 @@ function zorg(b: any) {
   const G = exprGenoom(b.genome);
   const dataBonus = heeft(b, "wifi") || heeft(b, "antenne2") ? 5 : 0;
   const acties = [
-    () => { if (b.energie < 80) { b.energie = klem(b.energie + 18 * G.zorg.energie); return { label: "+⚡", kleur: "#5ec6ff", animeer: true,  tekst: "AI geeft <b>" + b.naam + "</b> energie" }; } },
-    () => { if (b.data < 80)    { b.data    = klem(b.data    + (14 + dataBonus) * G.zorg.data); return { label: "+💾", kleur: "#3a9d94", animeer: true,  tekst: "AI traint <b>" + b.naam + "</b>" }; } },
-    () => { if (b.fit < 80)     { b.fit     = klem(b.fit     + 16 * G.zorg.fit);  return { label: "+🏃", kleur: "#7fd06f", animeer: true,  tekst: "AI laat <b>" + b.naam + "</b> sporten" }; } },
-    () => { if (b.geluk < 80)   { b.geluk   = klem(b.geluk   + 10 * G.zorg.geluk); return { label: "+😊", kleur: "#f6a623", animeer: false, tekst: "AI houdt <b>" + b.naam + "</b> blij (maar geen band)" }; } },
+    () => { if (b.energie < 90) { b.energie = klem(b.energie + 18 * G.zorg.energie); return { label: "+⚡", kleur: "#5ec6ff", animeer: true,  tekst: "AI geeft <b>" + b.naam + "</b> energie" }; } },
+    () => { if (b.data < 90)    { b.data    = klem(b.data    + (14 + dataBonus) * G.zorg.data); return { label: "+💾", kleur: "#3a9d94", animeer: true,  tekst: "AI traint <b>" + b.naam + "</b>" }; } },
+    () => { if (b.fit < 90)     { b.fit     = klem(b.fit     + 16 * G.zorg.fit);  return { label: "+🏃", kleur: "#7fd06f", animeer: true,  tekst: "AI laat <b>" + b.naam + "</b> sporten" }; } },
+    () => { if (b.geluk < 90)   { b.geluk   = klem(b.geluk   + 14 * G.zorg.geluk); return { label: "+😊", kleur: "#f6a623", animeer: false, tekst: "AI houdt <b>" + b.naam + "</b> blij (maar geen band)" }; } },
     () => { if (b.ziek)         { b.ziek = false; b.energie = klem(b.energie + 10 * G.herstel); b.fit = klem(b.fit + 10 * G.herstel); return { label: "💊", kleur: "#ff8bd0", animeer: true, tekst: "AI geneest <b>" + b.naam + "</b>" }; } },
   ];
   for (const fn of acties) {
@@ -210,11 +212,11 @@ function zorg(b: any) {
 // ─── Verval ───────────────────────────────────────────────────────────────────
 function vervalEen(b: any) {
   const G = exprGenoom(b.genome);
-  b.energie  = klem(b.energie  - 3 * G.verval.energie);
-  b.data     = klem(b.data     - (heeft(b, "zonnepaneel") ? 1 : 2) * G.verval.data);
-  b.fit      = klem(b.fit      - 2 * G.verval.fit);
-  b.geluk    = klem(b.geluk    - 2 * G.verval.geluk);
-  b.stemming = klem((b.stemming ?? 50) - 2 * G.verval.stemming);
+  b.energie  = klem(b.energie  - 2.4 * G.verval.energie);
+  b.data     = klem(b.data     - (heeft(b, "zonnepaneel") ? 0.8 : 1.6) * G.verval.data);
+  b.fit      = klem(b.fit      - 1.6 * G.verval.fit);
+  b.geluk    = klem(b.geluk    - 1.5 * G.verval.geluk);
+  b.stemming = klem((b.stemming ?? 50) - 1.6 * G.verval.stemming);
   if (!b.ziek && Math.random() < 0.004 * G.ziekKans) b.ziek = true;
 }
 
@@ -256,7 +258,10 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   const naam = kandidaten[Math.floor(Math.random() * kandidaten.length)] || "Kind";
 
   // Genoom kruisen + muteren — hart van de evolutie
-  const kindGenoom = genoomMuteer(genoomKruis(ouderA.genome, ouderB.genome));
+  const kruis = genoomKruis(ouderA.genome, ouderB.genome);
+  const mutatie = genoomMuteer(kruis.genoom);
+  const kindGenoom = mutatie.genoom;
+  const erfenis = { vanA: kruis.vanA, vanB: kruis.vanB, mutaties: mutatie.aantalMutaties };
   const G = exprGenoom(kindGenoom);
 
   // Kleur: basis van één ouder, dan genoom-tint → kleuren driften over generaties
@@ -282,6 +287,7 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
     stemming: kindStemming,
     genome: kindGenoom,
     grootte: G.grootte,
+    erfenis,
   });
 }
 
@@ -329,6 +335,7 @@ Deno.serve(async () => {
 
   let acties: number = state.acties ?? 0;
   const events: object[] = [];
+  let lastKweek: any = null;
 
   // Catch-up ticks
   for (let t = 0; t < gemist - 1; t++) {
@@ -387,13 +394,22 @@ Deno.serve(async () => {
         kandidaten.sort((a, b) => geneScore(b) - geneScore(a));
         const ouderA = kandidaten[0], ouderB = kandidaten[1];
         const kind = maakKind(ouderA, ouderB, bottys.map((b: any) => b.naam));
+        lastKweek = {
+          ouderA: ouderA.naam, ouderB: ouderB.naam,
+          kind: kind.naam, generatie: kind.generatie,
+          genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
+        };
         const idx = bottys.indexOf(ouderA);
         events.push({ soort: "kweek-start", naamA: ouderA.naam, naamB: ouderB.naam,
           tekst: "💞 De AI koppelt <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> — beste genen" });
         if (idx >= 0) bottys[idx] = kind;
+        const e = kind.erfenis;
+        const erfenisTekst = e
+          ? " · " + e.vanA + "+" + e.vanB + " genen, " + e.mutaties + " mutatie" + (e.mutaties !== 1 ? "s" : "")
+          : "";
         events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
-          genome: kind.genome, grootte: kind.grootte,
-          tekst: "🐣 <b>" + kind.naam + "</b> is geboren — generatie " + kind.generatie });
+          genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
+          tekst: "🐣 <b>" + kind.naam + "</b> is geboren — generatie " + kind.generatie + erfenisTekst });
       }
     }
   }
@@ -403,6 +419,7 @@ Deno.serve(async () => {
     first_opened: state.first_opened ?? nu,
     acties,
     last_updated_at: nu,
+    last_kweek: lastKweek,
   });
 
   for (const ev of events) await broadcast(ev);
