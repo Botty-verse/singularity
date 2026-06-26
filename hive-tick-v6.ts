@@ -15,6 +15,10 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ─── Hulpfuncties ─────────────────────────────────────────────────────────────
 function klem(v: number) { return Math.max(0, Math.min(100, v)); }
 function heeft(b: any, mut: string) { return (b.mutaties || []).includes(mut); }
+function maakId(): string {
+  try { return crypto.randomUUID().slice(0, 8); }
+  catch { return Math.random().toString(36).slice(2, 10); }
+}
 
 // ─── Genoom (Creatures-stijl, 16 genen, elk 1 byte) ──────────────────────────
 // byte=128 → multiplier ~1.0 → identiek aan huidig gedrag (veilige migratie)
@@ -248,8 +252,9 @@ function maakBotty(naam: string, palet: any, generatie = 1, extra: any = {}) {
     generatie, ziek: false, mutaties: [], bezigEi: false,
     genome,
     grootte: G.grootte,
+    bid: extra.bid ?? maakId(),
   };
-  return { ...base, ...extra, genome, grootte: G.grootte };
+  return { ...base, ...extra, genome, grootte: G.grootte, bid: base.bid };
 }
 
 function maakKind(ouderA: any, ouderB: any, namen: string[]) {
@@ -321,6 +326,7 @@ Deno.serve(async () => {
   bottys.forEach(b => {
     if (!b.genome || typeof b.genome !== "string") b.genome = baseline;
     if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome).grootte;
+    if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
   });
 
   const nu = Date.now();
@@ -399,6 +405,18 @@ Deno.serve(async () => {
           kind: kind.naam, generatie: kind.generatie,
           genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
         };
+        // Stamboom: leg deze geboorte vast (best-effort, blokkeert de tick niet)
+        try {
+          await supabase.from("geboorten").insert({
+            kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
+            oudera_id: ouderA.bid, oudera_naam: ouderA.naam,
+            ouderb_id: ouderB.bid, ouderb_naam: ouderB.naam,
+            genome: kind.genome, grootte: kind.grootte,
+            van_a: kind.erfenis?.vanA ?? null,
+            van_b: kind.erfenis?.vanB ?? null,
+            mutaties: kind.erfenis?.mutaties ?? null,
+          });
+        } catch (_) { /* stamboom is niet kritisch */ }
         const idx = bottys.indexOf(ouderA);
         events.push({ soort: "kweek-start", naamA: ouderA.naam, naamB: ouderB.naam,
           tekst: "💞 De AI koppelt <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> — beste genen" });
