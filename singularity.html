@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+[Resource from github at repo://botty-verse/singularity/sha/4bf7505e9faa69409300f5b0f18af35181e63f41/contents/singularity.html] <!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8" />
@@ -554,7 +554,7 @@
         '<div class="knaam">'+b.naam+'</div>'
       + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+stageLabel[b.stage]+' · '+(b.paletNaam||p.naam||"kleur")+'</div>'
       + '<div class="genen">'+genenHtml(b)+'</div>'
-      + '<div class="scene"><div class="bw bw-'+b.stage+' vitaal" style="--groei:'+groei[b.stage]+';--spier:'+spierSchaal(b.efficientie)+'">'
+      + '<div class="scene"><div class="bw bw-'+b.stage+' vitaal" style="--groei:'+(groei[b.stage]*(b.grootte||1)).toFixed(3)+';--spier:'+spierSchaal(b.efficientie)+'">'
       +   '<div class="ziek-bubbel">🤒</div>'
       +   '<svg viewBox="0 0 200 250" aria-label="Botty '+b.naam+'">'+sprites[b.stage](p)+mutatiesSvg(b.mutaties)+'</svg>'
       +   '<div class="floaters"></div></div></div>'
@@ -592,6 +592,7 @@
     b.el.bars.geluk.style.width   = b.geluk + "%";
     b.el.wrap.classList.toggle("vitaal", gem(b) > 65 && !b.ziek);
     b.el.wrap.classList.toggle("ziek", b.ziek);
+    b.el.wrap.style.setProperty("--groei", (groei[b.stage]*(b.grootte||1)).toFixed(3));
   }
   function floater(b, tekst, kleur){
     if(!b.el) return;
