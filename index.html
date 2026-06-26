@@ -78,6 +78,10 @@
   .genen{display:flex;flex-wrap:nowrap;gap:.2rem;justify-content:center;font-size:.65rem;margin:.2rem 0;white-space:nowrap;}
   .genen span{background:#0e2f1e;border:1px solid #1c5b42;border-radius:6px;padding:.1rem .35rem;}
   .muts{letter-spacing:.1em;}
+  .dna{display:flex;align-items:flex-end;gap:2px;height:26px;margin:.15rem auto .35rem;padding:0 .2rem;
+       background:#08231600;border-radius:5px;}
+  .dna-seg{flex:1;min-width:0;border-radius:2px 2px 0 0;opacity:.85;transition:opacity .15s,transform .15s;cursor:help;}
+  .dna-seg:hover{opacity:1;transform:scaleY(1.08);}
   .scene{position:relative;width:100%;height:120px;display:flex;align-items:flex-end;justify-content:center;overflow:visible;}
 
   .bw{
@@ -262,6 +266,52 @@
   var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
   function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
 
+  // ── Genoom (16 genen, base64url) — clientside decoder voor de UX ─────────────
+  var GENOOM_LEN = 16;
+  // [korte naam, lange uitleg, categorie] — categorie kleurt het staafje
+  var genMeta = [
+    ["E↓","energie-verval","verval"], ["D↓","data-verval","verval"],
+    ["F↓","fit-verval","verval"],     ["G↓","geluk-verval","verval"],
+    ["S↓","stemming-verval","verval"],
+    ["E+","energie-zorg","zorg"],     ["D+","data-zorg","zorg"],
+    ["F+","fit-zorg","zorg"],         ["G+","geluk-zorg","zorg"],
+    ["🤒","ziekte-kans","risico"],    ["✚","herstel-snelheid","zorg"],
+    ["👥","sociale gevoeligheid","overig"], ["🎨","kleur-tint","overig"],
+    ["📏","grootte","overig"],        ["😯","expressie-bias","overig"],
+    ["⏳","veroudering","overig"]
+  ];
+  var genKleur = { verval:"#e0556b", zorg:"#5fd0a8", risico:"#f6a623", overig:"#7b9bff" };
+  function genoomBytes(g){
+    var arr = new Array(GENOOM_LEN); for(var i=0;i<GENOOM_LEN;i++) arr[i]=128;
+    if(!g || typeof g!=="string") return arr;
+    try{
+      var b64 = g.replace(/-/g,"+").replace(/_/g,"/");
+      b64 += "=".repeat((4 - (b64.length % 4)) % 4);
+      var bin = atob(b64);
+      for(var j=0;j<GENOOM_LEN && j<bin.length;j++) arr[j]=bin.charCodeAt(j);
+    }catch(e){}
+    return arr;
+  }
+  function grootteUit(b){
+    if(typeof b.grootte==="number") return b.grootte;
+    var by = genoomBytes(b.genome);
+    return 0.80 + (by[13]/255)*0.40;
+  }
+  // Mini-helix: 16 staafjes, hoogte ∝ afwijking van baseline (128)
+  function dnaStripHtml(b){
+    var by = genoomBytes(b.genome);
+    var segs = "";
+    for(var i=0;i<GENOOM_LEN;i++){
+      var v = by[i];
+      var afw = Math.round((v/128 - 1)*100);            // -100%..+99%
+      var h = 22 + Math.abs(v-128)/128*78;              // 22%..100% hoogte
+      var m = genMeta[i];
+      segs += '<i class="dna-seg" style="height:'+h.toFixed(0)+'%;background:'+genKleur[m[2]]+'"'
+            + ' title="'+m[1]+': '+(afw>=0?"+":"")+afw+'% t.o.v. gemiddeld"></i>';
+    }
+    return '<div class="dna" title="Genoom — 16 genen, klik een staafje voor uitleg">'+segs+'</div>';
+  }
+
   // ── Sprites ────────────────────────────────────────────────────────────────
   function spriteVolwassen(p){ return ''
     + '<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/>'
@@ -344,9 +394,11 @@
   function genenHtml(b){
     var dk=Math.round(b.datakwaliteit||0), ef=Math.round(b.efficientie||0), g=b.generatie||1;
     var muts=(b.mutaties||[]).map(mutatieIcon).join("");
+    var grootte=grootteUit(b);
     return '<span title="datakwaliteit">🧬 '+dk+'</span>'
          + '<span title="efficiëntie">💪 '+ef+'</span>'
          + '<span title="generatie">⭐ G'+g+'</span>'
+         + '<span title="grootte-gen (0.80–1.20×)">📏 '+grootte.toFixed(2)+'×</span>'
          + (muts ? '<span class="muts" title="mutaties">'+muts+'</span>' : '');
   }
 
@@ -362,7 +414,8 @@
         '<div class="knaam">'+b.naam+'</div>'
       + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+(stageLabel[b.stage]||b.stage)+' · '+(b.paletNaam||"kleur")+'</div>'
       + '<div class="genen">'+genenHtml(b)+'</div>'
-      + '<div class="scene"><div class="bw bw-'+b.stage+' vitaal" style="--groei:'+(groei[b.stage]||1)+';--spier:'+spierSchaal(b.efficientie)+'">'
+      + dnaStripHtml(b)
+      + '<div class="scene"><div class="bw bw-'+b.stage+' vitaal" style="--groei:'+((groei[b.stage]||1)*grootteUit(b)).toFixed(3)+';--spier:'+spierSchaal(b.efficientie)+'">'
       +   '<div class="ziek-bubbel">🤒</div>'
       +   '<svg viewBox="0 0 200 250" aria-label="Botty '+b.naam+'">'+(sprites[b.stage]||spriteVolwassen)(p)+mutatiesSvg(b.mutaties)+'</svg>'
       +   '<div class="floaters"></div></div></div>'
@@ -387,6 +440,7 @@
   // ── Render ────────────────────────────────────────────────────────────────
   var prevBottys = [];
   var elMap = {};   // naam → { kaart, wrap, floaters, bars }
+  var laatstGetoondeKind = null;  // dedup voor geboorte-ticker
 
   function renderState(state){
     if(!state || !state.bottys) return;
@@ -449,6 +503,18 @@
 
     prevBottys = JSON.parse(JSON.stringify(nieuweBottys));
     bottys = nieuweBottys;
+
+    // Nieuwe geboorte? Toon de erfenis (welke genen van welke ouder + mutaties)
+    var lk = state.last_kweek;
+    if(lk && lk.kind && lk.kind !== laatstGetoondeKind){
+      laatstGetoondeKind = lk.kind;
+      var e = lk.erfenis;
+      var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+lk.ouderA+', <b>'+e.vanB+'</b> van '+lk.ouderB
+                    + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') : '';
+      var grT = (typeof lk.grootte==="number") ? ' · 📏 '+lk.grootte.toFixed(2)+'×' : '';
+      document.getElementById("ticker").innerHTML =
+        '<span class="knip">▌</span> 🐣 <b>'+lk.kind+'</b> is geboren — generatie '+lk.generatie+erf+grT;
+    }
 
     // KPI's
     document.getElementById("kpi-aantal").textContent = nieuweBottys.length;
@@ -544,8 +610,11 @@
         document.getElementById("ticker").innerHTML =
           '<span class="knip">▌</span> 🥚 Een ei verschijnt in de hive…';
         setTimeout(function(){
+          var e = ev.erfenis;
+          var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+ev.ouderA+', <b>'+e.vanB+'</b> van '+ev.ouderB
+                        + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') : '';
           document.getElementById("ticker").innerHTML =
-            '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> is geboren — generatie ' + ev.generatie + '!';
+            '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> is geboren — generatie ' + ev.generatie + erf;
           bezigKweek = false;
         }, 3000);
       }, 1600);
