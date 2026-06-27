@@ -13,6 +13,13 @@ const INTERVAL          = 1000;
 const VERVAL_INTERVAL   = 2000;
 const ZORG_PER_TICK     = 2;
 const MAX_CATCHUP_TICKS = 5000;
+// Inteelt: ouders met een kleinere genetische afstand dan dit krijgen een
+// zwakker, vaker ziek kind (inteelt-depressie). Schaal: Manhattan over 16 genen.
+const INTEELT_DREMPEL      = 170;
+const INTEELT_MAX_STRAF    = 20;   // max punten van datakwaliteit/efficiëntie
+// Diversiteits-alarm: zakt de gemiddelde paarsgewijze afstand hieronder, dan
+// injecteert de hive een verse mutant i.p.v. nóg een inteelt-kind.
+const DIVERSITEIT_DREMPEL  = 130;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -300,6 +307,39 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   });
 }
 
+function kiesNaam(namen: string[]): string {
+  const bezet = new Set(namen);
+  const vrij = NAMEN.filter(n => !bezet.has(n));
+  return vrij[Math.floor(Math.random() * vrij.length)] || "Kind";
+}
+
+// Genetische afstand tussen twee genomen (Manhattan over 16 genen, 0..4080).
+function genoomAfstand(a: string | undefined, b: string | undefined): number {
+  const x = genoomBytes(a), y = genoomBytes(b);
+  let d = 0;
+  for (let i = 0; i < GENOOM_LEN; i++) d += Math.abs(x[i] - y[i]);
+  return d;
+}
+
+// Gemiddelde paarsgewijze genetische afstand in de populatie = diversiteit.
+function popDiversiteit(bs: any[]): number {
+  if (!bs || bs.length < 2) return 9999;
+  let s = 0, c = 0;
+  for (let i = 0; i < bs.length; i++)
+    for (let j = i + 1; j < bs.length; j++) { s += genoomAfstand(bs[i].genome, bs[j].genome); c++; }
+  return c ? s / c : 9999;
+}
+
+// Verse mutant ("immigrant") — nieuw bloed bij dreigende inteelt.
+function maakImmigrant(namen: string[], gen: number) {
+  const palet = PALETTEN[Math.floor(Math.random() * PALETTEN.length)];
+  return maakBotty(kiesNaam(namen), palet, gen, {
+    genome: genoomGenereer(70),   // hoge variantie = fris DNA
+    erfenis: { vanA: 0, vanB: 0, mutaties: 0 },
+    immigrant: true,
+  });
+}
+
 function maakNieuweHive() {
   const bottys = [];
   for (let i = 0; i < 9; i++) {
@@ -408,35 +448,73 @@ Deno.serve(async () => {
       if (kandidaten.length >= 2) {
         kandidaten.sort((a, b) => geneScore(b) - geneScore(a));
         const ouderA = kandidaten[0], ouderB = kandidaten[1];
-        const kind = maakKind(ouderA, ouderB, bottys.map((b: any) => b.naam));
+        const idx = bottys.indexOf(ouderA);
+        const popDiv = popDiversiteit(bottys);
+
+        let kind: any, verwantschap = 0, inteeltStraf = 0, immigrant = false;
+
+        if (popDiv < DIVERSITEIT_DREMPEL) {
+          // Diversiteits-alarm: vers bloed i.p.v. nóg een inteelt-kind
+          const gen = Math.max(ouderA.generatie ?? 1, ouderB.generatie ?? 1) + 1;
+          kind = maakImmigrant(bottys.map((b: any) => b.naam), gen);
+          immigrant = true;
+          events.push({ soort: "immigrant", naamKind: kind.naam,
+            tekst: "🌱 <b>" + kind.naam + "</b> arriveert als verse mutant — de genenpoel werd te eenvormig (diversiteit " + Math.round(popDiv) + ")" });
+        } else {
+          kind = maakKind(ouderA, ouderB, bottys.map((b: any) => b.naam));
+          // Inteelt-depressie: hoe kleiner de genetische afstand, hoe zwakker het kind
+          const dist = genoomAfstand(ouderA.genome, ouderB.genome);
+          verwantschap = Math.max(0, (INTEELT_DREMPEL - dist) / INTEELT_DREMPEL); // 0..1
+          if (verwantschap > 0) {
+            inteeltStraf = verwantschap * INTEELT_MAX_STRAF;
+            kind.datakwaliteit = klem((kind.datakwaliteit ?? 50) - inteeltStraf);
+            kind.efficientie   = klem((kind.efficientie   ?? 50) - inteeltStraf);
+            if (Math.random() < verwantschap * 0.6) kind.ziek = true;
+          }
+          events.push({ soort: "kweek-start", naamA: ouderA.naam, naamB: ouderB.naam,
+            tekst: "💞 De AI koppelt <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> — beste genen" });
+        }
+        const verwR = Math.round(verwantschap * 100) / 100;
+
         lastKweek = {
-          ouderA: ouderA.naam, ouderB: ouderB.naam,
+          ouderA: immigrant ? null : ouderA.naam, ouderB: immigrant ? null : ouderB.naam,
           kind: kind.naam, generatie: kind.generatie,
           genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
+          verwantschap: verwR, immigrant,
         };
+
         // Stamboom: leg deze geboorte vast (best-effort, blokkeert de tick niet)
         try {
           await supabase.from("geboorten").insert({
             kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
-            oudera_id: ouderA.bid, oudera_naam: ouderA.naam,
-            ouderb_id: ouderB.bid, ouderb_naam: ouderB.naam,
+            oudera_id: immigrant ? null : ouderA.bid, oudera_naam: immigrant ? null : ouderA.naam,
+            ouderb_id: immigrant ? null : ouderB.bid, ouderb_naam: immigrant ? null : ouderB.naam,
             genome: kind.genome, grootte: kind.grootte,
             van_a: kind.erfenis?.vanA ?? null,
             van_b: kind.erfenis?.vanB ?? null,
             mutaties: kind.erfenis?.mutaties ?? null,
+            verwantschap: verwR, immigrant,
           });
         } catch (_) { /* stamboom is niet kritisch */ }
-        const idx = bottys.indexOf(ouderA);
-        events.push({ soort: "kweek-start", naamA: ouderA.naam, naamB: ouderB.naam,
-          tekst: "💞 De AI koppelt <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> — beste genen" });
+
         if (idx >= 0) bottys[idx] = kind;
-        const e = kind.erfenis;
-        const erfenisTekst = e
-          ? " · " + e.vanA + "+" + e.vanB + " genen, " + e.mutaties + " mutatie" + (e.mutaties !== 1 ? "s" : "")
-          : "";
-        events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
-          genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
-          tekst: "🐣 <b>" + kind.naam + "</b> is geboren — generatie " + kind.generatie + erfenisTekst });
+
+        if (immigrant) {
+          events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
+            genome: kind.genome, grootte: kind.grootte, immigrant: true,
+            tekst: "🐣 <b>" + kind.naam + "</b> (verse mutant) is geboren — generatie " + kind.generatie });
+        } else {
+          const e = kind.erfenis;
+          const erfenisTekst = e
+            ? " · " + e.vanA + "+" + e.vanB + " genen, " + e.mutaties + " mutatie" + (e.mutaties !== 1 ? "s" : "")
+            : "";
+          const straftekst = inteeltStraf >= 1
+            ? " · ⚠️ inteelt (−" + Math.round(inteeltStraf) + " fitness" + (kind.ziek ? ", ziek geboren" : "") + ")"
+            : "";
+          events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
+            genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis, verwantschap: verwR,
+            tekst: "🐣 <b>" + kind.naam + "</b> is geboren — generatie " + kind.generatie + erfenisTekst + straftekst });
+        }
       }
     }
   }
