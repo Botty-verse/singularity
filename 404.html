@@ -384,9 +384,10 @@ body{
   </nav>
 </div>
 
+<script src="/assets/botty-config.js"></script>
 <script>
-const SUPABASE_URL = 'https://oblzouaapvdippyhxmpo.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0MDExMzMsImV4cCI6MjA2NTk3NzEzM30.ylyBn5ye5yFSP8OuqWS_NMQ7-axJJdz3Z7-C0y8QCkodP4';
+const SUPABASE_URL = window.BottyConfig.SUPABASE_URL;
+const SUPABASE_ANON = window.BottyConfig.SUPABASE_ANON;
 
 async function sb(path, opts = {}) {
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
