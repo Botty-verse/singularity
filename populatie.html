@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty-verse — Populatie & inteelt</title>
+<meta name="theme-color" content="#04140d" />
+<meta name="description" content="Hoe de negen stamouders de Botty-populatie hebben gevormd — en hoe de inteelt over de generaties oploopt." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{ --matrix:#39ff85;--paneel:rgba(6,26,18,.78);--paneel-rand:#1c5b42;--licht:#dff7ea; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:#04140d;color:var(--licht);min-height:100vh;
+       display:flex;flex-direction:column;align-items:center;}
+  header{text-align:center;padding:2rem 1rem .4rem;width:100%;}
+  h1{font-size:clamp(1.7rem,5vw,2.8rem);font-weight:900;letter-spacing:-.02em;
+     background:linear-gradient(135deg,var(--matrix),#a3ffce);-webkit-background-clip:text;
+     -webkit-text-fill-color:transparent;background-clip:text;}
+  .ondertitel{max-width:680px;margin:.5rem auto 0;font-size:.95rem;color:#a8d4be;line-height:1.5;}
+  .terug{display:inline-block;margin-top:.8rem;color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  .terug:hover{color:var(--matrix);}
+  main{width:100%;max-width:920px;padding:1rem 1rem 3rem;}
+
+  .kpi-rij{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin:.8rem auto 1.4rem;}
+  .kpi{background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:12px;padding:.5rem .9rem;text-align:center;min-width:120px;}
+  .kpi .label{font-size:.7rem;color:#7fb89a;text-transform:uppercase;letter-spacing:.06em;}
+  .kpi .waarde{font-size:1.3rem;font-weight:900;color:var(--matrix);}
+
+  section{background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:16px;
+          padding:1.1rem 1.2rem;margin-bottom:1.4rem;}
+  section h2{font-size:1.15rem;margin-bottom:.2rem;}
+  section .uitleg{font-size:.85rem;color:#a8d4be;line-height:1.5;margin-bottom:.8rem;}
+  svg.chart{width:100%;height:auto;display:block;}
+
+  .legenda{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.7rem;font-size:.8rem;}
+  .legenda span{display:inline-flex;align-items:center;gap:.35rem;background:#0e2f1e;border:1px solid #1c5b42;border-radius:7px;padding:.12rem .5rem;}
+  .legenda i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+  .koppels{list-style:none;margin-top:.4rem;font-size:.9rem;}
+  .koppels li{display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid #103022;flex-wrap:wrap;}
+  .koppels li:last-child{border-bottom:none;}
+  .pct{font-weight:900;color:#ff8bd0;min-width:3.2rem;}
+  .barwrap{flex:1;min-width:120px;height:8px;background:#0a1f13;border-radius:99px;overflow:hidden;}
+  .barwrap>span{display:block;height:100%;background:linear-gradient(90deg,#f6a623,#ff6b6b);}
+
+  .bijdrage{display:flex;flex-direction:column;gap:.4rem;margin-top:.4rem;}
+  .bij-rij{display:flex;align-items:center;gap:.5rem;font-size:.88rem;}
+  .bij-naam{display:inline-flex;align-items:center;gap:.35rem;min-width:90px;}
+  .bij-naam i{width:11px;height:11px;border-radius:3px;}
+  .bij-bar{flex:1;height:10px;background:#0a1f13;border-radius:99px;overflow:hidden;}
+  .bij-bar>span{display:block;height:100%;}
+  .bij-pct{min-width:3rem;text-align:right;color:#bfe3df;font-weight:700;}
+
+  footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.4rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #103022;width:100%;}
+  footer a{color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  footer a:hover{color:var(--matrix);}
+  .laad,.leeg{text-align:center;color:#7fb89a;padding:1.4rem;}
+  .tip{font-size:.78rem;color:#7fb89a;margin-top:.5rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧬 Populatie & inteelt</h1>
+  <p class="ondertitel">Hoe hebben de negen <strong>stamouders</strong> deze populatie voortgebracht — en hoeveel
+    <strong>inteelt</strong> is er ingeslopen? Alles berekend uit de echte geboortes van de hive.</p>
+  <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="stamboom.html">🌳 Klassieke stamboom</a>
+  <div class="kpi-rij">
+    <div class="kpi"><div class="label">Geboortes</div><div class="waarde" id="k-geb">…</div></div>
+    <div class="kpi"><div class="label">Stamouders</div><div class="waarde" id="k-stam">…</div></div>
+    <div class="kpi"><div class="label">Generaties</div><div class="waarde" id="k-gen">…</div></div>
+    <div class="kpi"><div class="label">Gem. inteelt</div><div class="waarde" id="k-int">…</div></div>
+  </div>
+</header>
+
+<main>
+  <div id="leeg" class="leeg" style="display:none"></div>
+
+  <section id="sec-stroom">
+    <h2>Stamouder-stroom</h2>
+    <p class="uitleg">Elke kleur is één stamouder. De band toont welk aandeel van de recente populatie van die
+      stamouder afstamt (elke ouder geeft 50% door). Zie je de stroom vernauwen tot een paar kleuren?
+      Dan domineren enkele lijnen — het zichtbare gezicht van inteelt.</p>
+    <svg class="chart" id="stroom" viewBox="0 0 900 280" preserveAspectRatio="none" role="img" aria-label="Stamouder-stroom"></svg>
+    <div class="legenda" id="legenda"></div>
+  </section>
+
+  <section id="sec-inteelt">
+    <h2>Inteelt-meter</h2>
+    <p class="uitleg">Per geboorte: de kans dat een willekeurig stukje afstamming van béíde ouders bij dezelfde
+      stamouder uitkomt (0% = niet verwant, 100% = genetisch identieke afkomst). Hoger = meer inteelt.</p>
+    <svg class="chart" id="inteelt" viewBox="0 0 900 220" role="img" aria-label="Inteelt over de tijd"></svg>
+    <h3 style="font-size:.95rem;margin:1rem 0 .2rem">⚠️ Krapste koppelingen</h3>
+    <ul class="koppels" id="koppels"></ul>
+  </section>
+
+  <section id="sec-bijdrage">
+    <h2>Stamouder-bijdrage nu</h2>
+    <p class="uitleg">Het aandeel van elke stamouder in de huidige (meest recente) populatie. Eén balk die alles
+      opslokt = een genenpoel die naar één voorouder neigt.</p>
+    <div class="bijdrage" id="bijdrage"></div>
+  </section>
+</main>
+
+<footer>
+  <a href="./">🌐 De hive</a>
+  <a href="stamboom.html">🌳 Stamboom</a>
+  <a href="kaarten.html">🃏 Verzamelkaarten</a>
+</footer>
+
+<script src="assets/botty-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  var supabase = window.supabase.createClient(BottyConfig.SUPABASE_URL, BottyConfig.SUPABASE_ANON);
+  var VENSTER = 9;  // "huidige populatie" = laatste N geboortes (hive-grootte)
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  // ── Stamouder-samenstelling per Botty (recursief, gememoïseerd) ──────────────
+  // Elke ouder draagt 50% bij; een stamouder = 100% zichzelf.
+  function bouwModel(rows){
+    var kind = {};                       // kind_id -> rij
+    rows.forEach(function(r){ kind[r.kind_id] = r; });
+    var isFounder = function(id){ return id && !kind[id]; };
+
+    var founders = {};                   // founder_id -> naam
+    rows.forEach(function(r){
+      [["oudera_id","oudera_naam"],["ouderb_id","ouderb_naam"]].forEach(function(p){
+        var id=r[p[0]]; if(isFounder(id)) founders[id]=r[p[1]];
+      });
+    });
+
+    var memo = {};
+    function vec(id, diepte){
+      if(!id) return {};
+      if(memo[id]) return memo[id];
+      if(isFounder(id) || diepte>200){ var f={}; f[id]=1; return (memo[id]=f); }
+      var r = kind[id];
+      var a = vec(r.oudera_id, diepte+1), b = vec(r.ouderb_id, diepte+1);
+      var out = {};
+      for(var k in a) out[k]=(out[k]||0)+a[k]*0.5;
+      for(var k2 in b) out[k2]=(out[k2]||0)+b[k2]*0.5;
+      memo[id]=out; return out;
+    }
+
+    // kinship van een geboorte = Σ vA_f · vB_f (kans op gedeelde stamouder-afkomst)
+    function kinship(r){
+      var a=vec(r.oudera_id,0), b=vec(r.ouderb_id,0), s=0;
+      for(var f in a) if(b[f]) s+=a[f]*b[f];
+      return s;
+    }
+
+    return { kind:kind, founders:founders, vec:function(id){return vec(id,0);}, kinship:kinship };
+  }
+
+  function founderKleur(i, n){ return "hsl("+Math.round(i*(360/n))+" 70% 55%)"; }
+
+  // ── Stamouder-stroom (gestapelde vlakken) ───────────────────────────────────
+  function tekenStroom(rows, M, founderOrde, kleur){
+    var W=900,H=280,padL=8,padR=8,padT=10,padB=22;
+    var n=rows.length;
+    // per geboorte: gemiddelde samenstelling over een achterliggend venster
+    function sampleAt(i){
+      var acc={}, cnt=0;
+      for(var j=Math.max(0,i-VENSTER+1); j<=i; j++){
+        var v=M.vec(rows[j].kind_id); cnt++;
+        for(var f in v) acc[f]=(acc[f]||0)+v[f];
+      }
+      var tot=0, out={}; for(var f2 in acc){ acc[f2]/=cnt; tot+=acc[f2]; }
+      if(tot>0) for(var f3 in acc) out[f3]=acc[f3]/tot;
+      return out;
+    }
+    var samples=[]; for(var i=0;i<n;i++) samples.push(sampleAt(i));
+    var x=function(i){ return padL + (n<=1?0:(i/(n-1))*(W-padL-padR)); };
+    var plotH=H-padT-padB;
+    var svg="";
+    // gestapeld: per founder een band tussen cum(onder) en cum(onder)+share
+    var cum=samples.map(function(){return 0;});
+    founderOrde.forEach(function(fid,ki){
+      var top=[], bot=[];
+      for(var i=0;i<n;i++){
+        var share=samples[i][fid]||0;
+        var y0=cum[i], y1=cum[i]+share;
+        bot.push([x(i), padT+plotH*(1-y0)]);
+        top.push([x(i), padT+plotH*(1-y1)]);
+        cum[i]=y1;
+      }
+      var pts = top.map(function(p){return p[0].toFixed(1)+","+p[1].toFixed(1);})
+        .concat(bot.reverse().map(function(p){return p[0].toFixed(1)+","+p[1].toFixed(1);}));
+      svg += '<polygon points="'+pts.join(" ")+'" fill="'+kleur[fid]+'" opacity="0.88"><title>'+esc(M.founders[fid]||fid)+'</title></polygon>';
+    });
+    // generatie-aslabels (begin/midden/eind)
+    [0, Math.floor(n/2), n-1].forEach(function(i){
+      if(i<0||i>=n) return;
+      svg += '<text x="'+x(i).toFixed(0)+'" y="'+(H-6)+'" fill="#7fb89a" font-size="11" text-anchor="'+(i===0?"start":i===n-1?"end":"middle")+'">gen '+rows[i].generatie+'</text>';
+    });
+    document.getElementById("stroom").innerHTML=svg;
+  }
+
+  // ── Inteelt-meter (lijn + punten) ───────────────────────────────────────────
+  function tekenInteelt(rows, M){
+    var W=900,H=220,padL=40,padR=10,padT=12,padB=24, n=rows.length;
+    var vals=rows.map(function(r){ return M.kinship(r); });
+    var x=function(i){ return padL + (n<=1?0:(i/(n-1))*(W-padL-padR)); };
+    var plotH=H-padT-padB;
+    var y=function(v){ return padT + plotH*(1-Math.max(0,Math.min(1,v))); };
+    var svg="";
+    // gridlijnen 0/25/50/75/100%
+    [0,.25,.5,.75,1].forEach(function(g){
+      svg+='<line x1="'+padL+'" y1="'+y(g)+'" x2="'+(W-padR)+'" y2="'+y(g)+'" stroke="#103022" stroke-width="1"/>';
+      svg+='<text x="'+(padL-6)+'" y="'+(y(g)+3)+'" fill="#7fb89a" font-size="10" text-anchor="end">'+Math.round(g*100)+'%</text>';
+    });
+    // voortschrijdend gemiddelde
+    var ma=[]; for(var i=0;i<n;i++){ var s=0,c=0; for(var j=Math.max(0,i-4);j<=i;j++){s+=vals[j];c++;} ma.push(s/c); }
+    var maPts=ma.map(function(v,i){return x(i).toFixed(1)+","+y(v).toFixed(1);}).join(" ");
+    // punten
+    for(var k=0;k<n;k++){
+      svg+='<circle cx="'+x(k).toFixed(1)+'" cy="'+y(vals[k]).toFixed(1)+'" r="2.6" fill="#f6a623" opacity="0.7"><title>gen '+rows[k].generatie+': '+Math.round(vals[k]*100)+'%</title></circle>';
+    }
+    svg+='<polyline points="'+maPts+'" fill="none" stroke="#ff6b6b" stroke-width="2.5"/>';
+    [0,Math.floor(n/2),n-1].forEach(function(i){ if(i<0||i>=n)return;
+      svg+='<text x="'+x(i).toFixed(0)+'" y="'+(H-6)+'" fill="#7fb89a" font-size="11" text-anchor="'+(i===0?"start":i===n-1?"end":"middle")+'">gen '+rows[i].generatie+'</text>';
+    });
+    document.getElementById("inteelt").innerHTML=svg;
+
+    // krapste koppels
+    var paren=rows.map(function(r){ return {r:r, k:M.kinship(r)}; })
+      .sort(function(a,b){ return b.k-a.k; }).slice(0,5);
+    document.getElementById("koppels").innerHTML = paren.map(function(p){
+      return '<li><span class="pct">'+Math.round(p.k*100)+'%</span>'
+        +'<span class="barwrap"><span style="width:'+Math.round(p.k*100)+'%"></span></span>'
+        +'<span><b>'+esc(p.r.oudera_naam)+'</b> × <b>'+esc(p.r.ouderb_naam)+'</b> → '+esc(p.r.kind_naam)+' (gen '+p.r.generatie+')</span></li>';
+    }).join("");
+    return vals;
+  }
+
+  // ── Stamouder-bijdrage (huidige populatie) ──────────────────────────────────
+  function tekenBijdrage(rows, M, founderOrde, kleur){
+    var laatste=rows.slice(-VENSTER), acc={}, cnt=0;
+    laatste.forEach(function(r){ var v=M.vec(r.kind_id); cnt++; for(var f in v) acc[f]=(acc[f]||0)+v[f]; });
+    var tot=0; for(var f in acc){ acc[f]/=cnt; tot+=acc[f]; }
+    var rij=founderOrde.map(function(fid){ return {fid:fid, share:tot>0?(acc[fid]||0)/tot:0}; })
+      .filter(function(o){return o.share>0.001;}).sort(function(a,b){return b.share-a.share;});
+    document.getElementById("bijdrage").innerHTML = rij.map(function(o){
+      return '<div class="bij-rij"><span class="bij-naam"><i style="background:'+kleur[o.fid]+'"></i>'+esc(M.founders[o.fid]||o.fid)+'</span>'
+        +'<span class="bij-bar"><span style="width:'+(o.share*100).toFixed(1)+'%;background:'+kleur[o.fid]+'"></span></span>'
+        +'<span class="bij-pct">'+(o.share*100).toFixed(1)+'%</span></div>';
+    }).join("");
+  }
+
+  function render(rows){
+    if(!rows.length){
+      document.getElementById("leeg").style.display="block";
+      document.getElementById("leeg").innerHTML="🌱 Nog geen geboortes vastgelegd. Laat de hive even draaien!";
+      ["sec-stroom","sec-inteelt","sec-bijdrage"].forEach(function(id){document.getElementById(id).style.display="none";});
+      return;
+    }
+    var M = bouwModel(rows);
+    var founderIds = Object.keys(M.founders);
+    // volgorde: op totale bijdrage (grootste lijnen onderaan de stapel)
+    var totaal={}; rows.forEach(function(r){ var v=M.vec(r.kind_id); for(var f in v) totaal[f]=(totaal[f]||0)+v[f]; });
+    founderIds.sort(function(a,b){ return (totaal[b]||0)-(totaal[a]||0); });
+    var kleur={}; founderIds.forEach(function(fid,i){ kleur[fid]=founderKleur(i,founderIds.length); });
+
+    // legenda
+    document.getElementById("legenda").innerHTML = founderIds.map(function(fid,i){
+      return '<span><i style="background:'+kleur[fid]+'"></i>'+esc(M.founders[fid]||fid)+'</span>';
+    }).join("");
+
+    tekenStroom(rows, M, founderIds, kleur);
+    var vals = tekenInteelt(rows, M);
+    tekenBijdrage(rows, M, founderIds, kleur);
+
+    // KPI's
+    document.getElementById("k-geb").textContent = rows.length;
+    document.getElementById("k-stam").textContent = founderIds.length;
+    document.getElementById("k-gen").textContent = rows[0].generatie + "–" + rows[rows.length-1].generatie;
+    var gem = vals.reduce(function(s,v){return s+v;},0)/vals.length;
+    document.getElementById("k-int").textContent = Math.round(gem*100) + "%";
+  }
+
+  function laad(){
+    supabase.from("geboorten").select("*").order("id",{ascending:true}).limit(5000)
+      .then(function(res){ if(res.error){ console.error(res.error); return; } render(res.data||[]); });
+  }
+  laad();
+  setInterval(function(){ if(!document.hidden) laad(); }, 30000);
+})();
+</script>
+</body>
+</html>
