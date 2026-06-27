@@ -280,6 +280,8 @@
 
 <!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Gedeelde genoom-helpers -->
+<script src="assets/genome.js"></script>
 <script>
 (function(){
   "use strict";
@@ -317,37 +319,12 @@
   var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
   function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
 
-  // ── Genoom (16 genen, base64url) — clientside decoder voor de UX ─────────────
-  var GENOOM_LEN = 16;
-  // [korte naam, lange uitleg, categorie] — categorie kleurt het staafje
-  var genMeta = [
-    ["E↓","energie-verval","verval"], ["D↓","data-verval","verval"],
-    ["F↓","fit-verval","verval"],     ["G↓","geluk-verval","verval"],
-    ["S↓","stemming-verval","verval"],
-    ["E+","energie-zorg","zorg"],     ["D+","data-zorg","zorg"],
-    ["F+","fit-zorg","zorg"],         ["G+","geluk-zorg","zorg"],
-    ["🤒","ziekte-kans","risico"],    ["✚","herstel-snelheid","zorg"],
-    ["👥","sociale gevoeligheid","overig"], ["🎨","kleur-tint","overig"],
-    ["📏","grootte","overig"],        ["😯","expressie-bias","overig"],
-    ["⏳","veroudering","overig"]
-  ];
-  var genKleur = { verval:"#e0556b", zorg:"#5fd0a8", risico:"#f6a623", overig:"#7b9bff" };
-  function genoomBytes(g){
-    var arr = new Array(GENOOM_LEN); for(var i=0;i<GENOOM_LEN;i++) arr[i]=128;
-    if(!g || typeof g!=="string") return arr;
-    try{
-      var b64 = g.replace(/-/g,"+").replace(/_/g,"/");
-      b64 += "=".repeat((4 - (b64.length % 4)) % 4);
-      var bin = atob(b64);
-      for(var j=0;j<GENOOM_LEN && j<bin.length;j++) arr[j]=bin.charCodeAt(j);
-    }catch(e){}
-    return arr;
-  }
-  function grootteUit(b){
-    if(typeof b.grootte==="number") return b.grootte;
-    var by = genoomBytes(b.genome);
-    return 0.80 + (by[13]/255)*0.40;
-  }
+  // ── Genoom — gedeelde helpers uit assets/genome.js ──────────────────────────
+  var GENOOM_LEN  = BottyGenome.GENOOM_LEN;
+  var genMeta     = BottyGenome.genMeta;
+  var genKleur    = BottyGenome.genKleur;
+  var genoomBytes = BottyGenome.genoomBytes;
+  var grootteUit  = BottyGenome.grootteUit;
   // Mini-helix: 16 staafjes, hoogte ∝ afwijking van baseline (128)
   function dnaStripHtml(b){
     var by = genoomBytes(b.genome);

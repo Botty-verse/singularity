@@ -86,6 +86,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/genome.js"></script>
 <script>
 (function(){
   "use strict";
@@ -93,32 +94,16 @@
   var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4";
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  // ── Genoom-decoder (zelfde als de hive) ──────────────────────────────────
-  var GENOOM_LEN = 16;
-  var genMeta = [
-    ["energie-verval","verval"],["data-verval","verval"],["fit-verval","verval"],
-    ["geluk-verval","verval"],["stemming-verval","verval"],
-    ["energie-zorg","zorg"],["data-zorg","zorg"],["fit-zorg","zorg"],["geluk-zorg","zorg"],
-    ["ziekte-kans","risico"],["herstel-snelheid","zorg"],["sociale gevoeligheid","overig"],
-    ["kleur-tint","overig"],["grootte","overig"],["expressie-bias","overig"],["veroudering","overig"]
-  ];
-  var genKleur = { verval:"#e0556b", zorg:"#5fd0a8", risico:"#f6a623", overig:"#7b9bff" };
-  function genoomBytes(g){
-    var arr = []; for(var i=0;i<GENOOM_LEN;i++) arr[i]=128;
-    if(!g || typeof g!=="string") return arr;
-    try{
-      var b64 = g.replace(/-/g,"+").replace(/_/g,"/");
-      b64 += "=".repeat((4 - (b64.length % 4)) % 4);
-      var bin = atob(b64);
-      for(var j=0;j<GENOOM_LEN && j<bin.length;j++) arr[j]=bin.charCodeAt(j);
-    }catch(e){}
-    return arr;
-  }
+  // ── Genoom — gedeelde helpers uit assets/genome.js ───────────────────────
+  var GENOOM_LEN  = BottyGenome.GENOOM_LEN;
+  var genMeta     = BottyGenome.genMeta;   // [kort, lang, categorie]
+  var genKleur    = BottyGenome.genKleur;
+  var genoomBytes = BottyGenome.genoomBytes;
   function dnaHtml(genome){
     var by = genoomBytes(genome), segs="";
     for(var i=0;i<GENOOM_LEN;i++){
       var v=by[i], h=22+Math.abs(v-128)/128*78, afw=Math.round((v/128-1)*100), m=genMeta[i];
-      segs+='<i style="height:'+h.toFixed(0)+'%;background:'+genKleur[m[1]]+'" title="'+m[0]+': '+(afw>=0?"+":"")+afw+'%"></i>';
+      segs+='<i style="height:'+h.toFixed(0)+'%;background:'+genKleur[m[2]]+'" title="'+m[1]+': '+(afw>=0?"+":"")+afw+'%"></i>';
     }
     return '<span class="dna" title="genoom">'+segs+'</span>';
   }
