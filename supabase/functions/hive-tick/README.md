@@ -10,8 +10,13 @@ browser zolang er iemand kijkt.
 zo blijft git in sync met productie.
 
 ## Deployen
+**Automatisch:** een push naar `main` die `supabase/functions/**` raakt triggert
+`.github/workflows/deploy-edge-function.yml`. Dat vereist één repo-secret:
+`SUPABASE_ACCESS_TOKEN` (Supabase → Account → Access Tokens).
+
+**Handmatig:**
 ```bash
-supabase functions deploy hive-tick --project-ref oblzouaapvdippyhxmpo
+supabase functions deploy hive-tick --project-ref oblzouaapvdippyhxmpo --no-verify-jwt
 ```
 `verify_jwt` staat uit (de viewer roept de function direct aan met de anon-flow).
 
