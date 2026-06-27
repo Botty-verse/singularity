@@ -23,6 +23,8 @@ const DIVERSITEIT_DREMPEL  = 130;
 // Slimme partnerkeuze: weeg genetische afstand mee in de keuze, zodat de hive
 // fitte én niet-verwante ouders koppelt (en inteelt-depressie ontwijkt).
 const PARTNER_DIVERSITEIT_GEWICHT = 0.12;
+// IQ telt ook mee in de partnerkeuze: slimme Bottys zijn aantrekkelijker.
+const PARTNER_IQ_GEWICHT = 0.2;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -507,14 +509,15 @@ Deno.serve(async () => {
     if (Math.random() < 0.05) {
       const kandidaten = bottys.filter(rijp);
       if (kandidaten.length >= 2) {
-        // Slimme partnerkeuze: kies het paar dat fit én genetisch divers is.
-        // Score = som van fitness + gewicht × genetische afstand.
+        // Slimme partnerkeuze: kies het paar dat fit, genetisch divers én slim is.
+        // Score = fitness + gewicht × genetische afstand + gewicht × gezamenlijk IQ.
         let beste: any = null;
         for (let i = 0; i < kandidaten.length; i++)
           for (let j = i + 1; j < kandidaten.length; j++) {
             const a = kandidaten[i], b2 = kandidaten[j];
             const score = geneScore(a) + geneScore(b2)
-              + PARTNER_DIVERSITEIT_GEWICHT * genoomAfstand(a.genome, b2.genome);
+              + PARTNER_DIVERSITEIT_GEWICHT * genoomAfstand(a.genome, b2.genome)
+              + PARTNER_IQ_GEWICHT * ((a.iq ?? 100) + (b2.iq ?? 100));
             if (!beste || score > beste.score) beste = { a, b: b2, score };
           }
         // De minst-fitte ouder maakt plaats voor het kind; de fitste blijft.
