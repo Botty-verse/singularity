@@ -1,5 +1,9 @@
-// hive-tick v6 — genoom-evolutie: gedrag + kleur + grootte evolueren mee
-// Deploy via: supabase functions deploy hive-tick
+// hive-tick — genoom-evolutie: gedrag + kleur + grootte evolueren mee
+// ---------------------------------------------------------------------------
+// CANONIEKE BRON van de edge function. Dit bestand = de gedeployde versie.
+// Deploy:  supabase functions deploy hive-tick
+// (of via de Supabase MCP deploy-tool met exact deze inhoud)
+// Houd de gen-layout gelijk aan assets/genome.js (clientside weergave).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
