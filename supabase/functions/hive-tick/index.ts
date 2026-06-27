@@ -341,7 +341,12 @@ Deno.serve(async () => {
   const { count: bezoekersCount } = await supabase
     .from("bezoeker_pings").select("*", { count: "exact", head: true }).gte("ts", cutoff);
   const bezoekers = bezoekersCount ?? 0;
-  await supabase.from("bezoeker_pings").delete().lt("ts", new Date(nu - 120000).toISOString());
+  // Opruimen van oude pings is niet elke browser-tick nodig. Bij een drukke
+  // tab is gemist klein (1–3); de cron (1×/min) en eerste loads geven een grote
+  // gemist → daar ruimen we op. Scheelt ~40× minder DELETE's per minuut.
+  if (gemist >= 20) {
+    await supabase.from("bezoeker_pings").delete().lt("ts", new Date(nu - 120000).toISOString());
+  }
 
   let acties: number = state.acties ?? 0;
   const events: object[] = [];
