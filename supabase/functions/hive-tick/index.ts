@@ -37,28 +37,38 @@ function maakId(): string {
 }
 
 // ─── IQ: priemgetallen uitwerken ───────────────────────────────────────────────
-// Elke Botty start met IQ 100. Per denk-ronde werkt hij een getal uit:
-// een echt priemgetal vinden = +1, een foute gok = -2. Slimmere Bottys
-// (hogere datakwaliteit) gokken vaker goed.
+// Elke Botty start met IQ 100. Per denk-ronde zoekt hij een NOG NIET ONTDEKTE
+// priem (≤ PRIEM_MAX): een nieuwe vinden = +1, een foute gok = -2. De gedeelde
+// vondsten-collectie voorkomt dat hetzelfde getal opnieuw "ontdekt" wordt.
+// Slimmere Bottys (hogere datakwaliteit) slagen vaker.
+const PRIEM_MAX = 10000;
 function isPriem(n: number): boolean {
   if (n < 2) return false;
   if (n % 2 === 0) return n === 2;
   for (let i = 3; i * i <= n; i += 2) if (n % i === 0) return false;
   return true;
 }
-function denkPriem(b: any): { getal: number; succes: boolean; iq: number } {
+// uitkomst: "nieuw" (verse ontdekking), "fout" (geen priem), "leeg" (alles al ontdekt)
+function denkPriem(b: any, ontdekt: Set<number>): { getal: number; uitkomst: string; iq: number } {
   const intel = b.datakwaliteit ?? 50;
   const p = Math.max(0.5, Math.min(0.97, 0.5 + (intel - 50) / 100 * 0.9));
-  const succes = Math.random() < p;
-  let getal: number;
-  if (succes) {
-    do { getal = 2 + Math.floor(Math.random() * 298); } while (!isPriem(getal));
-    b.iq = Math.min(999, (b.iq ?? 100) + 1);
-  } else {
-    do { getal = 4 + Math.floor(Math.random() * 296); } while (isPriem(getal));
-    b.iq = Math.max(0, (b.iq ?? 100) - 2);
+  if (Math.random() < p) {
+    // Zoek een priem die nog niet in de collectie zit.
+    for (let poging = 0; poging < 300; poging++) {
+      const g = 2 + Math.floor(Math.random() * (PRIEM_MAX - 1));
+      if (isPriem(g) && !ontdekt.has(g)) {
+        ontdekt.add(g);
+        b.iq = Math.min(999, (b.iq ?? 100) + 1);
+        return { getal: g, uitkomst: "nieuw", iq: b.iq };
+      }
+    }
+    // Vrijwel alles onder PRIEM_MAX is al ontdekt — geen punt, geen straf.
+    return { getal: 0, uitkomst: "leeg", iq: b.iq ?? 100 };
   }
-  return { getal, succes, iq: b.iq };
+  let getal: number;
+  do { getal = 4 + Math.floor(Math.random() * (PRIEM_MAX - 3)); } while (isPriem(getal));
+  b.iq = Math.max(0, (b.iq ?? 100) - 2);
+  return { getal, uitkomst: "fout", iq: b.iq };
 }
 
 // ─── Genoom (Creatures-stijl, 16 genen, elk 1 byte) ──────────────────────────
@@ -474,16 +484,34 @@ Deno.serve(async () => {
       updateStemming(b, bezoekers);
     });
 
-    // IQ-ronde: elke Botty werkt een priemgetal uit (+1 goed, -2 fout)
+    // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie)
+    const ontdekt = new Set<number>();
+    try {
+      const { data: pv } = await supabase.from("priemvondsten").select("getal");
+      (pv || []).forEach((r: any) => ontdekt.add(r.getal));
+    } catch (_) { /* zonder collectie kan iedereen alsnog ontdekken */ }
+
     const denkers = bottys.filter(b => !b.bezigEi);
-    const resultaten = denkers.map(b => ({ b, r: denkPriem(b) }));
+    const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
+    const nieuweVondsten = resultaten
+      .filter(x => x.r.uitkomst === "nieuw")
+      .map(x => ({ getal: x.r.getal, ontdekker_naam: x.b.naam, ontdekker_bid: x.b.bid, generatie: x.b.generatie }));
+    if (nieuweVondsten.length) {
+      try {
+        await supabase.from("priemvondsten").upsert(nieuweVondsten, { onConflict: "getal", ignoreDuplicates: true });
+      } catch (_) { /* collectie is niet kritisch voor de tick */ }
+    }
     if (resultaten.length) {
-      const pick = resultaten[Math.floor(Math.random() * resultaten.length)];
+      // Toon liefst een verse ontdekking, anders een willekeurig resultaat.
+      const pick = resultaten.find(x => x.r.uitkomst === "nieuw")
+        || resultaten[Math.floor(Math.random() * resultaten.length)];
       const r = pick.r;
-      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, succes: r.succes, iq: r.iq,
-        tekst: r.succes
-          ? "🧠 <b>" + pick.b.naam + "</b> werkte " + r.getal + " uit — priemgetal! (+1, IQ " + r.iq + ")"
-          : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")" });
+      const tekst = r.uitkomst === "nieuw"
+        ? "🧠 <b>" + pick.b.naam + "</b> ontdekte een nieuw priemgetal: " + r.getal + "! (+1, IQ " + r.iq + ")"
+        : r.uitkomst === "leeg"
+          ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen onder " + PRIEM_MAX + " zijn al ontdekt"
+          : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
+      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, tekst });
     }
 
     // Kennisuitwisseling
