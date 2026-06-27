@@ -23,7 +23,13 @@ supabase functions deploy hive-tick --project-ref oblzouaapvdippyhxmpo --no-veri
 ## Databank
 - `hive_state`  — de live toestand (1 rij, `id = 'main'`), incl. `last_kweek`
 - `geboorten`   — geboortelog voor de stamboom (zie `stamboom.html`)
+- `priemvondsten` — gedeelde priem-collectie voor het IQ-spel (zie `priemen.html`)
 - `bezoeker_pings` — telt actieve kijkers voor de stemmings-bonus
+
+## IQ-spel
+Elke actieve tick zoekt elke Botty een nog niet ontdekte priem ≤ `PRIEM_MAX`
+(+1 IQ); een foute gok kost −2. De `priemvondsten`-tabel voorkomt dubbele
+ontdekkingen. IQ weegt mee in de partnerkeuze (`PARTNER_IQ_GEWICHT`).
 
 ## Genoom
 16 genen, base64url. De gen-layout staat ook in `assets/genome.js` voor de
