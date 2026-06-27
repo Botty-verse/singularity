@@ -397,12 +397,13 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/botty-config.js"></script>
 <script>
 (function(){
 "use strict";
 
-var SUPABASE_URL  = "https://oblzouaapvdippyhxmpo.supabase.co";
-var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4";
+var SUPABASE_URL  = BottyConfig.SUPABASE_URL;
+var SUPABASE_ANON = BottyConfig.SUPABASE_ANON;
 var TICK_URL = SUPABASE_URL + "/functions/v1/hive-tick";
 var TICK_INTERVAL = 1500;
 

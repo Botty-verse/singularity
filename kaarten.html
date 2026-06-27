@@ -493,11 +493,12 @@
 </script>
 
 <!-- Alumni: vertrokken Botty's uit de live hive -->
+<script src="assets/botty-config.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL  = "https://oblzouaapvdippyhxmpo.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4";
+const SUPABASE_URL  = window.BottyConfig.SUPABASE_URL;
+const SUPABASE_ANON = window.BottyConfig.SUPABASE_ANON;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
