@@ -20,6 +20,9 @@ const INTEELT_MAX_STRAF    = 20;   // max punten van datakwaliteit/efficiëntie
 // Diversiteits-alarm: zakt de gemiddelde paarsgewijze afstand hieronder, dan
 // injecteert de hive een verse mutant i.p.v. nóg een inteelt-kind.
 const DIVERSITEIT_DREMPEL  = 130;
+// Slimme partnerkeuze: weeg genetische afstand mee in de keuze, zodat de hive
+// fitte én niet-verwante ouders koppelt (en inteelt-depressie ontwijkt).
+const PARTNER_DIVERSITEIT_GEWICHT = 0.12;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -181,10 +184,15 @@ function rijp(b: any) {
     && !b.bezigEi;
 }
 function geneScore(b: any) { return (b.datakwaliteit ?? 50) + (b.efficientie ?? 50); }
+// Urgentie: hoe lager, hoe eerder zorg nodig. De láágste losse stat telt
+// (één kritieke waarde is erger dan een matig gemiddelde), zieken springen voor.
+function urgentie(b: any) {
+  return Math.min(b.energie, b.data, b.fit, b.geluk) - (b.ziek ? 40 : 0);
+}
 function kiesDoelen(bottys: any[], n: number) {
   return [...bottys]
     .filter(b => !b.bezigEi)
-    .sort((a, b) => ((a.energie + a.data + a.fit + a.geluk) / 4) - ((b.energie + b.data + b.fit + b.geluk) / 4))
+    .sort((a, b) => urgentie(a) - urgentie(b))
     .slice(0, n);
 }
 
@@ -208,17 +216,32 @@ function updateStemming(b: any, bezoekers: number) {
 function zorg(b: any) {
   const G = exprGenoom(b.genome);
   const dataBonus = heeft(b, "wifi") || heeft(b, "antenne2") ? 5 : 0;
-  const acties = [
-    () => { if (b.energie < 90) { b.energie = klem(b.energie + 18 * G.zorg.energie); return { label: "+⚡", kleur: "#5ec6ff", animeer: true,  tekst: "AI geeft <b>" + b.naam + "</b> energie" }; } },
-    () => { if (b.data < 90)    { b.data    = klem(b.data    + (14 + dataBonus) * G.zorg.data); return { label: "+💾", kleur: "#3a9d94", animeer: true,  tekst: "AI traint <b>" + b.naam + "</b>" }; } },
-    () => { if (b.fit < 90)     { b.fit     = klem(b.fit     + 16 * G.zorg.fit);  return { label: "+🏃", kleur: "#7fd06f", animeer: true,  tekst: "AI laat <b>" + b.naam + "</b> sporten" }; } },
-    () => { if (b.geluk < 90)   { b.geluk   = klem(b.geluk   + 14 * G.zorg.geluk); return { label: "+😊", kleur: "#f6a623", animeer: false, tekst: "AI houdt <b>" + b.naam + "</b> blij (maar geen band)" }; } },
-    () => { if (b.ziek)         { b.ziek = false; b.energie = klem(b.energie + 10 * G.herstel); b.fit = klem(b.fit + 10 * G.herstel); return { label: "💊", kleur: "#ff8bd0", animeer: true, tekst: "AI geneest <b>" + b.naam + "</b>" }; } },
-  ];
-  for (const fn of acties) {
-    const r = fn();
-    if (r) { b.stemming = klem((b.stemming ?? 50) + 14); return r; }
+
+  // 1) Ziekte eerst — een zieke Botty is altijd het urgentst.
+  if (b.ziek) {
+    b.ziek = false;
+    b.energie = klem(b.energie + 10 * G.herstel);
+    b.fit     = klem(b.fit     + 10 * G.herstel);
+    b.stemming = klem((b.stemming ?? 50) + 14);
+    return { label: "💊", kleur: "#ff8bd0", animeer: true, tekst: "AI geneest <b>" + b.naam + "</b>" };
   }
+
+  // 2) Anders: pak de láágste stat onder 90 (de echte bottleneck), niet vaste volgorde.
+  const opties = [
+    { v: b.energie, doe: () => { b.energie = klem(b.energie + 18 * G.zorg.energie); }, label: "+⚡", kleur: "#5ec6ff", animeer: true,  tekst: "AI geeft <b>" + b.naam + "</b> energie" },
+    { v: b.data,    doe: () => { b.data    = klem(b.data    + (14 + dataBonus) * G.zorg.data); }, label: "+💾", kleur: "#3a9d94", animeer: true,  tekst: "AI traint <b>" + b.naam + "</b>" },
+    { v: b.fit,     doe: () => { b.fit     = klem(b.fit     + 16 * G.zorg.fit); },  label: "+🏃", kleur: "#7fd06f", animeer: true,  tekst: "AI laat <b>" + b.naam + "</b> sporten" },
+    { v: b.geluk,   doe: () => { b.geluk   = klem(b.geluk   + 14 * G.zorg.geluk); }, label: "+😊", kleur: "#f6a623", animeer: false, tekst: "AI houdt <b>" + b.naam + "</b> blij (maar geen band)" },
+  ].filter(o => o.v < 90).sort((x, y) => x.v - y.v);
+
+  if (opties.length) {
+    const o = opties[0];
+    o.doe();
+    b.stemming = klem((b.stemming ?? 50) + 14);
+    return { label: o.label, kleur: o.kleur, animeer: o.animeer, tekst: o.tekst };
+  }
+
+  // 3) Alles vol → klein geluk-zetje.
   b.geluk = klem(b.geluk + 5);
   b.stemming = klem((b.stemming ?? 50) + 8);
   return { label: "+geluk 🤖", kleur: "#f6a623", animeer: false, tekst: "AI houdt <b>" + b.naam + "</b> blij (maar geen band)" };
@@ -446,8 +469,19 @@ Deno.serve(async () => {
     if (Math.random() < 0.05) {
       const kandidaten = bottys.filter(rijp);
       if (kandidaten.length >= 2) {
-        kandidaten.sort((a, b) => geneScore(b) - geneScore(a));
-        const ouderA = kandidaten[0], ouderB = kandidaten[1];
+        // Slimme partnerkeuze: kies het paar dat fit én genetisch divers is.
+        // Score = som van fitness + gewicht × genetische afstand.
+        let beste: any = null;
+        for (let i = 0; i < kandidaten.length; i++)
+          for (let j = i + 1; j < kandidaten.length; j++) {
+            const a = kandidaten[i], b2 = kandidaten[j];
+            const score = geneScore(a) + geneScore(b2)
+              + PARTNER_DIVERSITEIT_GEWICHT * genoomAfstand(a.genome, b2.genome);
+            if (!beste || score > beste.score) beste = { a, b: b2, score };
+          }
+        // De minst-fitte ouder maakt plaats voor het kind; de fitste blijft.
+        const ouderA = geneScore(beste.a) <= geneScore(beste.b) ? beste.a : beste.b; // vertrekt
+        const ouderB = ouderA === beste.a ? beste.b : beste.a;                        // blijft
         const idx = bottys.indexOf(ouderA);
         const popDiv = popDiversiteit(bottys);
 
