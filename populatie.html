@@ -88,9 +88,15 @@
 
   <section id="sec-inteelt">
     <h2>Inteelt-meter</h2>
-    <p class="uitleg">Per geboorte: de kans dat een willekeurig stukje afstamming van béíde ouders bij dezelfde
-      stamouder uitkomt (0% = niet verwant, 100% = genetisch identieke afkomst). Hoger = meer inteelt.</p>
+    <p class="uitleg">De verwantschap die de hive bij elke geboorte zélf vastlegt, berekend uit de genetische
+      afstand tussen de ouders (0% = genetisch ver uit elkaar, 100% = vrijwel identiek DNA). Boven nul krijgt
+      het kind een inteelt-straf op zijn fitness. Hoger = meer inteelt.</p>
     <svg class="chart" id="inteelt" viewBox="0 0 900 220" role="img" aria-label="Inteelt over de tijd"></svg>
+    <div class="legenda">
+      <span><i style="background:#f6a623;border-radius:99px"></i>opgeslagen door de hive</span>
+      <span><i style="background:none;border:1.5px solid #f6a623;border-radius:99px"></i>geschat (oude geboorte)</span>
+      <span><i style="background:#39ff85;border-radius:99px"></i>verse mutant (geen ouders)</span>
+    </div>
     <h3 style="font-size:.95rem;margin:1rem 0 .2rem">⚠️ Krapste koppelingen</h3>
     <ul class="koppels" id="koppels"></ul>
   </section>
@@ -151,6 +157,7 @@
     }
 
     // kinship van een geboorte = Σ vA_f · vB_f (kans op gedeelde stamouder-afkomst)
+    // Alleen gebruikt als terugval voor oude rijen zonder opgeslagen verwantschap.
     function kinship(r){
       var a=vec(r.oudera_id,0), b=vec(r.ouderb_id,0), s=0;
       for(var f in a) if(b[f]) s+=a[f]*b[f];
@@ -158,6 +165,19 @@
     }
 
     return { kind:kind, founders:founders, vec:function(id){return vec(id,0);}, kinship:kinship };
+  }
+
+  // Verwantschap per geboorte: toon bij voorkeur de waarde die de hive zélf
+  // vastlegde (0..1, uit de genetische afstand van de ouders t.o.v. de
+  // inteelt-drempel). Voor oudere rijen van vóór die meting vallen we terug op
+  // een schatting uit de afstamming, zodat de tijdlijn niet hapert.
+  function verwantschapVan(r, M){
+    var heeft = (r.verwantschap !== null && r.verwantschap !== undefined && isFinite(r.verwantschap));
+    return {
+      val: heeft ? Math.max(0, Math.min(1, +r.verwantschap)) : M.kinship(r),
+      opgeslagen: heeft,
+      immigrant: !!r.immigrant
+    };
   }
 
   function founderKleur(i, n){ return "hsl("+Math.round(i*(360/n))+" 70% 55%)"; }
@@ -207,7 +227,8 @@
   // ── Inteelt-meter (lijn + punten) ───────────────────────────────────────────
   function tekenInteelt(rows, M){
     var W=900,H=220,padL=40,padR=10,padT=12,padB=24, n=rows.length;
-    var vals=rows.map(function(r){ return M.kinship(r); });
+    var info=rows.map(function(r){ return verwantschapVan(r, M); });
+    var vals=info.map(function(o){ return o.val; });
     var x=function(i){ return padL + (n<=1?0:(i/(n-1))*(W-padL-padR)); };
     var plotH=H-padT-padB;
     var y=function(v){ return padT + plotH*(1-Math.max(0,Math.min(1,v))); };
@@ -220,9 +241,18 @@
     // voortschrijdend gemiddelde
     var ma=[]; for(var i=0;i<n;i++){ var s=0,c=0; for(var j=Math.max(0,i-4);j<=i;j++){s+=vals[j];c++;} ma.push(s/c); }
     var maPts=ma.map(function(v,i){return x(i).toFixed(1)+","+y(v).toFixed(1);}).join(" ");
-    // punten
+    // punten: gevuld = opgeslagen door de hive, open = geschat (oude rij), groen = immigrant
     for(var k=0;k<n;k++){
-      svg+='<circle cx="'+x(k).toFixed(1)+'" cy="'+y(vals[k]).toFixed(1)+'" r="2.6" fill="#f6a623" opacity="0.7"><title>gen '+rows[k].generatie+': '+Math.round(vals[k]*100)+'%</title></circle>';
+      var o=info[k], cx=x(k).toFixed(1), cy=y(vals[k]).toFixed(1);
+      var bron = o.immigrant ? "verse mutant" : (o.opgeslagen ? "opgeslagen" : "geschat");
+      var tip='gen '+rows[k].generatie+': '+Math.round(vals[k]*100)+'% ('+bron+')';
+      if(o.immigrant){
+        svg+='<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#39ff85" opacity="0.85"><title>'+tip+'</title></circle>';
+      } else if(o.opgeslagen){
+        svg+='<circle cx="'+cx+'" cy="'+cy+'" r="2.6" fill="#f6a623" opacity="0.8"><title>'+tip+'</title></circle>';
+      } else {
+        svg+='<circle cx="'+cx+'" cy="'+cy+'" r="2.6" fill="none" stroke="#f6a623" stroke-width="1.1" opacity="0.55"><title>'+tip+'</title></circle>';
+      }
     }
     svg+='<polyline points="'+maPts+'" fill="none" stroke="#ff6b6b" stroke-width="2.5"/>';
     [0,Math.floor(n/2),n-1].forEach(function(i){ if(i<0||i>=n)return;
@@ -230,15 +260,17 @@
     });
     document.getElementById("inteelt").innerHTML=svg;
 
-    // krapste koppels
-    var paren=rows.map(function(r){ return {r:r, k:M.kinship(r)}; })
+    // krapste koppels — op de opgeslagen verwantschap (immigranten hebben geen ouders)
+    var paren=rows.map(function(r,i){ return {r:r, info:info[i], k:vals[i]}; })
+      .filter(function(p){ return !p.info.immigrant && p.r.oudera_naam; })
       .sort(function(a,b){ return b.k-a.k; }).slice(0,5);
     document.getElementById("koppels").innerHTML = paren.map(function(p){
+      var merk = p.info.opgeslagen ? "" : ' <span style="color:#7fb89a;font-weight:400">(geschat)</span>';
       return '<li><span class="pct">'+Math.round(p.k*100)+'%</span>'
         +'<span class="barwrap"><span style="width:'+Math.round(p.k*100)+'%"></span></span>'
-        +'<span><b>'+esc(p.r.oudera_naam)+'</b> × <b>'+esc(p.r.ouderb_naam)+'</b> → '+esc(p.r.kind_naam)+' (gen '+p.r.generatie+')</span></li>';
+        +'<span><b>'+esc(p.r.oudera_naam)+'</b> × <b>'+esc(p.r.ouderb_naam)+'</b> → '+esc(p.r.kind_naam)+' (gen '+p.r.generatie+')'+merk+'</span></li>';
     }).join("");
-    return vals;
+    return { vals: vals, info: info };
   }
 
   // ── Stamouder-bijdrage (huidige populatie) ──────────────────────────────────
@@ -275,14 +307,17 @@
     }).join("");
 
     tekenStroom(rows, M, founderIds, kleur);
-    var vals = tekenInteelt(rows, M);
+    var meter = tekenInteelt(rows, M);
     tekenBijdrage(rows, M, founderIds, kleur);
 
     // KPI's
     document.getElementById("k-geb").textContent = rows.length;
     document.getElementById("k-stam").textContent = founderIds.length;
     document.getElementById("k-gen").textContent = rows[0].generatie + "–" + rows[rows.length-1].generatie;
-    var gem = vals.reduce(function(s,v){return s+v;},0)/vals.length;
+    // Gem. inteelt: liefst over de echt opgeslagen verwantschappen; anders alles.
+    var opgesl = meter.vals.filter(function(v,i){ return meter.info[i].opgeslagen; });
+    var basis = opgesl.length ? opgesl : meter.vals;
+    var gem = basis.reduce(function(s,v){return s+v;},0)/basis.length;
     document.getElementById("k-int").textContent = Math.round(gem*100) + "%";
   }
 
