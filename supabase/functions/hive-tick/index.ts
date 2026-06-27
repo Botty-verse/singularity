@@ -34,6 +34,31 @@ function maakId(): string {
   catch { return Math.random().toString(36).slice(2, 10); }
 }
 
+// ─── IQ: priemgetallen uitwerken ───────────────────────────────────────────────
+// Elke Botty start met IQ 100. Per denk-ronde werkt hij een getal uit:
+// een echt priemgetal vinden = +1, een foute gok = -2. Slimmere Bottys
+// (hogere datakwaliteit) gokken vaker goed.
+function isPriem(n: number): boolean {
+  if (n < 2) return false;
+  if (n % 2 === 0) return n === 2;
+  for (let i = 3; i * i <= n; i += 2) if (n % i === 0) return false;
+  return true;
+}
+function denkPriem(b: any): { getal: number; succes: boolean; iq: number } {
+  const intel = b.datakwaliteit ?? 50;
+  const p = Math.max(0.5, Math.min(0.97, 0.5 + (intel - 50) / 100 * 0.9));
+  const succes = Math.random() < p;
+  let getal: number;
+  if (succes) {
+    do { getal = 2 + Math.floor(Math.random() * 298); } while (!isPriem(getal));
+    b.iq = Math.min(999, (b.iq ?? 100) + 1);
+  } else {
+    do { getal = 4 + Math.floor(Math.random() * 296); } while (isPriem(getal));
+    b.iq = Math.max(0, (b.iq ?? 100) - 2);
+  }
+  return { getal, succes, iq: b.iq };
+}
+
 // ─── Genoom (Creatures-stijl, 16 genen, elk 1 byte) ──────────────────────────
 // byte=128 → multiplier ~1.0 → identiek aan huidig gedrag (veilige migratie)
 // byte=0   → 0.5x  (trager verval, minder gevoelig voor ziekte, etc.)
@@ -394,6 +419,7 @@ Deno.serve(async () => {
     if (!b.genome || typeof b.genome !== "string") b.genome = baseline;
     if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome).grootte;
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
+    if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
   });
 
   const nu = Date.now();
@@ -445,6 +471,18 @@ Deno.serve(async () => {
       const s = huidigeStage(b); if (s !== b.stage) b.stage = s;
       updateStemming(b, bezoekers);
     });
+
+    // IQ-ronde: elke Botty werkt een priemgetal uit (+1 goed, -2 fout)
+    const denkers = bottys.filter(b => !b.bezigEi);
+    const resultaten = denkers.map(b => ({ b, r: denkPriem(b) }));
+    if (resultaten.length) {
+      const pick = resultaten[Math.floor(Math.random() * resultaten.length)];
+      const r = pick.r;
+      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, succes: r.succes, iq: r.iq,
+        tekst: r.succes
+          ? "🧠 <b>" + pick.b.naam + "</b> werkte " + r.getal + " uit — priemgetal! (+1, IQ " + r.iq + ")"
+          : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")" });
+    }
 
     // Kennisuitwisseling
     if (Math.random() < 0.125 && bottys.length >= 2) {
