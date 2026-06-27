@@ -292,7 +292,7 @@
   var SUPABASE_URL  = BottyConfig.SUPABASE_URL;
   var SUPABASE_ANON = BottyConfig.SUPABASE_ANON;
   var TICK_URL      = SUPABASE_URL + "/functions/v1/hive-tick";
-  var TICK_INTERVAL = 1500;   // ms: browser roept tick aan terwijl tab open is
+  var TICK_INTERVAL = 3000;   // ms: browser roept tick aan terwijl tab open is (sim haalt in via catch-up)
 
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
