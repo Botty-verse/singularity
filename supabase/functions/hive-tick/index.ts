@@ -365,7 +365,65 @@ function vervalEen(b: any) {
   b.fit      = klem(b.fit      - 1.6 * G.verval.fit);
   b.geluk    = klem(b.geluk    - 1.5 * G.verval.geluk);
   b.stemming = klem((b.stemming ?? 50) - 1.6 * G.verval.stemming);
-  if (!b.ziek && Math.random() < 0.004 * G.ziekKans) b.ziek = true;
+  if (!b.ziek && Math.random() < 0.004 * G.ziekKans) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
+}
+
+// ─── Bewustzijn: innerlijke gedachte + episodisch geheugen ──────────────────────
+// Géén echt bewustzijn — een representatie: elke Botty "merkt" zijn meest saillante
+// interne signaal en verwoordt het (Laag 1), en onthoudt een handvol sleutel-
+// momenten uit zijn leven (Laag 2). Temperament komt uit het genoom: gen 11
+// (sociaal = hoeveel hij aan anderen denkt), gen 14 (expressie = hoe uitgesproken).
+function kies<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function onthoud(b: any, soort: string, tekst: string) {
+  if (!Array.isArray(b.herinneringen)) b.herinneringen = [];
+  const laatste = b.herinneringen[b.herinneringen.length - 1];
+  if (laatste && laatste.soort === soort && laatste.tekst === tekst) return; // geen directe dubbel
+  b.herinneringen.push({ t: Date.now(), soort, tekst });
+  if (b.herinneringen.length > 8) b.herinneringen = b.herinneringen.slice(-8); // alleen de recentste 8
+}
+
+function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
+  const by = genoomBytes(b.genome);
+  const sociaalHoog = mult(b, 11) > 1.05;
+  const expressief = by[14] > 150;
+  const uit = (s: string) => expressief ? s + "!" : s;
+  const smk = smaakVan(b).naam;
+  const niv = wiskundeNiveau(b.vondsten ?? 0);
+
+  // Prioriteit: nood/lichaam → euforie → tekort → herinnering → sociaal → contemplatie
+  if (b.ziek) { b.gedachte = kies(["Er knaagt iets in mijn circuits…", "Ik voel me niet mezelf.", "Alles loopt traag vandaag."]); return; }
+
+  if (ctx.getallen && ctx.getallen.length) {
+    const g = ctx.getallen[0];
+    b.gedachte = uit(kies([g + "… precies goed", "Daar! " + g + " — ik voel het kloppen", "Ik zie " + smk + " overal", "Mijn hoofd tintelt"]));
+    return;
+  }
+
+  const tekorten: [number, string][] = [
+    [b.energie, "Ik voel me leeg…"], [b.data, "Ik wil meer weten."],
+    [b.fit, "Mijn lijf is moe."], [b.geluk, "Ik mis iets."],
+  ];
+  const laag = tekorten.filter(t => t[0] < 28).sort((a, c) => a[0] - c[0])[0];
+  if (laag) { b.gedachte = laag[1]; return; }
+
+  if (Array.isArray(b.herinneringen) && b.herinneringen.length && Math.random() < 0.3) {
+    const h = kies(b.herinneringen);
+    b.gedachte = kies(["Ik denk nog aan vroeger: " + h.tekst, "Ik herinner me: " + h.tekst]);
+    return;
+  }
+
+  if (sociaalHoog && Math.random() < 0.5) {
+    const anderen = ctx.anderen.filter(x => x !== b && !x.bezigEi);
+    if (anderen.length) {
+      const n = kies(anderen).naam;
+      b.gedachte = kies(["Waar is " + n + "?", "Ik vraag me af wat " + n + " denkt.", "Ik zou " + n + " graag zien."]);
+      return;
+    }
+  }
+
+  const zelf = niv >= 4 ? "Ik ken de getallen nu goed." : niv >= 2 ? "Ik begin de patronen te zien." : "Zoveel getallen nog te ontdekken.";
+  b.gedachte = kies(["Ik denk na over " + smk + ".", zelf, "Welke priem wacht er op mij?", "Stil. Rekenen.", "Ik tel de stilte."]);
 }
 
 // ─── Botty aanmaken ───────────────────────────────────────────────────────────
@@ -594,11 +652,17 @@ Deno.serve(async () => {
     const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
     // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
     // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
+    const vondstMap: Record<string, number[]> = {};
     resultaten.forEach(x => {
-      if (x.r.uitkomst === "nieuw") {
-        x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
-        x.b.stemming = 100;
-      }
+      if (x.r.uitkomst !== "nieuw") return;
+      x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
+      x.b.stemming = 100;
+      vondstMap[x.b.bid] = x.r.getallen;
+      // Episodisch geheugen: eerste priem ooit + het halen van een nieuw wiskunde-niveau.
+      const voor = (x.b.vondsten ?? x.r.getallen.length) - x.r.getallen.length;
+      if (voor === 0) onthoud(x.b, "eerste-priem", "ik vond mijn eerste priemgetal (" + x.r.getallen[0] + ")");
+      const na = wiskundeNiveau(x.b.vondsten ?? 0);
+      if (x.r.niveau < na) onthoud(x.b, "wiskunde", "ik leerde een nieuwe rekenregel (niveau " + na + ")");
     });
     const nieuweVondsten = resultaten
       .filter(x => x.r.uitkomst === "nieuw")
@@ -672,6 +736,7 @@ Deno.serve(async () => {
           const gen = Math.max(ouderA.generatie ?? 1, ouderB.generatie ?? 1) + 1;
           kind = maakImmigrant(bottys.map((b: any) => b.naam), gen);
           immigrant = true;
+          onthoud(kind, "aankomst", "ik arriveerde als verse mutant");
           events.push({ soort: "immigrant", naamKind: kind.naam,
             tekst: "🌱 <b>" + kind.naam + "</b> arriveert als verse mutant — de genenpoel werd te eenvormig (diversiteit " + Math.round(popDiv) + ")" });
         } else {
@@ -685,6 +750,8 @@ Deno.serve(async () => {
             kind.efficientie   = klem((kind.efficientie   ?? 50) - inteeltStraf);
             if (Math.random() < verwantschap * 0.6) kind.ziek = true;
           }
+          onthoud(kind, "geboorte", "ik werd geboren als kind van " + ouderA.naam + " en " + ouderB.naam);
+          onthoud(ouderB, "kind", "ik kreeg een kind: " + kind.naam);
           events.push({ soort: "kweek-start", naamA: ouderA.naam, naamB: ouderB.naam,
             tekst: "💞 De AI koppelt <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> — beste genen" });
         }
@@ -731,6 +798,10 @@ Deno.serve(async () => {
         }
       }
     }
+
+    // Bewustzijn: elke Botty vormt een innerlijke gedachte op basis van zijn staat,
+    // zijn vondst van deze tick, zijn relaties en zijn herinneringen.
+    bottys.forEach(b => { if (!b.bezigEi) denkBewust(b, { getallen: vondstMap[b.bid], anderen: bottys }); });
   }
 
   await supabase.from("hive_state").upsert({
