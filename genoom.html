@@ -159,7 +159,7 @@
       +   (typeof b.iq==="number" ? ' · 🧠 IQ <b>'+Math.round(b.iq)+'</b>' : '')
       +   (b.ziek ? ' · <b style="color:#f6a623">🤒 ziek</b>' : '')
       +   '<br><span style="color:#6fa88c">genoom: '+esc(b.genome||"—")+'</span></div>'
-      + (b.gedachte ? '<div class="g-bubbel">💭 '+esc(b.gedachte)+'</div>' : '')
+      + (b.gedachte ? '<div class="g-bubbel">💭 '+esc(b.gedachte)+(b.doel&&b.doel.tekst ? ' <span style="color:#a3ffce">· 🎯 '+esc(b.doel.tekst)+'</span>' : '')+'</div>' : '')
       + rijen
       + herin
       + '</div>';
