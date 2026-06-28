@@ -95,6 +95,9 @@
   .kaart.paart{border-color:#ff8bd0;box-shadow:0 0 14px #ff8bd066;}
   .knaam{font-weight:900;font-size:.95rem;color:var(--licht);text-align:center;}
   .kstage{font-size:.7rem;color:#7fb89a;text-align:center;margin:.15rem 0;}
+  .gedachte{font-size:.72rem;color:#bfe3df;font-style:italic;text-align:center;margin:.1rem .2rem .25rem;
+            min-height:1.1em;line-height:1.25;opacity:.9;}
+  .gedachte .g-tekst{background:#0e2f1e;border:1px solid #1c5b42;border-radius:9px;padding:.1rem .45rem;display:inline-block;}
   .genen{display:flex;flex-wrap:wrap;gap:.2rem;justify-content:center;font-size:.65rem;margin:.2rem 0;}
   .genen span{background:#0e2f1e;border:1px solid #1c5b42;border-radius:6px;padding:.1rem .35rem;}
   .muts{letter-spacing:.1em;}
@@ -449,6 +452,7 @@
     kaart.innerHTML =
         '<div class="knaam">'+b.naam+'</div>'
       + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+(stageLabel[b.stage]||b.stage)+' · '+(b.paletNaam||"kleur")+'</div>'
+      + '<div class="gedachte">💭 <span class="g-tekst">'+(b.gedachte||"…")+'</span></div>'
       + '<div class="genen">'+genenHtml(b)+'</div>'
       + dnaStripHtml(b)
       + '<div class="scene"><div class="bw bw-'+b.stage+' vitaal" style="--groei:'+((groei[b.stage]||1)*grootteUit(b)).toFixed(3)+';--spier:'+spierSchaal(b.efficientie)+'">'
@@ -464,6 +468,7 @@
     return {
       wrap: kaart.querySelector(".bw"),
       floaters: kaart.querySelector(".floaters"),
+      gedachte: kaart.querySelector(".g-tekst"),
       bars: {
         energie: kaart.querySelector('[data-m="energie"] > span'),
         data:    kaart.querySelector('[data-m="data"] > span'),
@@ -506,7 +511,7 @@
         if(idx < cards.length) verse.insertBefore(kaart, cards[idx]);
         else verse.appendChild(kaart);
         var els = vulKaart(kaart, b);
-        elMap[b.naam] = { kaart:kaart, wrap:els.wrap, floaters:els.floaters, bars:els.bars };
+        elMap[b.naam] = { kaart:kaart, wrap:els.wrap, floaters:els.floaters, gedachte:els.gedachte, bars:els.bars };
       } else {
         // Stage veranderd? Herbouw de kaart
         var prevB = prevBottys.find(function(x){ return x.naam===b.naam; });
@@ -514,10 +519,12 @@
           var els2 = vulKaart(existing.kaart, b);
           existing.wrap = els2.wrap;
           existing.floaters = els2.floaters;
+          existing.gedachte = els2.gedachte;
           existing.bars = els2.bars;
         }
         // Update bars
         var el = elMap[b.naam];
+        if(el.gedachte) el.gedachte.textContent = b.gedachte || "…";
         el.bars.energie.style.width = b.energie + "%";
         el.bars.data.style.width    = b.data + "%";
         el.bars.fit.style.width     = b.fit + "%";
