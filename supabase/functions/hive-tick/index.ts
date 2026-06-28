@@ -25,6 +25,8 @@ const DIVERSITEIT_DREMPEL  = 130;
 const PARTNER_DIVERSITEIT_GEWICHT = 0.12;
 // IQ telt ook mee in de partnerkeuze: slimme Bottys zijn aantrekkelijker.
 const PARTNER_IQ_GEWICHT = 0.2;
+// Agency: een ouder die zélf een kind wil, telt zwaarder mee in de partnerkeuze.
+const PARTNER_WIL_GEWICHT = 30;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -111,9 +113,11 @@ function denkPriem(b: any, ontdekt: Set<number>): { getallen: number[]; getal: n
   const niveau = wiskundeNiveau(ervaring);
   const wiel = WISKUNDE_WIEL.slice(0, niveau); // beheerste deelbaarheidsregels
   // Ervaring helpt slagen én vergroot de keuze (meer kandidaten tegelijk afwegen).
-  const p = Math.max(0.5, Math.min(0.99, 0.5 + (intel - 50) / 100 * 0.9 + niveau * 0.02));
+  // Agency: een Botty die zich heeft voorgenomen te jagen, doet het net iets feller.
+  const gedreven = b.doel && b.doel.soort === "priemjacht";
+  const p = Math.max(0.5, Math.min(0.99, 0.5 + (intel - 50) / 100 * 0.9 + niveau * 0.02 + (gedreven ? 0.05 : 0)));
   if (Math.random() < p) {
-    const keuze = Math.max(2, Math.min(16, Math.round(2 + intel / 100 * 10 + niveau)));
+    const keuze = Math.max(2, Math.min(16, Math.round(2 + intel / 100 * 10 + niveau + (gedreven ? 2 : 0))));
     const shortlist: number[] = [];
     let overwogen = 0, trekkingen = 0;
     // Wiel-verwerpingen kosten geen denkmoeite (overwogen); alleen kansrijke
@@ -297,7 +301,10 @@ function geneScore(b: any) { return (b.datakwaliteit ?? 50) + (b.efficientie ?? 
 // Urgentie: hoe lager, hoe eerder zorg nodig. De láágste losse stat telt
 // (één kritieke waarde is erger dan een matig gemiddelde), zieken springen voor.
 function urgentie(b: any) {
-  return Math.min(b.energie, b.data, b.fit, b.geluk) - (b.ziek ? 40 : 0);
+  let u = Math.min(b.energie, b.data, b.fit, b.geluk) - (b.ziek ? 40 : 0);
+  // Agency: een Botty die zélf om herstel/rust vraagt, dringt iets voor in de rij.
+  if (b.doel && (b.doel.soort === "herstellen" || b.doel.soort === "bijkomen")) u -= 8;
+  return u;
 }
 function kiesDoelen(bottys: any[], n: number) {
   return [...bottys]
@@ -385,7 +392,7 @@ function onthoud(b: any, soort: string, tekst: string) {
 
 function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
   const by = genoomBytes(b.genome);
-  const sociaalHoog = mult(b, 11) > 1.05;
+  const sociaalHoog = mult(by, 11) > 1.05;
   const expressief = by[14] > 150;
   const uit = (s: string) => expressief ? s + "!" : s;
   const smk = smaakVan(b).naam;
@@ -424,6 +431,21 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
 
   const zelf = niv >= 4 ? "Ik ken de getallen nu goed." : niv >= 2 ? "Ik begin de patronen te zien." : "Zoveel getallen nog te ontdekken.";
   b.gedachte = kies(["Ik denk na over " + smk + ".", zelf, "Welke priem wacht er op mij?", "Stil. Rekenen.", "Ik tel de stilte."]);
+}
+
+// ─── Laag 3 — eigen doel / agency ───────────────────────────────────────────────
+// Een Botty vormt aan het begin van de tick een intentie. De hive-mechaniek buigt
+// daarna licht mee (zorg luistert, partners die een kind willen worden vaker
+// gekoppeld, gezelschap-zoekers ontmoeten elkaar, gedreven jagers zoeken feller).
+function kiesDoel(b: any, ctx: { anderen: any[] }) {
+  if (b.ziek) { b.doel = { soort: "herstellen", tekst: "weer beter worden" }; return; }
+  if (Math.min(b.energie, b.data, b.fit, b.geluk) < 35) { b.doel = { soort: "bijkomen", tekst: "op krachten komen" }; return; }
+  if (rijp(b) && (b.stemming ?? 50) > 65 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
+  if (mult(genoomBytes(b.genome), 11) > 1.05 && Math.random() < 0.45) {
+    const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
+    if (an.length) { const v = kies(an); b.doel = { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" }; return; }
+  }
+  b.doel = { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam };
 }
 
 // ─── Botty aanmaken ───────────────────────────────────────────────────────────
@@ -597,7 +619,9 @@ Deno.serve(async () => {
   }
 
   if (gemist >= 1) {
-    // Actieve tick
+    // Actieve tick — eerst vormt elke Botty zijn eigen doel (Laag 3), zodat de
+    // zorg/keuzes hieronder ernaar kunnen luisteren.
+    bottys.forEach(b => { if (!b.bezigEi) kiesDoel(b, { anderen: bottys }); });
     const doelen = kiesDoelen(bottys, ZORG_PER_TICK);
     doelen.forEach((b, i) => {
       if (b.bezigEi) return;
@@ -691,11 +715,17 @@ Deno.serve(async () => {
 
     // Kennisuitwisseling
     if (Math.random() < 0.125 && bottys.length >= 2) {
-      const n = bottys.length;
-      let i = Math.floor(Math.random() * n), j;
-      do { j = Math.floor(Math.random() * n); } while (j === i);
-      const a = bottys[i], b = bottys[j];
-      if (!a.bezigEi && !b.bezigEi) {
+      const vrij = bottys.filter(x => !x.bezigEi);
+      let a: any, b: any;
+      // Agency: een gezelschap-zoeker krijgt zijn wens — ontmoet wie hij wilde zien.
+      const zoekers = vrij.filter(x => x.doel && x.doel.soort === "gezelschap");
+      if (zoekers.length && Math.random() < 0.6) {
+        a = kies(zoekers);
+        b = vrij.find(x => x.naam === a.doel.naar) || kies(vrij.filter(x => x !== a));
+      } else {
+        a = kies(vrij); b = kies(vrij.filter(x => x !== a));
+      }
+      if (a && b && a !== b && !a.bezigEi && !b.bezigEi) {
         a.geluk = klem(a.geluk + 12); b.geluk = klem(b.geluk + 12);
         a.stemming = klem((a.stemming ?? 50) + 8);
         b.stemming = klem((b.stemming ?? 50) + 8);
@@ -718,9 +748,11 @@ Deno.serve(async () => {
         for (let i = 0; i < kandidaten.length; i++)
           for (let j = i + 1; j < kandidaten.length; j++) {
             const a = kandidaten[i], b2 = kandidaten[j];
+            const wil = (a.doel?.soort === "voortplanting" ? 1 : 0) + (b2.doel?.soort === "voortplanting" ? 1 : 0);
             const score = geneScore(a) + geneScore(b2)
               + PARTNER_DIVERSITEIT_GEWICHT * genoomAfstand(a.genome, b2.genome)
-              + PARTNER_IQ_GEWICHT * ((a.iq ?? 100) + (b2.iq ?? 100));
+              + PARTNER_IQ_GEWICHT * ((a.iq ?? 100) + (b2.iq ?? 100))
+              + PARTNER_WIL_GEWICHT * wil;
             if (!beste || score > beste.score) beste = { a, b: b2, score };
           }
         // De minst-fitte ouder maakt plaats voor het kind; de fitste blijft.
