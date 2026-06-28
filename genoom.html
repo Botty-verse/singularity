@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty-verse — Genoom-kaart</title>
+<meta name="theme-color" content="#04140d" />
+<meta name="description" content="De volledige genoom-kaart van elke Botty — alle 16 genen, hun waarde t.o.v. neutraal en wat ze doen." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{ --matrix:#39ff85;--paneel:rgba(6,26,18,.78);--paneel-rand:#1c5b42;--licht:#dff7ea; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:#04140d;color:var(--licht);min-height:100vh;
+       display:flex;flex-direction:column;align-items:center;}
+  header{text-align:center;padding:2rem 1rem .4rem;width:100%;}
+  h1{font-size:clamp(1.7rem,5vw,2.8rem);font-weight:900;letter-spacing:-.02em;
+     background:linear-gradient(135deg,var(--matrix),#a3ffce);-webkit-background-clip:text;
+     -webkit-text-fill-color:transparent;background-clip:text;}
+  .ondertitel{max-width:680px;margin:.5rem auto 0;font-size:.95rem;color:#a8d4be;line-height:1.5;}
+  .terug{display:inline-block;margin-top:.8rem;color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  .terug:hover{color:var(--matrix);}
+  main{width:100%;max-width:1100px;padding:1rem 1rem 3rem;}
+
+  .legenda{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin:.4rem auto 1.2rem;font-size:.8rem;}
+  .legenda span{display:inline-flex;align-items:center;gap:.35rem;background:#0e2f1e;border:1px solid #1c5b42;border-radius:7px;padding:.12rem .5rem;}
+  .legenda i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;}
+  .kaart{background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:16px;padding:1rem 1.1rem 1.1rem;}
+  .kkop{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.2rem;}
+  .kdot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.25);flex:none;}
+  .knaam{font-size:1.15rem;font-weight:900;}
+  .kmeta{font-size:.78rem;color:#7fb89a;margin-bottom:.7rem;}
+  .kmeta b{color:#bfe3df;font-weight:700;}
+
+  .gen{display:grid;grid-template-columns:1.7rem 1fr 3.4rem;align-items:center;gap:.45rem;padding:.22rem 0;border-bottom:1px solid #0f2c1d;}
+  .gen:last-child{border-bottom:none;}
+  .gen .ico{font-size:.95rem;text-align:center;cursor:help;}
+  .gen .label{font-size:.74rem;color:#a8d4be;line-height:1.15;}
+  .gen .label small{display:block;color:#6fa88c;font-size:.66rem;}
+  .gen .waarde{font-size:.82rem;font-weight:900;text-align:right;font-variant-numeric:tabular-nums;}
+
+  /* Divergerende balk rond neutraal (×1.0 = midden) */
+  .meterrij{grid-column:1 / -1;margin:.1rem 0 .15rem;}
+  .meter{position:relative;height:8px;background:#0a1f13;border-radius:99px;overflow:hidden;}
+  .meter .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#2c5f48;transform:translateX(-.5px);}
+  .meter .vul{position:absolute;top:0;bottom:0;border-radius:99px;opacity:.92;}
+
+  footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.4rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #103022;width:100%;}
+  footer a{color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  footer a:hover{color:var(--matrix);}
+  .laad,.leeg{text-align:center;color:#7fb89a;padding:1.4rem;}
+  .uitleg{max-width:760px;margin:.2rem auto 1rem;font-size:.85rem;color:#a8d4be;line-height:1.5;text-align:center;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧬 Genoom-kaart</h1>
+  <p class="ondertitel">Het complete <strong>digitale DNA</strong> van elke Botty: 16 genen, elk een byte van 0–255.
+    <strong>128 = neutraal (×1.0)</strong>; lager = zwakker, hoger = sterker. Zo lees je af waarom de één nooit ziek
+    wordt en de ander juist groot uitvalt.</p>
+  <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="stamboom.html">🌳 Stamboom</a>
+</header>
+
+<main>
+  <div class="legenda" id="legenda"></div>
+  <p class="uitleg">Elke balk staat rond de middenlijn (×1.0): vult hij naar <em>links</em> dan is het gen zwakker dan
+    gemiddeld, naar <em>rechts</em> sterker. Beweeg je muis over een icoon voor de uitleg.</p>
+  <div id="leeg" class="leeg" style="display:none"></div>
+  <div class="grid" id="grid"><div class="laad">🧬 Genomen laden…</div></div>
+</main>
+
+<footer>
+  <a href="index.html">🌐 De hive</a>
+  <a href="stamboom.html">🌳 Stamboom</a>
+  <a href="populatie.html">🧬 Populatie</a>
+  <a href="evolutie.html">📈 Evolutie</a>
+  <a href="priemen.html">🔢 Priemvondsten</a>
+  <a href="iq-ranglijst.html">🧠 IQ-ranglijst</a>
+  <a href="kaarten.html">🃏 Verzamelkaarten</a>
+  <a href="https://botty.ramonmoorlag.nl/">💊 Eigen Botty</a>
+</footer>
+
+<script src="assets/botty-config.js"></script>
+<script src="assets/botty-render.js"></script>
+<script src="assets/genome.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  var supabase = window.supabase.createClient(BottyConfig.SUPABASE_URL, BottyConfig.SUPABASE_ANON);
+
+  var GENOOM_LEN  = BottyGenome.GENOOM_LEN;
+  var genMeta     = BottyGenome.genMeta;     // [kort label, lange uitleg, categorie]
+  var genKleur    = BottyGenome.genKleur;    // categorie -> kleur
+  var genoomBytes = BottyGenome.genoomBytes;
+  var paletten    = BottyRender.paletten;
+
+  var catLabel = { verval:"verval", zorg:"zorg", risico:"risico", overig:"overig" };
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  // Per-gen weergave: de meeste genen werken als vermenigvuldiger (×0.5–×1.5),
+  // maar grootte (13) en kleurtint (12) hebben een eigen, betekenisvolle eenheid.
+  function genWaarde(i, byte){
+    if(i===13){ return { tekst:(0.80 + byte/255*0.40).toFixed(2)+"×", titel:"erfelijke lichaamsgrootte (0.80×–1.20×)" }; }
+    if(i===12){ var deg=Math.round((byte/128 - 1)*30); return { tekst:(deg>=0?"+":"")+deg+"°", titel:"kleurtint-kanteling op het kleurenwiel (±30°)" }; }
+    var mult = 0.5 + byte/255;  // 128 ≈ ×1.0, 0 = ×0.5, 255 = ×1.5
+    return { tekst:"×"+mult.toFixed(2), titel:"sterkte t.o.v. neutraal (×1.0)" };
+  }
+
+  function kleurWaarde(byte){
+    // tint de waarde-tekst: rood onder neutraal, groen erboven, grijs ≈ neutraal
+    if(byte < 118) return "#e0879a";
+    if(byte > 138) return "#7fe0b0";
+    return "#bfe3df";
+  }
+
+  function meterHtml(byte, kleur){
+    var f = Math.max(0, Math.min(1, byte/255));          // 0..1 positie
+    var pct = (f*100), mid = 50, vul;
+    if(pct >= mid){ vul = 'left:'+mid+'%;width:'+(pct-mid).toFixed(1)+'%;background:'+kleur; }
+    else          { vul = 'left:'+pct.toFixed(1)+'%;width:'+(mid-pct).toFixed(1)+'%;background:'+kleur; }
+    return '<div class="meterrij"><div class="meter"><span class="mid"></span><span class="vul" style="'+vul+'"></span></div></div>';
+  }
+
+  function kaartHtml(b){
+    var by = genoomBytes(b.genome);
+    var p = b.kleur || paletten[0];
+    var stage = esc(b.stage||"?"), gen = b.generatie||1;
+    var rijen = "";
+    for(var i=0;i<GENOOM_LEN;i++){
+      var m = genMeta[i], byte = by[i], kl = genKleur[m[2]] || "#7b9bff";
+      var w = genWaarde(i, byte);
+      rijen += '<div class="gen">'
+        + '<span class="ico" title="'+esc(m[1])+' — byte '+byte+' van 255 ('+esc(catLabel[m[2]]||m[2])+')">'+esc(m[0])+'</span>'
+        + '<span class="label">'+esc(m[1])+'<small>'+esc(catLabel[m[2]]||m[2])+' · byte '+byte+'</small></span>'
+        + '<span class="waarde" title="'+esc(w.titel)+'" style="color:'+kleurWaarde(byte)+'">'+esc(w.tekst)+'</span>'
+        + meterHtml(byte, kl)
+        + '</div>';
+    }
+    return '<div class="kaart">'
+      + '<div class="kkop"><span class="kdot" style="background:'+esc(p.broek||"#57b85f")+'"></span>'
+      +   '<span class="knaam">'+esc(b.naam||"?")+'</span></div>'
+      + '<div class="kmeta">⭐ generatie <b>'+gen+'</b> · '+stage
+      +   (typeof b.iq==="number" ? ' · 🧠 IQ <b>'+Math.round(b.iq)+'</b>' : '')
+      +   (b.ziek ? ' · <b style="color:#f6a623">🤒 ziek</b>' : '')
+      +   '<br><span style="color:#6fa88c">genoom: '+esc(b.genome||"—")+'</span></div>'
+      + rijen
+      + '</div>';
+  }
+
+  function render(bottys){
+    if(!bottys || !bottys.length){
+      document.getElementById("grid").innerHTML="";
+      var leeg=document.getElementById("leeg");
+      leeg.style.display="block";
+      leeg.innerHTML="🌱 Nog geen Botty's in de hive. Laat de simulatie even draaien!";
+      return;
+    }
+    document.getElementById("leeg").style.display="none";
+    document.getElementById("grid").innerHTML = bottys.map(kaartHtml).join("");
+  }
+
+  function tekenLegenda(){
+    document.getElementById("legenda").innerHTML = Object.keys(genKleur).map(function(cat){
+      return '<span><i style="background:'+genKleur[cat]+'"></i>'+esc(catLabel[cat]||cat)+'</span>';
+    }).join("");
+  }
+
+  function laad(){
+    supabase.from("hive_state").select("bottys").eq("id","main").single()
+      .then(function(res){
+        if(res.error){ console.error(res.error); return; }
+        render((res.data && res.data.bottys) || []);
+      });
+  }
+
+  tekenLegenda();
+  laad();
+  setInterval(function(){ if(!document.hidden) laad(); }, 30000);
+})();
+</script>
+</body>
+</html>
