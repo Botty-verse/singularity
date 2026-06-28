@@ -557,21 +557,40 @@ Deno.serve(async () => {
       updateStemming(b, bezoekers);
     });
 
-    // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie)
+    // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie).
+    // PostgREST levert max. 1000 rijen per request, dus pagineren we — anders is de
+    // dedup-set incompleet zodra er >1000 priemen zijn (→ priemen "herontdekken").
+    // De dedup hoeft alleen het huidige zoekbereik te dekken (kandidaten vallen daar).
     const ontdekt = new Set<number>();
-    const vondstenPerBid: Record<string, number> = {};
     try {
-      const { data: pv } = await supabase.from("priemvondsten").select("getal, ontdekker_bid");
-      (pv || []).forEach((r: any) => {
-        ontdekt.add(r.getal);
-        if (r.ontdekker_bid) vondstenPerBid[r.ontdekker_bid] = (vondstenPerBid[r.ontdekker_bid] || 0) + 1;
-      });
+      for (let from = 0; ; from += 1000) {
+        const { data, error: e } = await supabase
+          .from("priemvondsten").select("getal")
+          .gte("getal", PRIEM_LO).lt("getal", PRIEM_HI)
+          .order("getal", { ascending: true }).range(from, from + 999);
+        if (e || !data || !data.length) break;
+        for (const r of data) ontdekt.add((r as any).getal);
+        if (data.length < 1000) break;
+      }
     } catch (_) { /* zonder collectie kan iedereen alsnog ontdekken */ }
 
     const denkers = bottys.filter(b => !b.bezigEi);
-    // Seed de opgebouwde wiskunde-ervaring uit de stamboom van vondsten (één keer
-    // per Botty); daarna telt denkPriem live door via b.vondsten.
-    denkers.forEach(b => { if (typeof b.vondsten !== "number") b.vondsten = vondstenPerBid[b.bid] || 0; });
+    // Wiskunde-ervaring eenmalig seeden uit de volledige vondsten-historie per bid
+    // (alle priemen ooit, ook <10000). Alleen ophalen als er iets te seeden valt.
+    if (denkers.some(b => typeof b.vondsten !== "number")) {
+      const vondstenPerBid: Record<string, number> = {};
+      try {
+        for (let from = 0; ; from += 1000) {
+          const { data, error: e } = await supabase
+            .from("priemvondsten").select("ontdekker_bid")
+            .order("getal", { ascending: true }).range(from, from + 999);
+          if (e || !data || !data.length) break;
+          for (const r of data) { const bid = (r as any).ontdekker_bid; if (bid) vondstenPerBid[bid] = (vondstenPerBid[bid] || 0) + 1; }
+          if (data.length < 1000) break;
+        }
+      } catch (_) { /* geen historie → iedereen begint als novice */ }
+      denkers.forEach(b => { if (typeof b.vondsten !== "number") b.vondsten = vondstenPerBid[b.bid] || 0; });
+    }
     const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
     // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
     // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
