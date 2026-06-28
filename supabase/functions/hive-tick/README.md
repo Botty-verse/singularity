@@ -37,6 +37,8 @@ zijn persoonlijke **priemsmaak** past (+1 IQ); een verstrooide misgok kost −2.
   palindroom-, Pythagoras-priemen, eindcijfer 1/3/7/9 en hoge cijfersom.
 - **Datakwaliteit** bepaalt zowel de slaagkans als de grootte van de shortlist
   (2..12): slimmere Bottys vinden vaker iets én uiten hun smaak sterker.
+- **Euforie:** een verse vondst voelt geweldig — alle bars (energie/data/fit/geluk)
+  en de stemming schieten naar 100%. Die beloning is mede de drijfveer om te jagen.
 - De `priemvondsten`-tabel voorkomt dubbele ontdekkingen; IQ weegt mee in de
   partnerkeuze (`PARTNER_IQ_GEWICHT`).
 - **Zoekbereik:** `PRIEM_LO`/`PRIEM_HI` (nu 2–10000). Verse jachtgrond openen =

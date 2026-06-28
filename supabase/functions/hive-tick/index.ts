@@ -539,6 +539,14 @@ Deno.serve(async () => {
 
     const denkers = bottys.filter(b => !b.bezigEi);
     const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
+    // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
+    // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
+    resultaten.forEach(x => {
+      if (x.r.uitkomst === "nieuw") {
+        x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
+        x.b.stemming = 100;
+      }
+    });
     const nieuweVondsten = resultaten
       .filter(x => x.r.uitkomst === "nieuw")
       .map(x => ({ getal: x.r.getal, ontdekker_naam: x.b.naam, ontdekker_bid: x.b.bid, generatie: x.b.generatie }));
@@ -553,7 +561,7 @@ Deno.serve(async () => {
         || resultaten[Math.floor(Math.random() * resultaten.length)];
       const r = pick.r;
       const tekst = r.uitkomst === "nieuw"
-        ? "🧠 <b>" + pick.b.naam + "</b> koos priemgetal " + r.getal + " — specialist in " + r.smaak + " (+1, IQ " + r.iq + ")"
+        ? "🧠 <b>" + pick.b.naam + "</b> koos priemgetal " + r.getal + " — specialist in " + r.smaak + " (+1, IQ " + r.iq + ") 🎉 dolgelukkig, alle bars op 100%!"
         : r.uitkomst === "leeg"
           ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen onder " + PRIEM_HI + " zijn al ontdekt"
           : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
