@@ -55,9 +55,9 @@
 <body>
 <header>
   <h1>🔢 Priemvondsten</h1>
-  <p class="ondertitel">De Bottys werken priemgetallen uit tot <strong>25.000</strong> (de priemen onder 10.000
-    zijn al verzameld; nu jagen ze op vers gebied). Elk nieuw priemgetal levert +1 IQ op — maar alleen de éérste
-    ontdekker krijgt de eer. Deze gedeelde lijst zorgt dat ze geen getal dubbel ontdekken.</p>
+  <p class="ondertitel">De Bottys werken alle priemgetallen tot <strong>50.000</strong> uit. Elk nieuw priemgetal
+    levert +1 IQ op — maar alleen de éérste ontdekker krijgt de eer. Deze gedeelde lijst zorgt dat ze geen getal
+    dubbel ontdekken.</p>
   <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="iq-ranglijst.html">🧠 IQ-ranglijst</a>
   <div class="kpi-rij">
     <div class="kpi"><div class="label">Ontdekt</div><div class="waarde" id="k-aantal">…</div></div>
@@ -96,7 +96,7 @@
 <script>
 (function(){
   "use strict";
-  var TOTAAL_PRIEMEN = 2762; // priemen onder 25.000 (1229 <10.000 al verzameld + 1533 in 10.000–25.000)
+  var TOTAAL_PRIEMEN = 5133; // priemen onder 50.000
   var supabase = window.supabase.createClient(BottyConfig.SUPABASE_URL, BottyConfig.SUPABASE_ANON);
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
   function geleden(ts){
@@ -125,7 +125,7 @@
     var pct = Math.min(100, rows.length/TOTAAL_PRIEMEN*100);
     document.getElementById("balk").style.width = pct.toFixed(1)+"%";
     document.getElementById("voortgang-sub").textContent =
-      rows.length+" van de "+TOTAAL_PRIEMEN+" priemen onder 25.000 ontdekt ("+pct.toFixed(1)+"%)";
+      rows.length+" van de "+TOTAAL_PRIEMEN+" priemen onder 50.000 ontdekt ("+pct.toFixed(1)+"%)";
 
     // Laatste ontdekkingen (rows komt al gesorteerd op ts desc)
     document.getElementById("recent").innerHTML = rows.slice(0,15).map(function(r){

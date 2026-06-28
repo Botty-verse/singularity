@@ -45,8 +45,8 @@ function maakId(): string {
 //   nieuwe vondst = +1 IQ · verstrooide misgok = -2 · niets vrij = 0
 // Slimmere Bottys (hogere datakwaliteit) slagen vaker én bekijken meer kandidaten,
 // dus kiezen "lekkerder" en vinden vaker iets.
-const PRIEM_LO = 10000;    // verse jachtgrond: de priemen <10000 zijn al verzameld
-const PRIEM_HI = 25000;    // 1533 nog te ontdekken priemen tussen 10.000 en 25.000
+const PRIEM_LO = 2;        // het hele veld vanaf het begin
+const PRIEM_HI = 50000;    // 5133 priemen onder 50.000 (al ontdekte worden gededupeerd)
 function isPriem(n: number): boolean {
   if (n < 2) return false;
   if (n % 2 === 0) return n === 2;
