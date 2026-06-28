@@ -37,38 +37,84 @@ function maakId(): string {
 }
 
 // ─── IQ: priemgetallen uitwerken ───────────────────────────────────────────────
-// Elke Botty start met IQ 100. Per denk-ronde zoekt hij een NOG NIET ONTDEKTE
-// priem (≤ PRIEM_MAX): een nieuwe vinden = +1, een foute gok = -2. De gedeelde
-// vondsten-collectie voorkomt dat hetzelfde getal opnieuw "ontdekt" wordt.
-// Slimmere Bottys (hogere datakwaliteit) slagen vaker.
-const PRIEM_MAX = 10000;
+// Elke Botty start met IQ 100. Per denk-ronde maakt hij een BEWUSTE keuze: uit een
+// reeks kandidaten kiest hij de nog niet ontdekte priem die het best bij zijn
+// persoonlijke PRIEMSMAAK past. Die smaak leiden we af uit het genoom (dus stabiel
+// én erfelijk: kinderen lijken op hun ouders, mutaties laten de smaak driften), zodat
+// elke Botty zijn eigen niche in de getallenlijn claimt en zich onderscheidt.
+//   nieuwe vondst = +1 IQ · verstrooide misgok = -2 · niets vrij = 0
+// Slimmere Bottys (hogere datakwaliteit) slagen vaker én bekijken meer kandidaten,
+// dus kiezen "lekkerder" en vinden vaker iets.
+const PRIEM_LO = 2;        // straks: 10000 (verse jachtgrond openen)
+const PRIEM_HI = 10000;    // straks: 25000
 function isPriem(n: number): boolean {
   if (n < 2) return false;
   if (n % 2 === 0) return n === 2;
   for (let i = 3; i * i <= n; i += 2) if (n % i === 0) return false;
   return true;
 }
-// uitkomst: "nieuw" (verse ontdekking), "fout" (geen priem), "leeg" (alles al ontdekt)
-function denkPriem(b: any, ontdekt: Set<number>): { getal: number; uitkomst: string; iq: number } {
+
+// ── Priemsmaak: elke Botty valt op priemen met een bepaalde eigenschap ──────────
+function cijfersom(n: number): number { let s = 0; while (n > 0) { s += n % 10; n = Math.floor(n / 10); } return s; }
+// Symmetrie 0..1: hoeveel van de spiegelende cijferparen matchen (1 = palindroom).
+function palindroomScore(n: number): number {
+  const s = "" + n; let m = 0, t = 0;
+  for (let i = 0, j = s.length - 1; i < j; i++, j--) { t++; if (s[i] === s[j]) m++; }
+  return t ? m / t : 1;
+}
+// Een smaak scoort een priem 0..1: hoe hoger, hoe lekkerder voor déze Botty. Bij
+// zeldzame voorkeuren is de score een gradiënt (bijna-tweeling, bijna-palindroom),
+// zodat élke Botty altijd richting zijn niche kan kiezen — ook als de perfecte
+// kandidaat ontbreekt.
+const SMAKEN = [
+  { id: "tweeling",    naam: "tweelingpriemen",               score: (p: number) => (isPriem(p - 2) || isPriem(p + 2)) ? 1 : (isPriem(p - 4) || isPriem(p + 4)) ? 0.4 : 0 },
+  { id: "sophie",      naam: "Sophie-Germain-priemen",        score: (p: number) => isPriem(2 * p + 1) ? 1 : (isPriem(2 * p - 1) ? 0.4 : 0) },
+  { id: "palindroom",  naam: "palindroompriemen",             score: (p: number) => palindroomScore(p) },
+  { id: "pythagoras",  naam: "Pythagoras-priemen (≡1 mod 4)", score: (p: number) => p % 4 === 1 ? 1 : 0 },
+  { id: "eindcijfer1", naam: "priemen die op 1 eindigen",     score: (p: number) => p % 10 === 1 ? 1 : 0 },
+  { id: "eindcijfer3", naam: "priemen die op 3 eindigen",     score: (p: number) => p % 10 === 3 ? 1 : 0 },
+  { id: "eindcijfer7", naam: "priemen die op 7 eindigen",     score: (p: number) => p % 10 === 7 ? 1 : 0 },
+  { id: "eindcijfer9", naam: "priemen die op 9 eindigen",     score: (p: number) => p % 10 === 9 ? 1 : 0 },
+  { id: "cijfersom",   naam: "priemen met hoge cijfersom",    score: (p: number) => Math.min(1, cijfersom(p) / 36) },
+];
+
+// Stabiele smaak uit het genoom (niet uit bid → erfelijk). We XOR-en twee genen:
+// onder single-point crossover erft een kind die genen meestal heel van één ouder
+// (≈87% kind-lijkt-op-ouder), terwijl recombinatie/mutatie af en toe een nieuwe
+// smaak doet ontstaan — evolutionaire drift. XOR houdt de verdeling gelijkmatig.
+function smaakVan(b: any) {
+  const by = genoomBytes(b.genome);
+  const idx = Math.min(SMAKEN.length - 1, Math.floor((by[0] ^ by[2]) / (256 / SMAKEN.length)));
+  return SMAKEN[idx];
+}
+
+// uitkomst: "nieuw" (bewust gekozen verse vondst) | "fout" (verstrooide misgok) | "leeg" (niets vrij)
+function denkPriem(b: any, ontdekt: Set<number>): { getal: number; uitkomst: string; iq: number; smaak: string } {
   const intel = b.datakwaliteit ?? 50;
+  const smaak = smaakVan(b);
   const p = Math.max(0.5, Math.min(0.97, 0.5 + (intel - 50) / 100 * 0.9));
   if (Math.random() < p) {
-    // Zoek een priem die nog niet in de collectie zit.
-    for (let poging = 0; poging < 300; poging++) {
-      const g = 2 + Math.floor(Math.random() * (PRIEM_MAX - 1));
-      if (isPriem(g) && !ontdekt.has(g)) {
-        ontdekt.add(g);
-        b.iq = Math.min(999, (b.iq ?? 100) + 1);
-        return { getal: g, uitkomst: "nieuw", iq: b.iq };
-      }
+    // Stel een shortlist van nog vrije priemen samen; slimmer = grotere keuze (2..12),
+    // dus een Botty kan z'n smaak sterker uiten. Dan de BEWUSTE keuze: de lekkerste wint.
+    const keuze = Math.max(2, Math.min(12, Math.round(2 + intel / 100 * 10)));
+    const shortlist: number[] = [];
+    for (let i = 0; i < keuze * 12 && shortlist.length < keuze; i++) {
+      const g = PRIEM_LO + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO));
+      if (isPriem(g) && !ontdekt.has(g)) shortlist.push(g);
     }
-    // Vrijwel alles onder PRIEM_MAX is al ontdekt — geen punt, geen straf.
-    return { getal: 0, uitkomst: "leeg", iq: b.iq ?? 100 };
+    if (shortlist.length) {
+      let beste = shortlist[0], besteScore = smaak.score(beste);
+      for (const g of shortlist) { const s = smaak.score(g); if (s > besteScore) { besteScore = s; beste = g; } }
+      ontdekt.add(beste);
+      b.iq = Math.min(999, (b.iq ?? 100) + 1);
+      return { getal: beste, uitkomst: "nieuw", iq: b.iq, smaak: smaak.naam };
+    }
+    return { getal: 0, uitkomst: "leeg", iq: b.iq ?? 100, smaak: smaak.naam };
   }
   let getal: number;
-  do { getal = 4 + Math.floor(Math.random() * (PRIEM_MAX - 3)); } while (isPriem(getal));
+  do { getal = PRIEM_LO + 2 + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO - 2)); } while (isPriem(getal));
   b.iq = Math.max(0, (b.iq ?? 100) - 2);
-  return { getal, uitkomst: "fout", iq: b.iq };
+  return { getal, uitkomst: "fout", iq: b.iq, smaak: smaak.naam };
 }
 
 // ─── Genoom (Creatures-stijl, 16 genen, elk 1 byte) ──────────────────────────
@@ -507,11 +553,11 @@ Deno.serve(async () => {
         || resultaten[Math.floor(Math.random() * resultaten.length)];
       const r = pick.r;
       const tekst = r.uitkomst === "nieuw"
-        ? "🧠 <b>" + pick.b.naam + "</b> ontdekte een nieuw priemgetal: " + r.getal + "! (+1, IQ " + r.iq + ")"
+        ? "🧠 <b>" + pick.b.naam + "</b> koos priemgetal " + r.getal + " — specialist in " + r.smaak + " (+1, IQ " + r.iq + ")"
         : r.uitkomst === "leeg"
-          ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen onder " + PRIEM_MAX + " zijn al ontdekt"
+          ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen onder " + PRIEM_HI + " zijn al ontdekt"
           : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
-      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, tekst });
+      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, smaak: r.smaak, tekst });
     }
 
     // Kennisuitwisseling

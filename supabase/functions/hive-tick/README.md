@@ -26,10 +26,21 @@ supabase functions deploy hive-tick --project-ref oblzouaapvdippyhxmpo --no-veri
 - `priemvondsten` — gedeelde priem-collectie voor het IQ-spel (zie `priemen.html`)
 - `bezoeker_pings` — telt actieve kijkers voor de stemmings-bonus
 
-## IQ-spel
-Elke actieve tick zoekt elke Botty een nog niet ontdekte priem ≤ `PRIEM_MAX`
-(+1 IQ); een foute gok kost −2. De `priemvondsten`-tabel voorkomt dubbele
-ontdekkingen. IQ weegt mee in de partnerkeuze (`PARTNER_IQ_GEWICHT`).
+## IQ-spel — priemsmaak
+Elke actieve tick maakt elke Botty een **bewuste keuze**: uit een shortlist van
+nog vrije priemen in `[PRIEM_LO, PRIEM_HI)` kiest hij de priem die het best bij
+zijn persoonlijke **priemsmaak** past (+1 IQ); een verstrooide misgok kost −2.
+
+- **Smaak** (`SMAKEN` + `smaakVan`) wordt afgeleid uit het genoom (`b0 ^ b2`),
+  dus stabiel én erfelijk: kinderen lijken meestal op hun ouders (~87%), recombinatie
+  en mutatie laten de smaak af en toe driften. Niches: tweeling-, Sophie-Germain-,
+  palindroom-, Pythagoras-priemen, eindcijfer 1/3/7/9 en hoge cijfersom.
+- **Datakwaliteit** bepaalt zowel de slaagkans als de grootte van de shortlist
+  (2..12): slimmere Bottys vinden vaker iets én uiten hun smaak sterker.
+- De `priemvondsten`-tabel voorkomt dubbele ontdekkingen; IQ weegt mee in de
+  partnerkeuze (`PARTNER_IQ_GEWICHT`).
+- **Zoekbereik:** `PRIEM_LO`/`PRIEM_HI` (nu 2–10000). Verse jachtgrond openen =
+  die twee constanten op 10000/25000 zetten.
 
 ## Genoom
 16 genen, base64url. De gen-layout staat ook in `assets/genome.js` voor de
