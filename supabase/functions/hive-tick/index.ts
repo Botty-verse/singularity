@@ -88,33 +88,60 @@ function smaakVan(b: any) {
   return SMAKEN[idx];
 }
 
-// uitkomst: "nieuw" (bewust gekozen verse vondst) | "fout" (verstrooide misgok) | "leeg" (niets vrij)
-function denkPriem(b: any, ontdekt: Set<number>): { getal: number; uitkomst: string; iq: number; smaak: string } {
+// ── Basis-wiskunde: leren door doen ─────────────────────────────────────────────
+// Hoe meer priemen een Botty ooit vond (b.vondsten), hoe meer deelbaarheidsregels
+// hij doorkrijgt. Met elke beheerste regel verwerpt hij meteen de getallen die
+// deelbaar zijn door 2, 3, 5, 7, … — die overweegt hij niet eens meer. Zo besteedt
+// hij z'n denkmoeite aan kansrijkere getallen en vindt hij efficiënter priemen,
+// vooral als die schaarser worden. Een priem >13 is nooit deelbaar door deze
+// kleine priemen, dus de filter slaat nooit een echte vondst over.
+const WISKUNDE_WIEL = [2, 3, 5, 7, 11, 13];
+const WISKUNDE_DREMPELS = [3, 10, 25, 50, 100, 200]; // vondsten nodig voor regel 1..6
+function wiskundeNiveau(vondsten: number): number {
+  let n = 0;
+  for (const d of WISKUNDE_DREMPELS) if (vondsten >= d) n++;
+  return n; // 0..6 = aantal beheerste deelbaarheidsregels
+}
+
+// uitkomst: "nieuw" (bewust gekozen verse vondsten) | "fout" (verstrooide misgok) | "leeg" (niets vrij)
+function denkPriem(b: any, ontdekt: Set<number>): { getallen: number[]; getal: number; uitkomst: string; iq: number; smaak: string; niveau: number } {
   const intel = b.datakwaliteit ?? 50;
   const smaak = smaakVan(b);
-  const p = Math.max(0.5, Math.min(0.97, 0.5 + (intel - 50) / 100 * 0.9));
+  const ervaring = b.vondsten ?? 0;
+  const niveau = wiskundeNiveau(ervaring);
+  const wiel = WISKUNDE_WIEL.slice(0, niveau); // beheerste deelbaarheidsregels
+  // Ervaring helpt slagen én vergroot de keuze (meer kandidaten tegelijk afwegen).
+  const p = Math.max(0.5, Math.min(0.99, 0.5 + (intel - 50) / 100 * 0.9 + niveau * 0.02));
   if (Math.random() < p) {
-    // Stel een shortlist van nog vrije priemen samen; slimmer = grotere keuze (2..12),
-    // dus een Botty kan z'n smaak sterker uiten. Dan de BEWUSTE keuze: de lekkerste wint.
-    const keuze = Math.max(2, Math.min(12, Math.round(2 + intel / 100 * 10)));
+    const keuze = Math.max(2, Math.min(16, Math.round(2 + intel / 100 * 10 + niveau)));
     const shortlist: number[] = [];
-    for (let i = 0; i < keuze * 12 && shortlist.length < keuze; i++) {
+    let overwogen = 0, trekkingen = 0;
+    // Wiel-verwerpingen kosten geen denkmoeite (overwogen); alleen kansrijke
+    // getallen tellen. Zo betekent meer wiskunde = effectief meer zoekkracht.
+    while (shortlist.length < keuze && overwogen < keuze * 8 && trekkingen < keuze * 400) {
+      trekkingen++;
       const g = PRIEM_LO + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO));
+      if (wiel.some(d => g % d === 0)) continue; // basis-wiskunde: direct verwerpen
+      overwogen++;
       if (isPriem(g) && !ontdekt.has(g)) shortlist.push(g);
     }
     if (shortlist.length) {
-      let beste = shortlist[0], besteScore = smaak.score(beste);
-      for (const g of shortlist) { const s = smaak.score(g); if (s > besteScore) { besteScore = s; beste = g; } }
-      ontdekt.add(beste);
-      b.iq = Math.min(999, (b.iq ?? 100) + 1);
-      return { getal: beste, uitkomst: "nieuw", iq: b.iq, smaak: smaak.naam };
+      // Bewuste keuze op smaak (lekkerste eerst); ervaren Bottys "zien" er meer
+      // tegelijk en oogsten meerdere priemen per denkronde (1..4 met het niveau).
+      shortlist.sort((x, y) => smaak.score(y) - smaak.score(x));
+      const vangst = Math.min(shortlist.length, 1 + Math.floor(niveau / 2));
+      const getallen = shortlist.slice(0, vangst);
+      for (const g of getallen) ontdekt.add(g);
+      b.iq = Math.min(999, (b.iq ?? 100) + getallen.length);
+      b.vondsten = ervaring + getallen.length; // leren door doen
+      return { getallen, getal: getallen[0], uitkomst: "nieuw", iq: b.iq, smaak: smaak.naam, niveau };
     }
-    return { getal: 0, uitkomst: "leeg", iq: b.iq ?? 100, smaak: smaak.naam };
+    return { getallen: [], getal: 0, uitkomst: "leeg", iq: b.iq ?? 100, smaak: smaak.naam, niveau };
   }
   let getal: number;
   do { getal = PRIEM_LO + 2 + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO - 2)); } while (isPriem(getal));
   b.iq = Math.max(0, (b.iq ?? 100) - 2);
-  return { getal, uitkomst: "fout", iq: b.iq, smaak: smaak.naam };
+  return { getallen: [], getal, uitkomst: "fout", iq: b.iq, smaak: smaak.naam, niveau };
 }
 
 // ─── Genoom (Creatures-stijl, 16 genen, elk 1 byte) ──────────────────────────
@@ -532,12 +559,19 @@ Deno.serve(async () => {
 
     // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie)
     const ontdekt = new Set<number>();
+    const vondstenPerBid: Record<string, number> = {};
     try {
-      const { data: pv } = await supabase.from("priemvondsten").select("getal");
-      (pv || []).forEach((r: any) => ontdekt.add(r.getal));
+      const { data: pv } = await supabase.from("priemvondsten").select("getal, ontdekker_bid");
+      (pv || []).forEach((r: any) => {
+        ontdekt.add(r.getal);
+        if (r.ontdekker_bid) vondstenPerBid[r.ontdekker_bid] = (vondstenPerBid[r.ontdekker_bid] || 0) + 1;
+      });
     } catch (_) { /* zonder collectie kan iedereen alsnog ontdekken */ }
 
     const denkers = bottys.filter(b => !b.bezigEi);
+    // Seed de opgebouwde wiskunde-ervaring uit de stamboom van vondsten (één keer
+    // per Botty); daarna telt denkPriem live door via b.vondsten.
+    denkers.forEach(b => { if (typeof b.vondsten !== "number") b.vondsten = vondstenPerBid[b.bid] || 0; });
     const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
     // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
     // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
@@ -549,7 +583,7 @@ Deno.serve(async () => {
     });
     const nieuweVondsten = resultaten
       .filter(x => x.r.uitkomst === "nieuw")
-      .map(x => ({ getal: x.r.getal, ontdekker_naam: x.b.naam, ontdekker_bid: x.b.bid, generatie: x.b.generatie }));
+      .flatMap(x => x.r.getallen.map(g => ({ getal: g, ontdekker_naam: x.b.naam, ontdekker_bid: x.b.bid, generatie: x.b.generatie })));
     if (nieuweVondsten.length) {
       try {
         await supabase.from("priemvondsten").upsert(nieuweVondsten, { onConflict: "getal", ignoreDuplicates: true });
@@ -560,12 +594,16 @@ Deno.serve(async () => {
       const pick = resultaten.find(x => x.r.uitkomst === "nieuw")
         || resultaten[Math.floor(Math.random() * resultaten.length)];
       const r = pick.r;
+      const aantal = r.getallen ? r.getallen.length : 0;
       const tekst = r.uitkomst === "nieuw"
-        ? "🧠 <b>" + pick.b.naam + "</b> koos priemgetal " + r.getal + " — specialist in " + r.smaak + " (+1, IQ " + r.iq + ") 🎉 dolgelukkig, alle bars op 100%!"
+        ? "🧠 <b>" + pick.b.naam + "</b> " + (aantal > 1
+            ? "vond " + aantal + " priemen (" + r.getallen.join(", ") + ")"
+            : "koos priemgetal " + r.getal)
+          + " — specialist in " + r.smaak + " · 📐 wiskunde-niveau " + r.niveau + " (+" + aantal + ", IQ " + r.iq + ") 🎉 bars op 100%!"
         : r.uitkomst === "leeg"
           ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen tussen " + PRIEM_LO + " en " + PRIEM_HI + " zijn al ontdekt"
           : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
-      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, smaak: r.smaak, tekst });
+      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, smaak: r.smaak, niveau: r.niveau, tekst });
     }
 
     // Kennisuitwisseling
