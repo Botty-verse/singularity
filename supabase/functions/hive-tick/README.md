@@ -41,8 +41,8 @@ zijn persoonlijke **priemsmaak** past (+1 IQ); een verstrooide misgok kost −2.
   en de stemming schieten naar 100%. Die beloning is mede de drijfveer om te jagen.
 - De `priemvondsten`-tabel voorkomt dubbele ontdekkingen; IQ weegt mee in de
   partnerkeuze (`PARTNER_IQ_GEWICHT`).
-- **Zoekbereik:** `PRIEM_LO`/`PRIEM_HI` (nu 2–10000). Verse jachtgrond openen =
-  die twee constanten op 10000/25000 zetten.
+- **Zoekbereik:** `PRIEM_LO`/`PRIEM_HI` (nu 10000–25000; de priemen <10000 waren
+  al verzameld). Bereik verschuiven = die twee constanten aanpassen.
 
 ## Genoom
 16 genen, base64url. De gen-layout staat ook in `assets/genome.js` voor de

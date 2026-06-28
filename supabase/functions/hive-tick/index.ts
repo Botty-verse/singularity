@@ -45,8 +45,8 @@ function maakId(): string {
 //   nieuwe vondst = +1 IQ · verstrooide misgok = -2 · niets vrij = 0
 // Slimmere Bottys (hogere datakwaliteit) slagen vaker én bekijken meer kandidaten,
 // dus kiezen "lekkerder" en vinden vaker iets.
-const PRIEM_LO = 2;        // straks: 10000 (verse jachtgrond openen)
-const PRIEM_HI = 10000;    // straks: 25000
+const PRIEM_LO = 10000;    // verse jachtgrond: de priemen <10000 zijn al verzameld
+const PRIEM_HI = 25000;    // 1533 nog te ontdekken priemen tussen 10.000 en 25.000
 function isPriem(n: number): boolean {
   if (n < 2) return false;
   if (n % 2 === 0) return n === 2;
@@ -563,7 +563,7 @@ Deno.serve(async () => {
       const tekst = r.uitkomst === "nieuw"
         ? "🧠 <b>" + pick.b.naam + "</b> koos priemgetal " + r.getal + " — specialist in " + r.smaak + " (+1, IQ " + r.iq + ") 🎉 dolgelukkig, alle bars op 100%!"
         : r.uitkomst === "leeg"
-          ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen onder " + PRIEM_HI + " zijn al ontdekt"
+          ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen tussen " + PRIEM_LO + " en " + PRIEM_HI + " zijn al ontdekt"
           : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
       events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, smaak: r.smaak, tekst });
     }
