@@ -106,6 +106,7 @@
   var paletten    = BottyRender.paletten;
 
   var catLabel = { verval:"verval", zorg:"zorg", risico:"risico", overig:"overig" };
+  var bidNaam = {};   // bid → naam, voor de vrienden-regel (Laag 4)
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
 
@@ -148,6 +149,11 @@
         + meterHtml(byte, kl)
         + '</div>';
     }
+    var vriendenLijst = b.relaties ? Object.keys(b.relaties)
+      .sort(function(p,q){ return b.relaties[q]-b.relaties[p]; })
+      .map(function(k){ return bidNaam[k]; }).filter(Boolean).slice(0,4) : [];
+    var vrienden = vriendenLijst.length
+      ? '<div class="g-bubbel" style="font-style:normal">🤝 vrienden: '+esc(vriendenLijst.join(", "))+'</div>' : '';
     var herin = (Array.isArray(b.herinneringen) && b.herinneringen.length)
       ? '<div class="levensloop"><h4>💭 Levensloop</h4><ul>'
         + b.herinneringen.slice().reverse().map(function(h){ return '<li>'+esc(h.tekst)+'</li>'; }).join("")
@@ -161,6 +167,7 @@
       +   (b.ziek ? ' · <b style="color:#f6a623">🤒 ziek</b>' : '')
       +   '<br><span style="color:#6fa88c">genoom: '+esc(b.genome||"—")+'</span></div>'
       + (b.gedachte ? '<div class="g-bubbel">💭 '+esc(b.gedachte)+(b.doel&&b.doel.tekst ? ' <span style="color:#a3ffce">· 🎯 '+esc(b.doel.tekst)+'</span>' : '')+'</div>' : '')
+      + vrienden
       + rijen
       + herin
       + '</div>';
@@ -175,6 +182,7 @@
       return;
     }
     document.getElementById("leeg").style.display="none";
+    bidNaam = {}; bottys.forEach(function(b){ if(b.bid) bidNaam[b.bid]=b.naam; });
     document.getElementById("grid").innerHTML = bottys.map(kaartHtml).join("");
   }
 

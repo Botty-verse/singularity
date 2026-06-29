@@ -426,13 +426,22 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     return;
   }
 
-  if (sociaalHoog && Math.random() < 0.5) {
-    const anderen = ctx.anderen.filter(x => x !== b && !x.bezigEi);
-    if (anderen.length) {
-      const n = kies(anderen).naam;
-      b.gedachte = kies(["Waar is " + n + "?", "Ik vraag me af wat " + n + " denkt.", "Ik zou " + n + " graag zien."]);
+  // Laag 4 — besef van anderen: merk de toestand van een nabije buur op.
+  if (sociaalHoog && Math.random() < 0.6) {
+    const buren = ctx.anderen.filter(x => x !== b && !x.bezigEi && x.pos && b.pos && afstand2(b.pos, x.pos) < ZICHT * ZICHT);
+    if (buren.length) {
+      const zieke = buren.find(x => x.ziek);
+      const droeve = buren.find(x => (x.stemming ?? 50) < 35);
+      const blije = buren.find(x => (x.stemming ?? 50) > 85);
+      b.gedachte = zieke ? kies(["Gaat het wel met " + zieke.naam + "?", "Ik maak me zorgen om " + zieke.naam + "."])
+        : droeve ? kies([droeve.naam + " lijkt somber.", "Ik wil " + droeve.naam + " opvrolijken."])
+        : blije  ? uit(kies([blije.naam + " straalt", "Wat is " + blije.naam + " blij"]))
+        :          kies(["Fijn, " + kies(buren).naam + " is dichtbij.", "Ik ben niet alleen."]);
       return;
     }
+    // niemand dichtbij → verlangen naar gezelschap
+    const ver = ctx.anderen.filter(x => x !== b && !x.bezigEi);
+    if (ver.length) { b.gedachte = kies(["Waar is iedereen?", "Ik voel me alleen.", "Ik zou " + kies(ver).naam + " graag zien."]); return; }
   }
 
   const zelf = niv >= 4 ? "Ik ken de getallen nu goed." : niv >= 2 ? "Ik begin de patronen te zien." : "Zoveel getallen nog te ontdekken.";
@@ -449,7 +458,15 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   if (rijp(b) && (b.stemming ?? 50) > 65 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
   if (mult(genoomBytes(b.genome), 11) > 1.05 && Math.random() < 0.45) {
     const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
-    if (an.length) { const v = kies(an); b.doel = { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" }; return; }
+    if (an.length) {
+      let v: any;
+      if (b.relaties) { // liefst naar de beste vriend
+        const vriendBid = Object.keys(b.relaties).sort((p, q) => b.relaties[q] - b.relaties[p])[0];
+        if (vriendBid) v = an.find(x => x.bid === vriendBid);
+      }
+      if (!v) v = kies(an);
+      b.doel = { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" }; return;
+    }
   }
   b.doel = { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam };
 }
@@ -498,6 +515,49 @@ function beweeg(bottys: any[]) {
 }
 function afstand2(a: { x: number; y: number }, b: { x: number; y: number }) {
   const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy;
+}
+
+// ─── Laag 4 — besef van anderen (theory of mind) ────────────────────────────────
+// Op nabijheid (de Construct): een Botty merkt buren op, voelt met ze mee
+// (emotionele besmetting), bouwt vriendschappen op (affiniteit) en troost wie het
+// zwaar heeft. Empathie komt uit gen 11 (sociaal): 0 (afstandelijk) .. 0.5 (warm).
+const ZICHT = 160;                       // perceptie-straal in de arena
+function empathie(b: any): number { return Math.max(0, mult(genoomBytes(b.genome), 11) - 1); }
+
+function socialeRonde(bottys: any[], events: object[]) {
+  const actief = bottys.filter(b => !b.bezigEi && b.pos);
+  // Affiniteit zakt langzaam weg (vriendschap moet onderhouden worden).
+  for (const b of actief) {
+    if (b.relaties) for (const k in b.relaties) { b.relaties[k] *= 0.98; if (b.relaties[k] < 0.5) delete b.relaties[k]; }
+  }
+  // Per Botty: buren waarnemen → emotionele besmetting + affiniteit.
+  for (const b of actief) {
+    const emp = empathie(b);
+    let som = 0, n = 0;
+    for (const c of actief) {
+      if (c === b || afstand2(b.pos, c.pos) > ZICHT * ZICHT) continue;
+      n++; som += (c.stemming ?? 50);
+      b.relaties = b.relaties || {};
+      b.relaties[c.bid] = Math.min(100, (b.relaties[c.bid] || 0) + 1); // samen zijn schept band
+    }
+    if (n) {
+      const gem = som / n;                                  // schuif licht naar de buur-stemming
+      b.stemming = klem((b.stemming ?? 50) + (gem - (b.stemming ?? 50)) * 0.2 * emp);
+    }
+  }
+  // Troosten: één empathische Botty helpt een verdrietige/zieke buur (max 1 event/tick).
+  let getroost = false;
+  for (const b of actief) {
+    if (empathie(b) < 0.15) continue;
+    const hulp = actief.find(c => c !== b && afstand2(b.pos, c.pos) < ZICHT * ZICHT && ((c.stemming ?? 50) < 35 || c.ziek));
+    if (!hulp) continue;
+    hulp.stemming = klem((hulp.stemming ?? 50) + 10);
+    b.relaties = b.relaties || {}; hulp.relaties = hulp.relaties || {};
+    b.relaties[hulp.bid] = Math.min(100, (b.relaties[hulp.bid] || 0) + 5);
+    hulp.relaties[b.bid] = Math.min(100, (hulp.relaties[b.bid] || 0) + 5);
+    onthoud(hulp, "troost", "ik werd getroost door " + b.naam);
+    if (!getroost) { events.push({ soort: "troost", naamA: b.naam, naamB: hulp.naam, tekst: "💞 <b>" + b.naam + "</b> troost <b>" + hulp.naam + "</b>" }); getroost = true; }
+  }
 }
 
 // ─── Botty aanmaken ───────────────────────────────────────────────────────────
@@ -676,20 +736,12 @@ Deno.serve(async () => {
     // zorg/keuzes hieronder ernaar kunnen luisteren.
     bottys.forEach(b => { if (!b.bezigEi) kiesDoel(b, { anderen: bottys }); });
 
-    // De Construct: zet de ruimtelijke beweging (best-effort; mag de tick niet breken).
+    // De Construct: ruimtelijke beweging + sociale ronde (Laag 4). Best-effort:
+    // mag de tick nooit breken.
     try {
       beweeg(bottys);
-      // Interactie: wie dicht bij elkaar staat, geniet van het gezelschap.
-      for (let i = 0; i < bottys.length; i++) {
-        for (let j = i + 1; j < bottys.length; j++) {
-          const a = bottys[i], c = bottys[j];
-          if (a.bezigEi || c.bezigEi || !a.pos || !c.pos) continue;
-          if (afstand2(a.pos, c.pos) < WERELD_NABIJ * WERELD_NABIJ) {
-            a.geluk = klem(a.geluk + 0.6); c.geluk = klem(c.geluk + 0.6);
-          }
-        }
-      }
-    } catch (_) { /* beweging is niet kritisch voor de hive */ }
+      socialeRonde(bottys, events);
+    } catch (_) { /* beweging/sociaal is niet kritisch voor de hive */ }
 
     const doelen = kiesDoelen(bottys, ZORG_PER_TICK);
     doelen.forEach((b, i) => {
