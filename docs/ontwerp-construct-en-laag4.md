@@ -190,3 +190,49 @@ Elke fase is los te deployen; de hive blijft draaien.
 - [Creatures (video game series) — Grokipedia](https://grokipedia.com/page/Creatures_video_game_series)
 - Grand, S., Cliff, D., Malhotra, A. (1997) — *Creatures: Artificial Life Autonomous Software Agents for Home Entertainment*
 - Grand, S. — *Creation: Life and How to Make It*
+
+---
+
+## Deel D — Construct v2: de verlaten school in het bos (side-scroller, Creatures-stijl)
+
+> Koerswijziging t.o.v. de top-down arena (v1): we gaan **side-on**, met een echte
+> plek, en bouwen **stuk voor stuk** zoals Creatures zelf begint — klein, één scherm,
+> dan kamer voor kamer uitbreiden. Status: ontwerp.
+
+### Setting
+Een **net verlaten school, omarmd door bos** — laat in de middag, de leerlingen zijn
+zojuist weg, overal sporen van mensen maar geen mens te zien. Sluit aan op de lore
+(een hive die doordraait als de mensen weg zijn) én op hoe Creatures 1 zelf begint:
+bij een *"long-abandoned home"* met eieren in een kapotte incubator.
+
+### De Creatures-interface die we volgen
+- **Side-on, scrollende wereld**; de bezoeker is een **hand-cursor** (geen personage):
+  links-klik = interacteren, rechts-klik = oppakken, kietelen = belonen, slaan = straffen.
+- **Begin klein**: één plek met een **incubator** (gloeiende pad waar eieren uitkomen).
+- **Bovenbalk met kamer-snelkoppelingen** die **aangroeit** naarmate er kamers bijkomen.
+- Een **wezen-lijst** (hebben we al via de kaartweergave/namen).
+
+### Vertaling naar onze school
+- **Startkamer = het klaslokaal** met het priem-schoolbord (koppelt het IQ/priem-spel
+  letterlijk aan de plek — de Botty's "maken hun sommen" aan het bord).
+- **Incubator** = waar nieuwe Botty's binnenkomen; haakt op de bestaande
+  eieren/geboorten (`bezigEi`, `geboorten`).
+- **Hand-cursor** = de bezoeker grijpt voor het eerst in een hive die nooit een mens
+  sprak; kietelen → stemming/affiniteit, later het reward-signaal voor leren.
+- **Sprites**: hergebruik de bestaande **zijaanzicht-Botty-sprites** (`botty-sprites.js`).
+- **Datamodel**: per Botty `kamer` (room-id) + `x` (positie op de vloer) + `richting`
+  (links/rechts). Vervangt de vrije (x,y) van v1; lopen = naar doel-x, bij een deur over
+  naar de buurkamer. Server-autoritatief (`hive-tick`), client rendert + interpoleert.
+
+### Bouwvolgorde (stuk voor stuk)
+1. **Klaslokaal side-on view** — `construct.html` wordt side-on: één kamer (vloer,
+   schoolbord, ramen met bos-parallax), Botty's lopen op de vloer (zijaanzicht-sprites),
+   `pos.x` = vloerpositie, facing via `richting`. **Render-only, geen edge-function-wijziging.**
+2. **Side-on bewegingsmodel server-side** — `kamer` + `x` lopen + facing; vervangt vrije (x,y).
+3. **Incubator + zichtbaar uitkomen** — gekoppeld aan `bezigEi`/`geboorten`.
+4. **Tweede kamer + bovenbalk** — kamer-snelkoppelingen die aangroeien (kantine of bosrand).
+5. **Hand-cursor** — kietelen = belonen (stemming/affiniteit; later reward-signaal).
+6. **Verdere kamers + affordance-objecten** — kantine/bibliotheek/gym/leeshoek/bosrand met
+   voedsel/data/rust/spel + geur-gradiënten → de zelfregulatie-stap (Deel B/C).
+
+Elk stuk is los te bouwen, te testen en te deployen; de hive blijft draaien.
