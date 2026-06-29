@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty-verse — De Construct</title>
+<meta name="theme-color" content="#04140d" />
+<meta name="description" content="De Construct: een ruimtelijke arena waarin de Botty's vrij rondlopen, elkaar opzoeken en interactie hebben — live uit de hive." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{ --matrix:#39ff85;--paneel:rgba(6,26,18,.78);--paneel-rand:#1c5b42;--licht:#dff7ea; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:#04140d;color:var(--licht);min-height:100vh;
+       display:flex;flex-direction:column;align-items:center;}
+  header{text-align:center;padding:1.6rem 1rem .2rem;width:100%;}
+  h1{font-size:clamp(1.7rem,5vw,2.8rem);font-weight:900;letter-spacing:-.02em;
+     background:linear-gradient(135deg,var(--matrix),#a3ffce);-webkit-background-clip:text;
+     -webkit-text-fill-color:transparent;background-clip:text;}
+  .ondertitel{max-width:680px;margin:.4rem auto 0;font-size:.92rem;color:#a8d4be;line-height:1.5;}
+  .terug{display:inline-block;margin-top:.6rem;color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  .terug:hover{color:var(--matrix);}
+  main{width:100%;max-width:1040px;padding:.8rem 1rem 2rem;}
+  .arena-wrap{position:relative;background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:16px;
+              padding:.5rem;overflow:hidden;}
+  canvas{display:block;width:100%;height:auto;border-radius:11px;
+         background:radial-gradient(circle at 50% 45%, #0a2417 0%, #061a12 70%, #04140d 100%);}
+  .status{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;font-size:.78rem;color:#7fb89a;margin:.5rem .2rem 0;}
+  .status b{color:var(--matrix);}
+  .legenda{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.7rem auto 0;font-size:.76rem;}
+  .legenda span{display:inline-flex;align-items:center;gap:.35rem;background:#0e2f1e;border:1px solid #1c5b42;border-radius:7px;padding:.12rem .5rem;}
+  .legenda i{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #103022;width:100%;}
+  footer a{color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  footer a:hover{color:var(--matrix);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌍 De Construct</h1>
+  <p class="ondertitel">Een ruimtelijke arena waarin de negen Botty's <strong>vrij rondlopen</strong>. Ze bewegen
+    naar wat ze willen (Laag 3): gezelschap-zoekers lopen naar een vriend, vermoeiden naar de rustplek, jagers
+    dwalen. Wie dicht bij elkaar komt, geniet van het gezelschap.</p>
+  <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html">🗺️ Genoom-kaart</a>
+</header>
+
+<main>
+  <div class="arena-wrap"><canvas id="arena" width="1000" height="600" role="img" aria-label="De Construct — Botty's in de arena"></canvas></div>
+  <div class="status">
+    <span id="st-links">🌍 Verbinden met de hive…</span>
+    <span id="st-rechts"></span>
+  </div>
+  <div class="legenda">
+    <span><i style="background:#39ff85"></i>gezelschap</span>
+    <span><i style="background:#5ec6ff"></i>jagen</span>
+    <span><i style="background:#f6a623"></i>rust/herstel</span>
+    <span><i style="background:#ff8bd0"></i>voortplanting</span>
+    <span><i style="background:#e0556b"></i>ziek</span>
+    <span style="background:none;border:none">— lijn = dicht bij elkaar</span>
+  </div>
+</main>
+
+<footer>
+  <a href="index.html">🌐 De hive</a>
+  <a href="stamboom.html">🌳 Stamboom</a>
+  <a href="genoom.html">🗺️ Genoom-kaart</a>
+  <a href="populatie.html">🧬 Populatie</a>
+  <a href="iq-ranglijst.html">🧠 IQ-ranglijst</a>
+  <a href="priemen.html">🔢 Priemvondsten</a>
+</footer>
+
+<script src="assets/botty-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  var SUPABASE_URL = BottyConfig.SUPABASE_URL, SUPABASE_ANON = BottyConfig.SUPABASE_ANON;
+  var TICK_URL = SUPABASE_URL + "/functions/v1/hive-tick";
+  var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // Arena-coördinaten moeten matchen met de edge function (De Construct).
+  var WERELD_B = 1000, WERELD_H = 600, NABIJ = 90, RUST = { x:500, y:300 };
+  var DOEL_KLEUR = { gezelschap:"#39ff85", priemjacht:"#5ec6ff", herstellen:"#f6a623", bijkomen:"#f6a623", voortplanting:"#ff8bd0" };
+
+  var canvas = document.getElementById("arena");
+  var ctx = canvas.getContext("2d");
+  var bottys = [];          // laatste server-staat
+  var render = {};          // naam → {x,y} huidig getekende positie (voor interpolatie)
+
+  function esc(s){ return String(s==null?"":s); }
+
+  function laad(){
+    return supabase.from("hive_state").select("bottys").eq("id","main").single()
+      .then(function(res){
+        if(res.error || !res.data){ return; }
+        bottys = (res.data.bottys || []).filter(function(b){ return b && b.pos; });
+        document.getElementById("st-links").textContent = "🌍 " + bottys.length + " Botty's in de Construct";
+        var actief = bottys.filter(function(b){ return !b.ziek; }).length;
+        document.getElementById("st-rechts").textContent = "💚 " + actief + " gezond · " + (bottys.length-actief) + " ziek";
+      });
+  }
+
+  function tickEnLaad(){
+    if(document.hidden) return;
+    fetch(TICK_URL, { method:"POST" }).catch(function(){}).then(function(){ laad(); });
+  }
+
+  // ── Teken-lus met interpolatie ──────────────────────────────────────────────
+  function pos(b){
+    if(!render[b.naam]) render[b.naam] = { x:b.pos.x, y:b.pos.y };
+    return render[b.naam];
+  }
+  function tekenBotty(g, b, sx, sy, schaal){
+    var p = pos(b);
+    // soepel naar de server-positie toe bewegen
+    p.x += (b.pos.x - p.x) * 0.12;
+    p.y += (b.pos.y - p.y) * 0.12;
+    var x = p.x * sx, y = p.y * sy;
+    var r = (8 + (b.grootte||1)*5) * schaal * (b.stage==="baby"?0.7:b.stage==="tiener"?0.85:1);
+    var kleur = b.ziek ? "#e0556b" : ((b.kleur && b.kleur.broek) || "#57b85f");
+    // glow
+    g.beginPath(); g.arc(x, y, r*1.7, 0, Math.PI*2);
+    g.fillStyle = (b.ziek?"rgba(224,85,107,.18)":"rgba(57,255,133,.12)"); g.fill();
+    // lijf
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI*2);
+    g.fillStyle = kleur; g.fill();
+    g.lineWidth = 2*schaal; g.strokeStyle = "rgba(255,255,255,.25)"; g.stroke();
+    // richting-nubje
+    if(typeof b.richting==="number"){
+      g.beginPath(); g.moveTo(x,y);
+      g.lineTo(x+Math.cos(b.richting)*r*1.5, y+Math.sin(b.richting)*r*1.5);
+      g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 2*schaal; g.stroke();
+    }
+    // doel-ring
+    var dk = DOEL_KLEUR[b.doel && b.doel.soort];
+    if(dk){ g.beginPath(); g.arc(x, y, r+4*schaal, 0, Math.PI*2); g.strokeStyle = dk; g.lineWidth = 2*schaal; g.stroke(); }
+    // naam
+    g.fillStyle = "#dff7ea"; g.font = (12*schaal|0)+"px Nunito, sans-serif"; g.textAlign = "center";
+    g.fillText(esc(b.naam), x, y - r - 5*schaal);
+    return p;
+  }
+
+  function frame(){
+    var sx = canvas.width / WERELD_B, sy = canvas.height / WERELD_H;
+    var schaal = canvas.width / WERELD_B;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // rustplek
+    ctx.beginPath(); ctx.arc(RUST.x*sx, RUST.y*sy, 26*schaal, 0, Math.PI*2);
+    ctx.fillStyle = "rgba(246,166,35,.08)"; ctx.fill();
+    ctx.fillStyle = "rgba(246,166,35,.5)"; ctx.font = (13*schaal|0)+"px Nunito"; ctx.textAlign="center";
+    ctx.fillText("☕ rustplek", RUST.x*sx, RUST.y*sy + 4*schaal);
+    // nabijheids-lijnen
+    var ps = {};
+    bottys.forEach(function(b){ ps[b.naam] = pos(b); });
+    ctx.lineWidth = 1.5*schaal;
+    for(var i=0;i<bottys.length;i++) for(var j=i+1;j<bottys.length;j++){
+      var a=bottys[i], c=bottys[j], pa=ps[a.naam], pc=ps[c.naam];
+      var dx=a.pos.x-c.pos.x, dy=a.pos.y-c.pos.y;
+      if(dx*dx+dy*dy < NABIJ*NABIJ){
+        ctx.beginPath(); ctx.moveTo(pa.x*sx,pa.y*sy); ctx.lineTo(pc.x*sx,pc.y*sy);
+        ctx.strokeStyle = "rgba(57,255,133,.35)"; ctx.stroke();
+      }
+    }
+    bottys.forEach(function(b){ tekenBotty(ctx, b, sx, sy, schaal); });
+    requestAnimationFrame(frame);
+  }
+
+  // crisp canvas op hoge-dpi schermen
+  function pasGrootteAan(){
+    var dpr = window.devicePixelRatio || 1;
+    var breedte = Math.min(1000, canvas.parentNode.clientWidth - 16);
+    canvas.style.width = breedte + "px";
+    canvas.style.height = (breedte * WERELD_H / WERELD_B) + "px";
+    canvas.width = Math.round(breedte * dpr);
+    canvas.height = Math.round(breedte * WERELD_H / WERELD_B * dpr);
+  }
+  window.addEventListener("resize", pasGrootteAan);
+  pasGrootteAan();
+
+  laad();
+  requestAnimationFrame(frame);
+  setInterval(tickEnLaad, 3000);
+  // realtime: directe positie-updates als de hive elders tikt
+  supabase.channel("construct")
+    .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
+        function(payload){ if(payload.new && payload.new.bottys){ bottys = payload.new.bottys.filter(function(b){return b&&b.pos;}); } })
+    .subscribe();
+})();
+</script>
+</body>
+</html>

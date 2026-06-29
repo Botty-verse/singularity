@@ -27,6 +27,12 @@ const PARTNER_DIVERSITEIT_GEWICHT = 0.12;
 const PARTNER_IQ_GEWICHT = 0.2;
 // Agency: een ouder die zélf een kind wil, telt zwaarder mee in de partnerkeuze.
 const PARTNER_WIL_GEWICHT = 30;
+// De Construct: een 2D-arena waarin de Botty's rondlopen (top-down, units).
+const WERELD_B = 1000;          // breedte
+const WERELD_H = 600;           // hoogte
+const WERELD_STAP = 55;         // max verplaatsing per actieve tick
+const WERELD_NABIJ = 90;        // afstand waarop Botty's elkaars gezelschap voelen
+const RUSTPLEK = { x: 500, y: 300 }; // centrale rustplek (tot er objecten zijn)
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -448,6 +454,52 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   b.doel = { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam };
 }
 
+// ─── De Construct: ruimtelijke beweging ─────────────────────────────────────────
+// Elke Botty heeft een positie in de arena en zet per actieve tick één stap naar
+// een doelwit dat volgt uit zijn intentie (Laag 3). Zo wordt "agency" zichtbaar in
+// de ruimte: gezelschap-zoekers lopen naar elkaar toe, vermoeiden naar de rustplek,
+// jagers dwalen. Client-side wordt tussen ticks geïnterpoleerd voor vloeiend beeld.
+function plekVan(b: any) {
+  if (!b.pos || typeof b.pos.x !== "number" || typeof b.pos.y !== "number") {
+    b.pos = { x: 40 + Math.random() * (WERELD_B - 80), y: 40 + Math.random() * (WERELD_H - 80) };
+  }
+  return b.pos;
+}
+function beweeg(bottys: any[]) {
+  for (const b of bottys) {
+    if (b.bezigEi) continue;
+    const p = plekVan(b);
+    let doelwit: { x: number; y: number } | null = null;
+    const soort = b.doel?.soort;
+    if (soort === "gezelschap" && b.doel.naar) {
+      const vriend = bottys.find(x => x.naam === b.doel.naar && !x.bezigEi);
+      if (vriend) doelwit = plekVan(vriend);
+    } else if (soort === "voortplanting") {
+      const ander = bottys.filter(x => x !== b && !x.bezigEi && rijp(x))
+        .sort((u, v) => afstand2(p, plekVan(u)) - afstand2(p, plekVan(v)))[0];
+      if (ander) doelwit = plekVan(ander);
+    } else if (soort === "herstellen" || soort === "bijkomen") {
+      doelwit = RUSTPLEK;
+    }
+    // priemjacht / geen doelwit → rustige dwaaltocht
+    if (!doelwit) {
+      const hoek = (b.richting ?? Math.random() * Math.PI * 2) + (Math.random() - 0.5) * 1.2;
+      doelwit = { x: p.x + Math.cos(hoek) * WERELD_STAP * 2, y: p.y + Math.sin(hoek) * WERELD_STAP * 2 };
+    }
+    const dx = doelwit.x - p.x, dy = doelwit.y - p.y;
+    const d = Math.hypot(dx, dy) || 1;
+    // niet bovenop elkaar gaan staan bij gezelschap: stop op gezelschapsafstand
+    const wens = (soort === "gezelschap" || soort === "voortplanting") ? Math.max(0, d - WERELD_NABIJ * 0.7) : d;
+    const stap = Math.min(WERELD_STAP, wens) + (Math.random() - 0.5) * 6;
+    b.richting = Math.atan2(dy, dx);
+    p.x = Math.max(12, Math.min(WERELD_B - 12, p.x + (dx / d) * stap));
+    p.y = Math.max(12, Math.min(WERELD_H - 12, p.y + (dy / d) * stap));
+  }
+}
+function afstand2(a: { x: number; y: number }, b: { x: number; y: number }) {
+  const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy;
+}
+
 // ─── Botty aanmaken ───────────────────────────────────────────────────────────
 const NAMEN = ["Pixel", "Nova", "Spark", "Byte", "Echo", "Flux", "Arc", "Volt", "Glow", "Iris", "Zap", "Core"];
 const PALETTEN = [
@@ -585,6 +637,7 @@ Deno.serve(async () => {
     if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome).grootte;
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
+    plekVan(b);   // De Construct: geef elke Botty een startpositie in de arena
   });
 
   const nu = Date.now();
@@ -622,6 +675,22 @@ Deno.serve(async () => {
     // Actieve tick — eerst vormt elke Botty zijn eigen doel (Laag 3), zodat de
     // zorg/keuzes hieronder ernaar kunnen luisteren.
     bottys.forEach(b => { if (!b.bezigEi) kiesDoel(b, { anderen: bottys }); });
+
+    // De Construct: zet de ruimtelijke beweging (best-effort; mag de tick niet breken).
+    try {
+      beweeg(bottys);
+      // Interactie: wie dicht bij elkaar staat, geniet van het gezelschap.
+      for (let i = 0; i < bottys.length; i++) {
+        for (let j = i + 1; j < bottys.length; j++) {
+          const a = bottys[i], c = bottys[j];
+          if (a.bezigEi || c.bezigEi || !a.pos || !c.pos) continue;
+          if (afstand2(a.pos, c.pos) < WERELD_NABIJ * WERELD_NABIJ) {
+            a.geluk = klem(a.geluk + 0.6); c.geluk = klem(c.geluk + 0.6);
+          }
+        }
+      }
+    } catch (_) { /* beweging is niet kritisch voor de hive */ }
+
     const doelen = kiesDoelen(bottys, ZORG_PER_TICK);
     doelen.forEach((b, i) => {
       if (b.bezigEi) return;
