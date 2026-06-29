@@ -158,8 +158,10 @@
       var a=bottys[i], c=bottys[j], pa=ps[a.naam], pc=ps[c.naam];
       var dx=a.pos.x-c.pos.x, dy=a.pos.y-c.pos.y;
       if(dx*dx+dy*dy < NABIJ*NABIJ){
+        var aff = Math.max((a.relaties&&a.relaties[c.bid])||0, (c.relaties&&c.relaties[a.bid])||0);
         ctx.beginPath(); ctx.moveTo(pa.x*sx,pa.y*sy); ctx.lineTo(pc.x*sx,pc.y*sy);
-        ctx.strokeStyle = "rgba(57,255,133,.35)"; ctx.stroke();
+        ctx.strokeStyle = aff>30 ? "rgba(255,139,208,.6)" : "rgba(57,255,133,.32)";
+        ctx.lineWidth = (aff>30?2.2:1.5)*schaal; ctx.stroke();
       }
     }
     bottys.forEach(function(b){ tekenBotty(ctx, b, sx, sy, schaal); });
