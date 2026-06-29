@@ -3,67 +3,109 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Botty-verse — De Construct</title>
-<meta name="theme-color" content="#04140d" />
-<meta name="description" content="De Construct: een ruimtelijke arena waarin de Botty's vrij rondlopen, elkaar opzoeken en interactie hebben — live uit de hive." />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+<title>Botty-verse — De Construct: het klaslokaal</title>
+<meta name="theme-color" content="#1c130b" />
+<meta name="description" content="De Construct, side-on: een net verlaten klaslokaal in het bos waarin de Botty's rondlopen — live uit de hive." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
 <style>
-  :root{ --matrix:#39ff85;--paneel:rgba(6,26,18,.78);--paneel-rand:#1c5b42;--licht:#dff7ea; }
+  :root{ --warm:#e8c98a; --hout:#6b4a2b; --bord:#23362a; --licht:#f3e6cf; }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Nunito',sans-serif;background:#04140d;color:var(--licht);min-height:100vh;
+  body{font-family:'Nunito',sans-serif;background:#140d07;color:var(--licht);min-height:100vh;
        display:flex;flex-direction:column;align-items:center;}
-  header{text-align:center;padding:1.6rem 1rem .2rem;width:100%;}
-  h1{font-size:clamp(1.7rem,5vw,2.8rem);font-weight:900;letter-spacing:-.02em;
-     background:linear-gradient(135deg,var(--matrix),#a3ffce);-webkit-background-clip:text;
+  header{text-align:center;padding:1.4rem 1rem .2rem;width:100%;}
+  h1{font-size:clamp(1.5rem,4.5vw,2.4rem);font-weight:900;letter-spacing:-.02em;
+     background:linear-gradient(135deg,#f6c75a,#ffe6a8);-webkit-background-clip:text;
      -webkit-text-fill-color:transparent;background-clip:text;}
-  .ondertitel{max-width:680px;margin:.4rem auto 0;font-size:.92rem;color:#a8d4be;line-height:1.5;}
-  .terug{display:inline-block;margin-top:.6rem;color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
-  .terug:hover{color:var(--matrix);}
+  .ondertitel{max-width:680px;margin:.35rem auto 0;font-size:.9rem;color:#cbb189;line-height:1.5;}
+  .terug{display:inline-block;margin-top:.5rem;color:#b89a6a;text-decoration:none;font-weight:700;font-size:.88rem;}
+  .terug:hover{color:#ffe6a8;}
   main{width:100%;max-width:1040px;padding:.8rem 1rem 2rem;}
-  .arena-wrap{position:relative;background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:16px;
-              padding:.5rem;overflow:hidden;}
-  canvas{display:block;width:100%;height:auto;border-radius:11px;
-         background:radial-gradient(circle at 50% 45%, #0a2417 0%, #061a12 70%, #04140d 100%);}
-  .status{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;font-size:.78rem;color:#7fb89a;margin:.5rem .2rem 0;}
-  .status b{color:var(--matrix);}
-  .legenda{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.7rem auto 0;font-size:.76rem;}
-  .legenda span{display:inline-flex;align-items:center;gap:.35rem;background:#0e2f1e;border:1px solid #1c5b42;border-radius:7px;padding:.12rem .5rem;}
-  .legenda i{width:11px;height:11px;border-radius:50%;display:inline-block;}
-  footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #103022;width:100%;}
-  footer a{color:#7fb89a;text-decoration:none;font-weight:700;font-size:.9rem;}
-  footer a:hover{color:var(--matrix);}
+  .kamer-wrap{background:#0d0904;border:1px solid #3a2a18;border-radius:16px;padding:.5rem;overflow:hidden;}
+  svg.kamer{display:block;width:100%;height:auto;border-radius:11px;}
+  .botje text{font:700 13px Nunito,sans-serif;fill:#fff5e0;text-anchor:middle;paint-order:stroke;stroke:#1c130b;stroke-width:3px;}
+  .status{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;font-size:.78rem;color:#b89a6a;margin:.5rem .2rem 0;}
+  .status b{color:#f6c75a;}
+  .blad{animation:dwarrel linear infinite;}
+  @keyframes dwarrel{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(-40px,560px) rotate(320deg)}}
+  footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #3a2a18;width:100%;}
+  footer a{color:#b89a6a;text-decoration:none;font-weight:700;font-size:.9rem;}
+  footer a:hover{color:#ffe6a8;}
 </style>
 </head>
 <body>
 <header>
-  <h1>🌍 De Construct</h1>
-  <p class="ondertitel">Een ruimtelijke arena waarin de negen Botty's <strong>vrij rondlopen</strong>. Ze bewegen
-    naar wat ze willen (Laag 3): gezelschap-zoekers lopen naar een vriend, vermoeiden naar de rustplek, jagers
-    dwalen. Wie dicht bij elkaar komt, geniet van het gezelschap.</p>
+  <h1>🏫 Het klaslokaal</h1>
+  <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
+    hebben het lokaal voor zichzelf — ze lopen rond, zoeken elkaar op, en aan het bord wachten de priemen.</p>
   <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html">🗺️ Genoom-kaart</a>
 </header>
 
 <main>
-  <div class="arena-wrap"><canvas id="arena" width="1000" height="600" role="img" aria-label="De Construct — Botty's in de arena"></canvas></div>
-  <div class="status">
-    <span id="st-links">🌍 Verbinden met de hive…</span>
-    <span id="st-rechts"></span>
+  <div class="kamer-wrap">
+    <svg class="kamer" id="kamer" viewBox="0 0 1000 600" role="img" aria-label="Het klaslokaal met de Botty's">
+      <defs>
+        <linearGradient id="lucht" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#d9a86a"/><stop offset="1" stop-color="#e8c98a"/>
+        </linearGradient>
+        <linearGradient id="muur" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#5a4128"/><stop offset="1" stop-color="#46301c"/>
+        </linearGradient>
+      </defs>
+      <!-- muur + vloer -->
+      <rect x="0" y="0" width="1000" height="520" fill="url(#muur)"/>
+      <rect x="0" y="505" width="1000" height="95" fill="#5b3c20"/>
+      <g stroke="#3f2914" stroke-width="2" opacity="0.5">
+        <line x1="0" y1="540" x2="1000" y2="540"/><line x1="120" y1="505" x2="90" y2="600"/>
+        <line x1="360" y1="505" x2="345" y2="600"/><line x1="620" y1="505" x2="640" y2="600"/><line x1="860" y1="505" x2="895" y2="600"/>
+      </g>
+      <!-- ramen met herfstbos -->
+      <g>
+        <rect x="60" y="70" width="200" height="150" rx="6" fill="url(#lucht)" stroke="#3f2914" stroke-width="8"/>
+        <line x1="160" y1="70" x2="160" y2="220" stroke="#3f2914" stroke-width="6"/><line x1="60" y1="145" x2="260" y2="145" stroke="#3f2914" stroke-width="6"/>
+        <circle cx="110" cy="180" r="34" fill="#7d8c3f"/><circle cx="150" cy="175" r="40" fill="#a06a2c"/><circle cx="205" cy="185" r="30" fill="#c98a2e"/>
+        <rect x="740" y="70" width="200" height="150" rx="6" fill="url(#lucht)" stroke="#3f2914" stroke-width="8"/>
+        <line x1="840" y1="70" x2="840" y2="220" stroke="#3f2914" stroke-width="6"/><line x1="740" y1="145" x2="940" y2="145" stroke="#3f2914" stroke-width="6"/>
+        <circle cx="790" cy="182" r="36" fill="#8a7a30"/><circle cx="845" cy="178" r="32" fill="#b5702a"/><circle cx="900" cy="186" r="30" fill="#7d8c3f"/>
+      </g>
+      <!-- schoolbord met priemen -->
+      <g>
+        <rect x="360" y="80" width="300" height="150" rx="6" fill="#23362a" stroke="#6b4a2b" stroke-width="10"/>
+        <text x="378" y="118" font="700 22px Nunito" fill="#cfeede" style="font:700 22px Nunito">priemen tot 50.000</text>
+        <text x="378" y="150" fill="#a9d6c2" style="font:400 18px monospace">10007  10009  10037 …</text>
+        <text x="378" y="178" fill="#a9d6c2" style="font:400 18px monospace">p = ?   p±2 ?   2p+1 ?</text>
+        <text x="378" y="208" fill="#e6c06a" style="font:italic 16px Nunito">— wie vindt de volgende?</text>
+        <rect x="430" y="232" width="150" height="8" rx="3" fill="#6b4a2b"/>
+      </g>
+      <!-- klok -->
+      <g transform="translate(330,120)"><circle r="22" fill="#f3e6cf" stroke="#3f2914" stroke-width="4"/><line x1="0" y1="0" x2="0" y2="-13" stroke="#2b2b2b" stroke-width="3"/><line x1="0" y1="0" x2="9" y2="4" stroke="#2b2b2b" stroke-width="3"/></g>
+      <!-- deur naar het bos (rechts), licht valt binnen -->
+      <g>
+        <rect x="958" y="300" width="42" height="220" fill="#caa15c" opacity="0.5"/>
+        <rect x="958" y="290" width="42" height="230" fill="none" stroke="#3f2914" stroke-width="6"/>
+      </g>
+      <!-- 'net vertrokken' sporen: omgevallen kruk + bal + papier -->
+      <g transform="translate(250,470) rotate(-22)"><rect x="-16" y="0" width="32" height="10" rx="3" fill="#7a5230"/><line x1="-12" y1="10" x2="-16" y2="34" stroke="#5b3c20" stroke-width="5"/><line x1="12" y1="10" x2="16" y2="34" stroke="#5b3c20" stroke-width="5"/></g>
+      <circle cx="700" cy="500" r="13" fill="#d96b4a" stroke="#7a3320" stroke-width="2"/>
+      <rect x="560" y="498" width="22" height="14" rx="2" fill="#efe2c6" transform="rotate(8 571 505)"/>
+      <!-- dwarrelende bladeren -->
+      <g class="blad" style="animation-duration:9s" transform="translate(820,40)"><path d="M0,0 q6,-7 12,0 q-6,7 -12,0" fill="#c98a2e"/></g>
+      <g class="blad" style="animation-duration:13s;animation-delay:-4s" transform="translate(900,20)"><path d="M0,0 q5,-6 10,0 q-5,6 -10,0" fill="#a06a2c"/></g>
+      <g class="blad" style="animation-duration:11s;animation-delay:-7s" transform="translate(120,30)"><path d="M0,0 q6,-7 12,0 q-6,7 -12,0" fill="#b5702a"/></g>
+
+      <!-- Botty-laag (gevuld door JS) -->
+      <g id="laag"></g>
+    </svg>
   </div>
-  <div class="legenda">
-    <span><i style="background:#39ff85"></i>gezelschap</span>
-    <span><i style="background:#5ec6ff"></i>jagen</span>
-    <span><i style="background:#f6a623"></i>rust/herstel</span>
-    <span><i style="background:#ff8bd0"></i>voortplanting</span>
-    <span><i style="background:#e0556b"></i>ziek</span>
-    <span style="background:none;border:none">— lijn = dicht bij elkaar</span>
+  <div class="status">
+    <span id="st-links">🏫 Verbinden met de hive…</span>
+    <span id="st-rechts"></span>
   </div>
 </main>
 
 <footer>
   <a href="index.html">🌐 De hive</a>
-  <a href="stamboom.html">🌳 Stamboom</a>
   <a href="genoom.html">🗺️ Genoom-kaart</a>
   <a href="populatie.html">🧬 Populatie</a>
   <a href="iq-ranglijst.html">🧠 IQ-ranglijst</a>
@@ -71,6 +113,8 @@
 </footer>
 
 <script src="assets/botty-config.js"></script>
+<script src="assets/botty-render.js"></script>
+<script src="assets/botty-sprites.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
@@ -78,115 +122,77 @@
   var SUPABASE_URL = BottyConfig.SUPABASE_URL, SUPABASE_ANON = BottyConfig.SUPABASE_ANON;
   var TICK_URL = SUPABASE_URL + "/functions/v1/hive-tick";
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  var paletten = BottyRender.paletten;
+  var sprites  = BottySprites.set;
+  var WERELD_B = 1000;                 // moet matchen met de edge function
+  var VLOER = 512;                     // y van de vloer in de SVG
+  var SVGNS = "http://www.w3.org/2000/svg";
+  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9" };
 
-  // Arena-coördinaten moeten matchen met de edge function (De Construct).
-  var WERELD_B = 1000, WERELD_H = 600, NABIJ = 90, RUST = { x:500, y:300 };
-  var DOEL_KLEUR = { gezelschap:"#39ff85", priemjacht:"#5ec6ff", herstellen:"#f6a623", bijkomen:"#f6a623", voortplanting:"#ff8bd0" };
+  var laag = document.getElementById("laag");
+  var bottys = [];               // server-staat
+  var nodes = {};                // naam → { g, render:{x}, b }
 
-  var canvas = document.getElementById("arena");
-  var ctx = canvas.getContext("2d");
-  var bottys = [];          // laatste server-staat
-  var render = {};          // naam → {x,y} huidig getekende positie (voor interpolatie)
-
-  function esc(s){ return String(s==null?"":s); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
 
   function laad(){
     return supabase.from("hive_state").select("bottys").eq("id","main").single()
       .then(function(res){
-        if(res.error || !res.data){ return; }
+        if(res.error || !res.data) return;
         bottys = (res.data.bottys || []).filter(function(b){ return b && b.pos; });
-        document.getElementById("st-links").textContent = "🌍 " + bottys.length + " Botty's in de Construct";
-        var actief = bottys.filter(function(b){ return !b.ziek; }).length;
-        document.getElementById("st-rechts").textContent = "💚 " + actief + " gezond · " + (bottys.length-actief) + " ziek";
+        document.getElementById("st-links").textContent = "🏫 " + bottys.length + " Botty's in het klaslokaal";
+        var z = bottys.filter(function(b){ return b.ziek; }).length;
+        document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"");
       });
   }
+  function tickEnLaad(){ if(document.hidden) return; fetch(TICK_URL,{method:"POST"}).catch(function(){}).then(function(){ laad(); }); }
 
-  function tickEnLaad(){
-    if(document.hidden) return;
-    fetch(TICK_URL, { method:"POST" }).catch(function(){}).then(function(){ laad(); });
+  function maakNode(b){
+    var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","botje");
+    var inner = document.createElementNS(SVGNS,"g"); inner.setAttribute("class","sprite");
+    inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur || paletten[0]);
+    var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam;
+    var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
+    g.appendChild(inner); g.appendChild(ring); g.appendChild(naam);
+    laag.appendChild(g);
+    return { g:g, inner:inner, naam:naam, ring:ring, render:{ x:b.pos.x }, b:b };
   }
 
-  // ── Teken-lus met interpolatie ──────────────────────────────────────────────
-  function pos(b){
-    if(!render[b.naam]) render[b.naam] = { x:b.pos.x, y:b.pos.y };
-    return render[b.naam];
-  }
-  function tekenBotty(g, b, sx, sy, schaal){
-    var p = pos(b);
-    // soepel naar de server-positie toe bewegen
-    p.x += (b.pos.x - p.x) * 0.12;
-    p.y += (b.pos.y - p.y) * 0.12;
-    var x = p.x * sx, y = p.y * sy;
-    var r = (8 + (b.grootte||1)*5) * schaal * (b.stage==="baby"?0.7:b.stage==="tiener"?0.85:1);
-    var kleur = b.ziek ? "#e0556b" : ((b.kleur && b.kleur.broek) || "#57b85f");
-    // glow
-    g.beginPath(); g.arc(x, y, r*1.7, 0, Math.PI*2);
-    g.fillStyle = (b.ziek?"rgba(224,85,107,.18)":"rgba(57,255,133,.12)"); g.fill();
-    // lijf
-    g.beginPath(); g.arc(x, y, r, 0, Math.PI*2);
-    g.fillStyle = kleur; g.fill();
-    g.lineWidth = 2*schaal; g.strokeStyle = "rgba(255,255,255,.25)"; g.stroke();
-    // richting-nubje
-    if(typeof b.richting==="number"){
-      g.beginPath(); g.moveTo(x,y);
-      g.lineTo(x+Math.cos(b.richting)*r*1.5, y+Math.sin(b.richting)*r*1.5);
-      g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 2*schaal; g.stroke();
-    }
-    // doel-ring
-    var dk = DOEL_KLEUR[b.doel && b.doel.soort];
-    if(dk){ g.beginPath(); g.arc(x, y, r+4*schaal, 0, Math.PI*2); g.strokeStyle = dk; g.lineWidth = 2*schaal; g.stroke(); }
-    // naam
-    g.fillStyle = "#dff7ea"; g.font = (12*schaal|0)+"px Nunito, sans-serif"; g.textAlign = "center";
-    g.fillText(esc(b.naam), x, y - r - 5*schaal);
-    return p;
-  }
-
-  function frame(){
-    var sx = canvas.width / WERELD_B, sy = canvas.height / WERELD_H;
-    var schaal = canvas.width / WERELD_B;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    // rustplek
-    ctx.beginPath(); ctx.arc(RUST.x*sx, RUST.y*sy, 26*schaal, 0, Math.PI*2);
-    ctx.fillStyle = "rgba(246,166,35,.08)"; ctx.fill();
-    ctx.fillStyle = "rgba(246,166,35,.5)"; ctx.font = (13*schaal|0)+"px Nunito"; ctx.textAlign="center";
-    ctx.fillText("☕ rustplek", RUST.x*sx, RUST.y*sy + 4*schaal);
-    // nabijheids-lijnen
-    var ps = {};
-    bottys.forEach(function(b){ ps[b.naam] = pos(b); });
-    ctx.lineWidth = 1.5*schaal;
-    for(var i=0;i<bottys.length;i++) for(var j=i+1;j<bottys.length;j++){
-      var a=bottys[i], c=bottys[j], pa=ps[a.naam], pc=ps[c.naam];
-      var dx=a.pos.x-c.pos.x, dy=a.pos.y-c.pos.y;
-      if(dx*dx+dy*dy < NABIJ*NABIJ){
-        var aff = Math.max((a.relaties&&a.relaties[c.bid])||0, (c.relaties&&c.relaties[a.bid])||0);
-        ctx.beginPath(); ctx.moveTo(pa.x*sx,pa.y*sy); ctx.lineTo(pc.x*sx,pc.y*sy);
-        ctx.strokeStyle = aff>30 ? "rgba(255,139,208,.6)" : "rgba(57,255,133,.32)";
-        ctx.lineWidth = (aff>30?2.2:1.5)*schaal; ctx.stroke();
-      }
-    }
-    bottys.forEach(function(b){ tekenBotty(ctx, b, sx, sy, schaal); });
+  function frame(ts){
+    // verwijder vertrokken Botty's
+    Object.keys(nodes).forEach(function(n){ if(!bottys.find(function(b){return b.naam===n;})){ laag.removeChild(nodes[n].g); delete nodes[n]; } });
+    bottys.forEach(function(b){
+      var nd = nodes[b.naam]; if(!nd){ nd = nodes[b.naam] = maakNode(b); }
+      nd.b = b;
+      var r = nd.render;
+      var was = r.x;
+      r.x += (b.pos.x - r.x) * 0.1;                       // soepel naar server-positie
+      var bewoog = Math.abs(b.pos.x - r.x) > 1.5;
+      var linksom = (b.pos.x - was) < -0.3;               // bewegingsrichting bepaalt facing
+      // grootte per fase
+      var schaalBasis = (b.stage==="baby"?0.34:b.stage==="tiener"?0.42:0.5) * (b.grootte||1);
+      var w = 200*schaalBasis, h = 250*schaalBasis;
+      var bob = bewoog ? Math.abs(Math.sin(ts/120)) * 5 : 0;
+      var x0 = r.x - w/2, y0 = VLOER - h + bob;
+      // transform met facing-flip
+      if(linksom) nd.inner.setAttribute("transform","translate("+(x0+w)+","+y0+") scale("+(-schaalBasis)+","+schaalBasis+")");
+      else        nd.inner.setAttribute("transform","translate("+x0+","+y0+") scale("+schaalBasis+")");
+      nd.inner.setAttribute("opacity", b.ziek ? "0.7" : "1");
+      // naam + doel-ring boven het hoofd
+      nd.naam.setAttribute("x", r.x); nd.naam.setAttribute("y", y0 - 8);
+      nd.ring.setAttribute("cx", r.x - 38); nd.ring.setAttribute("cy", y0 - 12);
+      nd.ring.setAttribute("fill", b.ziek ? "#e0556b" : (DOEL_KLEUR[b.doel && b.doel.soort] || "#9aa0a4"));
+      if(b.gedachte){ var t=nd.g.querySelector("title")||nd.g.appendChild(document.createElementNS(SVGNS,"title")); t.textContent = b.naam+": "+b.gedachte; }
+    });
     requestAnimationFrame(frame);
   }
-
-  // crisp canvas op hoge-dpi schermen
-  function pasGrootteAan(){
-    var dpr = window.devicePixelRatio || 1;
-    var breedte = Math.min(1000, canvas.parentNode.clientWidth - 16);
-    canvas.style.width = breedte + "px";
-    canvas.style.height = (breedte * WERELD_H / WERELD_B) + "px";
-    canvas.width = Math.round(breedte * dpr);
-    canvas.height = Math.round(breedte * WERELD_H / WERELD_B * dpr);
-  }
-  window.addEventListener("resize", pasGrootteAan);
-  pasGrootteAan();
 
   laad();
   requestAnimationFrame(frame);
   setInterval(tickEnLaad, 3000);
-  // realtime: directe positie-updates als de hive elders tikt
-  supabase.channel("construct")
+  supabase.channel("klaslokaal")
     .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
-        function(payload){ if(payload.new && payload.new.bottys){ bottys = payload.new.bottys.filter(function(b){return b&&b.pos;}); } })
+        function(p){ if(p.new && p.new.bottys){ bottys = p.new.bottys.filter(function(b){return b&&b.pos;}); } })
     .subscribe();
 })();
 </script>
