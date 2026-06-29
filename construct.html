@@ -127,7 +127,7 @@
   var WERELD_B = 1000;                 // moet matchen met de edge function
   var VLOER = 512;                     // y van de vloer in de SVG
   var SVGNS = "http://www.w3.org/2000/svg";
-  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9" };
+  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a" };
 
   var laag = document.getElementById("laag");
   var bottys = [];               // server-staat
@@ -149,13 +149,14 @@
 
   function maakNode(b){
     var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","botje");
+    var schaduw = document.createElementNS(SVGNS,"ellipse"); schaduw.setAttribute("fill","rgba(0,0,0,.3)");
     var inner = document.createElementNS(SVGNS,"g"); inner.setAttribute("class","sprite");
     inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur || paletten[0]);
     var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam;
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
-    g.appendChild(inner); g.appendChild(ring); g.appendChild(naam);
+    g.appendChild(schaduw); g.appendChild(inner); g.appendChild(ring); g.appendChild(naam);
     laag.appendChild(g);
-    return { g:g, inner:inner, naam:naam, ring:ring, render:{ x:b.pos.x }, b:b };
+    return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, render:{ x:b.pos.x, y:b.pos.y }, b:b };
   }
 
   function frame(ts){
@@ -167,17 +168,25 @@
       var r = nd.render;
       var was = r.x;
       r.x += (b.pos.x - r.x) * 0.1;                       // soepel naar server-positie
-      var bewoog = Math.abs(b.pos.x - r.x) > 1.5;
+      r.y += (b.pos.y - r.y) * 0.1;
       var linksom = (b.pos.x - was) < -0.3;               // bewegingsrichting bepaalt facing
       // grootte per fase
       var schaalBasis = (b.stage==="baby"?0.34:b.stage==="tiener"?0.42:0.5) * (b.grootte||1);
       var w = 200*schaalBasis, h = 250*schaalBasis;
-      var bob = bewoog ? Math.abs(Math.sin(ts/120)) * 5 : 0;
-      var x0 = r.x - w/2, y0 = VLOER - h + bob;
+      // ZWEVEN: wereld-y → zweef-hoogte (center), + zachte constante hover-bob
+      var hoverY = Math.max(150, Math.min(470, r.y));
+      var bob = Math.sin(ts/500 + r.x*0.05) * 6;
+      var x0 = r.x - w/2, y0 = hoverY - h/2 + bob;
       // transform met facing-flip
       if(linksom) nd.inner.setAttribute("transform","translate("+(x0+w)+","+y0+") scale("+(-schaalBasis)+","+schaalBasis+")");
       else        nd.inner.setAttribute("transform","translate("+x0+","+y0+") scale("+schaalBasis+")");
       nd.inner.setAttribute("opacity", b.ziek ? "0.7" : "1");
+      // vloer-schaduw: kleiner/lichter naarmate hoger gezweefd
+      var feetY = y0 + h, hoogte = Math.max(0, VLOER - feetY);
+      var sS = Math.max(0.3, 1 - hoogte/320);
+      nd.schaduw.setAttribute("cx", r.x); nd.schaduw.setAttribute("cy", VLOER + 8);
+      nd.schaduw.setAttribute("rx", (w*0.34*sS).toFixed(1)); nd.schaduw.setAttribute("ry", (7*sS).toFixed(1));
+      nd.schaduw.setAttribute("opacity", (0.32*sS).toFixed(2));
       // naam + doel-ring boven het hoofd
       nd.naam.setAttribute("x", r.x); nd.naam.setAttribute("y", y0 - 8);
       nd.ring.setAttribute("cx", r.x - 38); nd.ring.setAttribute("cy", y0 - 12);

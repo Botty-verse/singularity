@@ -32,7 +32,17 @@ const WERELD_B = 1000;          // breedte
 const WERELD_H = 600;           // hoogte
 const WERELD_STAP = 55;         // max verplaatsing per actieve tick
 const WERELD_NABIJ = 90;        // afstand waarop Botty's elkaars gezelschap voelen
-const RUSTPLEK = { x: 500, y: 300 }; // centrale rustplek (tot er objecten zijn)
+const RUSTPLEK = { x: 500, y: 430 }; // rustige hoek bij de vloer (tot er objecten zijn)
+// Punten van interesse in het klaslokaal — waar nieuwsgierige Botty's naartoe zweven
+// om "rond te kijken" (coördinaten matchen construct.html, wereld 1000×600).
+const POIS = [
+  { id: "bord",  x: 510, y: 240, tekst: "de sommen op het bord" },
+  { id: "raamL", x: 160, y: 250, tekst: "het bos door het linkerraam" },
+  { id: "raamR", x: 840, y: 250, tekst: "het bos door het rechterraam" },
+  { id: "deur",  x: 950, y: 380, tekst: "de open deur naar het bos" },
+  { id: "bal",   x: 700, y: 470, tekst: "de bal op de vloer" },
+  { id: "kruk",  x: 250, y: 450, tekst: "de omgevallen kruk" },
+];
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -444,6 +454,12 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     if (ver.length) { b.gedachte = kies(["Waar is iedereen?", "Ik voel me alleen.", "Ik zou " + kies(ver).naam + " graag zien."]); return; }
   }
 
+  if (b.doel && b.doel.soort === "nieuwsgierig" && typeof b.doel.tekst === "string") {
+    const wat = b.doel.tekst.replace("kijken naar ", "");
+    b.gedachte = uit(kies(["Wat is dat daar?", "Ik wil " + wat + " van dichtbij zien", "Hé… " + wat, "Even " + wat + " bekijken"]));
+    return;
+  }
+
   const zelf = niv >= 4 ? "Ik ken de getallen nu goed." : niv >= 2 ? "Ik begin de patronen te zien." : "Zoveel getallen nog te ontdekken.";
   b.gedachte = kies(["Ik denk na over " + smk + ".", zelf, "Welke priem wacht er op mij?", "Stil. Rekenen.", "Ik tel de stilte."]);
 }
@@ -467,6 +483,12 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
       if (!v) v = kies(an);
       b.doel = { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" }; return;
     }
+  }
+  // Nieuwsgierigheid (uit gen 14, expressie-bias): af en toe iets gaan onderzoeken
+  // i.p.v. jagen — een zwevende Botty zweeft naar een punt van interesse om rond te kijken.
+  if (mult(genoomBytes(b.genome), 14) > 1.0 && Math.random() < 0.3) {
+    const poi = kies(POIS);
+    b.doel = { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst }; return;
   }
   b.doel = { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam };
 }
@@ -497,6 +519,8 @@ function beweeg(bottys: any[]) {
       if (ander) doelwit = plekVan(ander);
     } else if (soort === "herstellen" || soort === "bijkomen") {
       doelwit = RUSTPLEK;
+    } else if (soort === "nieuwsgierig" && typeof b.doel.px === "number") {
+      doelwit = { x: b.doel.px, y: b.doel.py };
     }
     // priemjacht / geen doelwit → rustige dwaaltocht
     if (!doelwit) {
