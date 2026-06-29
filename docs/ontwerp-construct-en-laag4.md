@@ -236,3 +236,17 @@ bij een *"long-abandoned home"* met eieren in een kapotte incubator.
    voedsel/data/rust/spel + geur-gradiënten → de zelfregulatie-stap (Deel B/C).
 
 Elk stuk is los te bouwen, te testen en te deployen; de hive blijft draaien.
+
+### D1. Art-richting (referentie: Creatures-look)
+Doelsfeer: een warm, handgemaakt **diorama met diepte** (Creatures-stijl). Lagen van
+ver naar dichtbij: **verre haas/lucht → middenbos (knoestige boom, ruïnes, zonnebloemen)
+→ voorgrond/vloer → ondergrondse doorsnede** (kelder/wortels met gloeiende pijpen).
+Gouden middaglicht met **god-rays**, een **apparaat-/incubatorhoek** links (koperen
+ketel + groen CRT-scherm), en in-wereld zwevende bars. We benaderen de *sfeer* met
+gelaagde SVG/canvas + parallax + gradient-licht (geen 1-op-1 pre-rendered art), en
+bouwen het op in art-stukken:
+1. Parallax-achtergrond + god-rays (klaar: gelaagde raam-vista + lichtbundels).
+2. Middengrond: knoestige boom, ruïnes, zonnebloemen.
+3. Ondergrondse doorsnede (kelder/wortels, gloeiende pijpen).
+4. Apparaat-/incubatorhoek (koperen ketel + groen scherm).
+5. Rijkere licht/schaduw-integratie van de zwevende Botty's per laag.
