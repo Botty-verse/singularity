@@ -77,7 +77,8 @@
     <ul class="recent" id="recent"></ul>
   </section>
   <section id="sec-collectie">
-    <h2>📚 De collectie</h2>
+    <h2>🏔️ De hoogste vondsten</h2>
+    <p class="sub" style="text-align:left;margin:-.2rem 0 .6rem;color:#7fb89a;font-size:.78rem">De grootste priemen die de hive tot nu toe heeft bereikt.</p>
     <div class="grid" id="grid"></div>
   </section>
 </main>
@@ -97,7 +98,7 @@
 <script>
 (function(){
   "use strict";
-  var TOTAAL_PRIEMEN = 5133; // priemen onder 50.000
+  var TOTAAL_PRIEMEN = 78498; // priemen onder 1.000.000
   var supabase = window.supabase.createClient(BottyConfig.SUPABASE_URL, BottyConfig.SUPABASE_ANON);
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
   function geleden(ts){
@@ -108,43 +109,55 @@
     return Math.round(d/86400)+"d";
   }
 
-  function render(rows){
+  // De collectie is te groot voor de REST-rijlimiet (max 1000/req), dus tellen we
+  // de totalen server-side via priem_stats() en tonen we losse vensters:
+  // de recentste vondsten en de hoogst bereikte priemen.
+  function render(stats, recent, top){
     var doel = document.getElementById("leeg");
-    if(!rows.length){
+    var totaal = stats && typeof stats.totaal==="number" ? stats.totaal : recent.length;
+    if(!totaal){
       doel.style.display="block";
       doel.innerHTML="🌱 Nog geen priemen ontdekt. Laat de hive even denken!";
       ["sec-recent","sec-collectie"].forEach(function(id){document.getElementById(id).style.display="none";});
       return;
     }
-    // KPI's
-    var hoogste=0, perOntdekker={};
-    rows.forEach(function(r){ if(r.getal>hoogste) hoogste=r.getal; perOntdekker[r.ontdekker_naam]=(perOntdekker[r.ontdekker_naam]||0)+1; });
-    var top=Object.keys(perOntdekker).sort(function(a,b){return perOntdekker[b]-perOntdekker[a];})[0];
-    document.getElementById("k-aantal").textContent = rows.length;
-    document.getElementById("k-hoogste").textContent = hoogste;
-    document.getElementById("k-top").textContent = top ? (top+" ("+perOntdekker[top]+")") : "–";
-    var pct = Math.min(100, rows.length/TOTAAL_PRIEMEN*100);
+    doel.style.display="none";
+    ["sec-recent","sec-collectie"].forEach(function(id){document.getElementById(id).style.display="";});
+
+    // KPI's (exact, uit priem_stats)
+    document.getElementById("k-aantal").textContent = totaal.toLocaleString("nl-NL");
+    document.getElementById("k-hoogste").textContent = stats && stats.hoogste!=null ? Number(stats.hoogste).toLocaleString("nl-NL") : "–";
+    document.getElementById("k-top").textContent = stats && stats.top_naam ? (stats.top_naam+" ("+stats.top_aantal+")") : "–";
+    var pct = Math.min(100, totaal/TOTAAL_PRIEMEN*100);
     document.getElementById("balk").style.width = pct.toFixed(1)+"%";
     document.getElementById("voortgang-sub").textContent =
-      rows.length+" van de "+TOTAAL_PRIEMEN+" priemen onder 50.000 ontdekt ("+pct.toFixed(1)+"%)";
+      totaal.toLocaleString("nl-NL")+" van de "+TOTAAL_PRIEMEN.toLocaleString("nl-NL")+" priemen onder 1.000.000 ontdekt ("+pct.toFixed(1)+"%)";
 
-    // Laatste ontdekkingen (rows komt al gesorteerd op ts desc)
-    document.getElementById("recent").innerHTML = rows.slice(0,15).map(function(r){
+    // Laatste ontdekkingen (recent komt gesorteerd op ts desc)
+    document.getElementById("recent").innerHTML = recent.slice(0,15).map(function(r){
       return '<li><span class="getal">'+r.getal+'</span>'
         +'<span class="wie">ontdekt door <b>'+esc(r.ontdekker_naam)+'</b>'+(r.generatie?' (gen '+r.generatie+')':'')+'</span>'
         +'<span class="tijd">'+geleden(r.ts)+' geleden</span></li>';
     }).join("");
 
-    // Volledige collectie, oplopend op getal
-    var opGetal = rows.slice().sort(function(a,b){return a.getal-b.getal;});
+    // Hoogste vondsten (top komt gesorteerd op getal desc), oplopend tonen
+    var opGetal = top.slice().sort(function(a,b){return a.getal-b.getal;});
     document.getElementById("grid").innerHTML = opGetal.map(function(r){
       return '<span class="chip" title="ontdekt door '+esc(r.ontdekker_naam)+'"><b>'+r.getal+'</b> <span>'+esc(r.ontdekker_naam)+'</span></span>';
     }).join("");
   }
 
   function laad(){
-    supabase.from("priemvondsten").select("*").order("ts",{ascending:false}).limit(5000)
-      .then(function(res){ if(res.error){ console.error(res.error); return; } render(res.data||[]); });
+    Promise.all([
+      supabase.rpc("priem_stats"),
+      supabase.from("priemvondsten").select("getal,ontdekker_naam,generatie,ts").order("ts",{ascending:false}).limit(15),
+      supabase.from("priemvondsten").select("getal,ontdekker_naam").order("getal",{ascending:false}).limit(120)
+    ]).then(function(res){
+      var stats = res[0] && !res[0].error ? res[0].data : null;
+      var recent = res[1] && !res[1].error ? (res[1].data||[]) : [];
+      var top = res[2] && !res[2].error ? (res[2].data||[]) : [];
+      render(stats, recent, top);
+    });
   }
   laad();
   setInterval(function(){ if(!document.hidden) laad(); }, 20000);

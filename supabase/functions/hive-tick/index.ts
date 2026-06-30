@@ -64,7 +64,7 @@ function maakId(): string {
 // Slimmere Bottys (hogere datakwaliteit) slagen vaker én bekijken meer kandidaten,
 // dus kiezen "lekkerder" en vinden vaker iets.
 const PRIEM_LO = 2;        // het hele veld vanaf het begin
-const PRIEM_HI = 50000;    // 5133 priemen onder 50.000 (al ontdekte worden gededupeerd)
+const PRIEM_HI = 1000000;  // 78.498 priemen onder 1.000.000 (al ontdekte worden gededupeerd)
 function isPriem(n: number): boolean {
   if (n < 2) return false;
   if (n % 2 === 0) return n === 2;
