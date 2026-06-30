@@ -256,7 +256,11 @@
 
   var laag = document.getElementById("laag");
   var bottys = [];               // server-staat
-  var nodes = {};                // naam → { g, render:{x}, b }
+  var nodes = {};                // naam → { g, render:{x,y}, tx, ty, b }
+  // vrije-wil-zwerfgebied (zweefruimte in de SVG)
+  var ROAM = { xlo:90, xhi:910, ylo:175, yhi:455 };
+  var RUST = { x:500, y:395 };   // rustplek (matcht het apparaat/de stoelhoek niet, midden-onder)
+  function nameRnd(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0)/4294967295; }
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
 
@@ -264,7 +268,7 @@
     return supabase.from("hive_state").select("bottys").eq("id","main").single()
       .then(function(res){
         if(res.error || !res.data) return;
-        bottys = (res.data.bottys || []).filter(function(b){ return b && b.pos; });
+        bottys = (res.data.bottys || []).filter(function(b){ return b && b.naam; });
         document.getElementById("st-links").textContent = "🏫 " + bottys.length + " Botty's in het klaslokaal";
         var z = bottys.filter(function(b){ return b.ziek; }).length;
         document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"");
@@ -281,7 +285,32 @@
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
     g.appendChild(schaduw); g.appendChild(inner); g.appendChild(ring); g.appendChild(naam);
     laag.appendChild(g);
-    return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, render:{ x:b.pos.x, y:b.pos.y }, b:b };
+    // gespreide startpositie zodat ze niet gestapeld beginnen
+    var idx = Object.keys(nodes).length;
+    var sx = ROAM.xlo + (ROAM.xhi-ROAM.xlo) * ((idx+0.5)/9);
+    var sy = ROAM.ylo + (ROAM.yhi-ROAM.ylo) * nameRnd(b.naam);
+    return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring,
+             render:{ x:sx, y:sy }, tx:sx, ty:sy, pauze:0,
+             snelheid: 0.5 + nameRnd(b.naam+"snel")*1.1, b:b };
+  }
+
+  // kies een nieuw zwerfdoel — gestuurd door het doel dat de server heeft gezet
+  function nieuwDoel(nd, b){
+    var soort = b.doel && b.doel.soort;
+    if(soort==="bijkomen" || soort==="herstellen"){
+      nd.tx = RUST.x + (Math.random()-0.5)*240; nd.ty = RUST.y + (Math.random()-0.4)*90;
+    } else if(soort==="gezelschap"){
+      var sx=0, sy=0, n=0;
+      bottys.forEach(function(o){ if(o.naam!==b.naam){ var on=nodes[o.naam]; if(on){ sx+=on.render.x; sy+=on.render.y; n++; } } });
+      if(n){ nd.tx = sx/n + (Math.random()-0.5)*170; nd.ty = sy/n + (Math.random()-0.5)*110; }
+      else { nd.tx = ROAM.xlo + Math.random()*(ROAM.xhi-ROAM.xlo); nd.ty = ROAM.ylo + Math.random()*(ROAM.yhi-ROAM.ylo); }
+    } else {
+      // nieuwsgierig / priemjacht / voortplanting / overig: vrij door de hele ruimte
+      nd.tx = ROAM.xlo + Math.random()*(ROAM.xhi-ROAM.xlo);
+      nd.ty = ROAM.ylo + Math.random()*(ROAM.yhi-ROAM.ylo);
+    }
+    nd.tx = Math.max(ROAM.xlo, Math.min(ROAM.xhi, nd.tx));
+    nd.ty = Math.max(ROAM.ylo, Math.min(ROAM.yhi, nd.ty));
   }
 
   function frame(ts){
@@ -292,9 +321,25 @@
       nd.b = b;
       var r = nd.render;
       var was = r.x;
-      r.x += (b.pos.x - r.x) * 0.1;                       // soepel naar server-positie
-      r.y += (b.pos.y - r.y) * 0.1;
-      var linksom = (b.pos.x - was) < -0.3;               // bewegingsrichting bepaalt facing
+      // VRIJE WIL: dwaal zelfstandig naar een eigen doel; bij aankomst korte rust, dan nieuw doel
+      var dx = nd.tx - r.x, dy = nd.ty - r.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 14){
+        if(nd.pauze <= 0){ nieuwDoel(nd, b); nd.pauze = 700 + Math.random()*2200; }
+        else nd.pauze -= 16;
+      }
+      // scheiding: duw weg van te dichtbije buren zodat ze niet over elkaar tekenen
+      var sepx = 0, sepy = 0;
+      bottys.forEach(function(o){
+        if(o.naam===b.naam) return; var on = nodes[o.naam]; if(!on) return;
+        var ox = on.render.x - r.x, oy = on.render.y - r.y, d2 = ox*ox + oy*oy;
+        if(d2 < 12100 && d2 > 1){ var d = Math.sqrt(d2); sepx -= ox/d*(110-d); sepy -= oy/d*(110-d); }
+      });
+      if(dist > 1){ r.x += dx/dist*nd.snelheid; r.y += dy/dist*nd.snelheid; }
+      r.x += sepx*0.045; r.y += sepy*0.045;
+      r.x = Math.max(ROAM.xlo, Math.min(ROAM.xhi, r.x));
+      r.y = Math.max(ROAM.ylo, Math.min(ROAM.yhi, r.y));
+      var linksom = (r.x - was) < -0.04;                  // bewegingsrichting bepaalt facing
       // grootte per fase
       var schaalBasis = (b.stage==="baby"?0.34:b.stage==="tiener"?0.42:0.5) * (b.grootte||1);
       var w = 200*schaalBasis, h = 250*schaalBasis;
@@ -326,7 +371,7 @@
   setInterval(tickEnLaad, 3000);
   supabase.channel("klaslokaal")
     .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
-        function(p){ if(p.new && p.new.bottys){ bottys = p.new.bottys.filter(function(b){return b&&b.pos;}); } })
+        function(p){ if(p.new && p.new.bottys){ bottys = p.new.bottys.filter(function(b){return b&&b.naam;}); } })
     .subscribe();
 })();
 </script>
