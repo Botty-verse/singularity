@@ -37,6 +37,9 @@
   @keyframes vlam{0%,100%{opacity:.4;transform:scaleX(1)}50%{opacity:.65;transform:scaleX(1.15)}}
   .broed{animation:broed 3.4s ease-in-out infinite;transform-origin:center;}
   @keyframes broed{0%,100%{opacity:.6}50%{opacity:1}}
+  .obj-halo{animation:objectPuls 3.6s ease-in-out infinite;}
+  @keyframes objectPuls{0%,100%{opacity:.16}50%{opacity:.42}}
+  .gebruik{animation:broed 1.6s ease-in-out infinite;}
   footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #3a2a18;width:100%;}
   footer a{color:#b89a6a;text-decoration:none;font-weight:700;font-size:.9rem;}
   footer a:hover{color:#ffe6a8;}
@@ -219,6 +222,10 @@
         <path class="stoom" style="animation-delay:-3s" d="M150,396 q-6,-12 3,-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.14"/>
       </g>
 
+      <!-- Affordance-objecten: zachte halo's op de plekken waar Botty's zichzelf
+           kunnen reguleren (gevuld door JS, coördinaten uit OBJECTEN) -->
+      <g id="objectlaag"></g>
+
       <!-- Botty-laag (gevuld door JS) -->
       <g id="laag"></g>
     </svg>
@@ -252,9 +259,30 @@
   var WERELD_B = 1000;                 // moet matchen met de edge function
   var VLOER = 512;                     // y van de vloer in de SVG
   var SVGNS = "http://www.w3.org/2000/svg";
-  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a" };
+  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff" };
+  // Affordance-objecten — moeten matchen met OBJECTEN in de edge function
+  var OBJECTEN = [
+    { id:"laadkruk", x:250, y:450, icoon:"⚡" },
+    { id:"bord",     x:510, y:240, icoon:"💾" },
+    { id:"bal",      x:700, y:470, icoon:"🏃" },
+    { id:"deur",     x:920, y:400, icoon:"🌲" }
+  ];
 
   var laag = document.getElementById("laag");
+  // Objectlaag: zachte pulserende halo + icoon per affordance-object
+  (function(){
+    var ol = document.getElementById("objectlaag");
+    OBJECTEN.forEach(function(o){
+      var halo = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      halo.setAttribute("cx",o.x); halo.setAttribute("cy",o.y); halo.setAttribute("r","34");
+      halo.setAttribute("fill","#ffe6a8"); halo.setAttribute("class","obj-halo");
+      var ic = document.createElementNS("http://www.w3.org/2000/svg","text");
+      ic.setAttribute("x",o.x); ic.setAttribute("y",o.y-40); ic.setAttribute("text-anchor","middle");
+      ic.setAttribute("style","font:16px sans-serif"); ic.setAttribute("opacity",".55");
+      ic.textContent = o.icoon;
+      ol.appendChild(halo); ol.appendChild(ic);
+    });
+  })();
   var bottys = [];               // server-staat
   var nodes = {};                // naam → { g, render:{x,y}, tx, ty, b }
   // vrije-wil-zwerfgebied (zweefruimte in de SVG)
@@ -283,13 +311,16 @@
     inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur || paletten[0]);
     var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam;
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
-    g.appendChild(schaduw); g.appendChild(inner); g.appendChild(ring); g.appendChild(naam);
+    var gebruik = document.createElementNS(SVGNS,"text"); gebruik.setAttribute("class","gebruik");
+    gebruik.setAttribute("text-anchor","middle"); gebruik.setAttribute("style","font:15px sans-serif");
+    gebruik.setAttribute("opacity","0");
+    g.appendChild(schaduw); g.appendChild(inner); g.appendChild(ring); g.appendChild(naam); g.appendChild(gebruik);
     laag.appendChild(g);
     // gespreide startpositie zodat ze niet gestapeld beginnen
     var idx = Object.keys(nodes).length;
     var sx = ROAM.xlo + (ROAM.xhi-ROAM.xlo) * ((idx+0.5)/9);
     var sy = ROAM.ylo + (ROAM.yhi-ROAM.ylo) * nameRnd(b.naam);
-    return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring,
+    return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik,
              render:{ x:sx, y:sy }, tx:sx, ty:sy, pauze:0,
              snelheid: 0.5 + nameRnd(b.naam+"snel")*1.1, b:b };
   }
@@ -297,7 +328,10 @@
   // kies een nieuw zwerfdoel — gestuurd door het doel dat de server heeft gezet
   function nieuwDoel(nd, b){
     var soort = b.doel && b.doel.soort;
-    if(soort==="bijkomen" || soort==="herstellen"){
+    if((soort==="zelfzorg" || soort==="nieuwsgierig") && b.doel && typeof b.doel.px==="number"){
+      // naar het affordance-object / punt van interesse dat de server koos
+      nd.tx = b.doel.px + (Math.random()-0.5)*40; nd.ty = b.doel.py + (Math.random()-0.5)*30;
+    } else if(soort==="bijkomen" || soort==="herstellen"){
       nd.tx = RUST.x + (Math.random()-0.5)*240; nd.ty = RUST.y + (Math.random()-0.4)*90;
     } else if(soort==="gezelschap"){
       var sx=0, sy=0, n=0;
@@ -321,6 +355,9 @@
       nd.b = b;
       var r = nd.render;
       var was = r.x;
+      // Serverdoel gewisseld? Dan meteen een nieuwe koers (niet wachten op aankomst).
+      var doelKey = b.doel ? (b.doel.soort + ":" + (b.doel.px||"") + ":" + (b.doel.naar||"")) : "";
+      if(doelKey !== nd.doelKey){ nd.doelKey = doelKey; nieuwDoel(nd, b); nd.pauze = 0; }
       // VRIJE WIL: dwaal zelfstandig naar een eigen doel; bij aankomst korte rust, dan nieuw doel
       var dx = nd.tx - r.x, dy = nd.ty - r.y;
       var dist = Math.sqrt(dx*dx + dy*dy);
@@ -360,6 +397,15 @@
       // naam + doel-ring boven het hoofd
       nd.naam.setAttribute("x", r.x); nd.naam.setAttribute("y", y0 - 8);
       nd.ring.setAttribute("cx", r.x - 38); nd.ring.setAttribute("cy", y0 - 12);
+      // zelfzorg-icoon: zichtbaar zolang de Botty zijn object daadwerkelijk gebruikt
+      var bezig = b.doel && b.doel.soort === "zelfzorg" && typeof b.doel.px === "number"
+        && (Math.abs(r.x - b.doel.px) < 90) && (Math.abs(r.y - Math.max(ROAM.ylo, Math.min(ROAM.yhi, b.doel.py))) < 90);
+      if(bezig){
+        var obj = OBJECTEN.filter(function(o){ return o.id === b.doel.obj; })[0];
+        nd.gebruik.textContent = obj ? obj.icoon : "✨";
+        nd.gebruik.setAttribute("x", r.x + 30); nd.gebruik.setAttribute("y", y0 - 18);
+        nd.gebruik.setAttribute("opacity", "0.9");
+      } else nd.gebruik.setAttribute("opacity", "0");
       nd.ring.setAttribute("fill", b.ziek ? "#e0556b" : (DOEL_KLEUR[b.doel && b.doel.soort] || "#9aa0a4"));
       if(b.gedachte){ var t=nd.g.querySelector("title")||nd.g.appendChild(document.createElementNS(SVGNS,"title")); t.textContent = b.naam+": "+b.gedachte; }
     });
