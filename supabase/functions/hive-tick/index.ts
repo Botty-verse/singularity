@@ -32,7 +32,19 @@ const WERELD_B = 1000;          // breedte
 const WERELD_H = 600;           // hoogte
 const WERELD_STAP = 55;         // max verplaatsing per actieve tick
 const WERELD_NABIJ = 90;        // afstand waarop Botty's elkaars gezelschap voelen
-const RUSTPLEK = { x: 500, y: 430 }; // rustige hoek bij de vloer (tot er objecten zijn)
+const RUSTPLEK = { x: 500, y: 430 }; // rustige hoek bij de vloer (voor zieke Botty's)
+// Affordance-objecten (Creatures-stijl): elk object in het lokaal verhelpt één
+// drive. Een Botty met een tekort zweeft er zelf naartoe en reguleert zichzelf —
+// de AI-zorgronde blijft alleen als vangnet. Coördinaten matchen construct.html.
+const OBJECTEN = [
+  { id: "laadkruk", stat: "energie", x: 250, y: 450, icoon: "⚡", doe: "opladen bij de laadkruk",     actie: "laadt zichzelf op bij de omgevallen kruk", leer: "de omgevallen kruk me kan opladen" },
+  { id: "bord",     stat: "data",    x: 510, y: 240, icoon: "💾", doe: "leren van het schoolbord",    actie: "leert van de sommen op het bord",          leer: "de sommen op het bord me slimmer maken" },
+  { id: "bal",      stat: "fit",     x: 700, y: 470, icoon: "🏃", doe: "spelen met de bal",           actie: "speelt met de bal",                        leer: "spelen met de bal me fit houdt" },
+  { id: "deur",     stat: "geluk",   x: 920, y: 400, icoon: "🌲", doe: "het bos ruiken bij de deur",  actie: "snuift de bosgeur bij de open deur",       leer: "de bosgeur bij de deur me blij maakt" },
+];
+const ZELFZORG_START = 55;   // laagste bar hieronder → zelf naar het object
+const ZELFZORG_KLAAR = 80;   // bar hierboven → klaar, weer wat anders gaan doen
+const GEBRUIK_AFSTAND = 80;  // dicht genoeg bij het object om het te gebruiken
 // Punten van interesse in het klaslokaal — waar nieuwsgierige Botty's naartoe zweven
 // om "rond te kijken" (coördinaten matchen construct.html, wereld 1000×600).
 const POIS = [
@@ -454,6 +466,11 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     if (ver.length) { b.gedachte = kies(["Waar is iedereen?", "Ik voel me alleen.", "Ik zou " + kies(ver).naam + " graag zien."]); return; }
   }
 
+  if (b.doel && b.doel.soort === "zelfzorg" && typeof b.doel.tekst === "string") {
+    b.gedachte = uit(kies(["Ik weet wat ik nodig heb: " + b.doel.tekst, "Even voor mezelf zorgen", "Dit kan ik zelf oplossen", "Eerst " + b.doel.tekst + ", dan de rest"]));
+    return;
+  }
+
   if (b.doel && b.doel.soort === "nieuwsgierig" && typeof b.doel.tekst === "string") {
     const wat = b.doel.tekst.replace("kijken naar ", "");
     b.gedachte = uit(kies(["Wat is dat daar?", "Ik wil " + wat + " van dichtbij zien", "Hé… " + wat, "Even " + wat + " bekijken"]));
@@ -470,7 +487,18 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
 // gekoppeld, gezelschap-zoekers ontmoeten elkaar, gedreven jagers zoeken feller).
 function kiesDoel(b: any, ctx: { anderen: any[] }) {
   if (b.ziek) { b.doel = { soort: "herstellen", tekst: "weer beter worden" }; return; }
-  if (Math.min(b.energie, b.data, b.fit, b.geluk) < 35) { b.doel = { soort: "bijkomen", tekst: "op krachten komen" }; return; }
+  // Zelfregulatie (drives → affordances): hysterese eerst — wie al bij een object
+  // bezig is, blijft tot de drive echt is opgelost (anders flippert het doel).
+  if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && (b[b.doel.stat] ?? 100) < ZELFZORG_KLAAR) return;
+  // Dan: pak de sterkste drive (laagste bar) en ga zélf naar het passende object.
+  const nood = OBJECTEN
+    .map(o => ({ o, v: b[o.stat] ?? 100 }))
+    .sort((p, q) => p.v - q.v)[0];
+  if (nood && nood.v < ZELFZORG_START) {
+    const o = nood.o;
+    b.doel = { soort: "zelfzorg", stat: o.stat, obj: o.id, px: o.x, py: o.y, tekst: o.doe };
+    return;
+  }
   if (rijp(b) && (b.stemming ?? 50) > 65 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
   if (mult(genoomBytes(b.genome), 11) > 1.05 && Math.random() < 0.45) {
     const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
@@ -519,7 +547,7 @@ function beweeg(bottys: any[]) {
       if (ander) doelwit = plekVan(ander);
     } else if (soort === "herstellen" || soort === "bijkomen") {
       doelwit = RUSTPLEK;
-    } else if (soort === "nieuwsgierig" && typeof b.doel.px === "number") {
+    } else if ((soort === "nieuwsgierig" || soort === "zelfzorg") && typeof b.doel.px === "number") {
       doelwit = { x: b.doel.px, y: b.doel.py };
     }
     // priemjacht / geen doelwit → rustige dwaaltocht
@@ -539,6 +567,35 @@ function beweeg(bottys: any[]) {
 }
 function afstand2(a: { x: number; y: number }, b: { x: number; y: number }) {
   const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy;
+}
+
+// ─── Zelfzorg: een object gebruiken ─────────────────────────────────────────────
+// Wie met een zelfzorg-doel dicht genoeg bij zijn object is, vult de bijbehorende
+// bar aan (drive-reductie). Draait óók in catch-up-ticks (positie verandert daar
+// niet, dus wie bij zijn object staat, blijft rustig doorladen) — zo werkt
+// zelfregulatie ook onder de cron als er niemand kijkt.
+const ZELFZORG_TEMPO = 7;   // punten per tick; AI-zorg (14-18 per beurt) blijft sneller
+function zelfzorgRonde(bottys: any[], events: object[] | null) {
+  let gemeld = false;
+  for (const b of bottys) {
+    if (b.bezigEi || !b.pos || !b.doel || b.doel.soort !== "zelfzorg") continue;
+    const obj = OBJECTEN.find(o => o.id === b.doel.obj);
+    if (!obj || afstand2(b.pos, obj) > GEBRUIK_AFSTAND * GEBRUIK_AFSTAND) continue;
+    const G = exprGenoom(b.genome);
+    const factor = (G.zorg as any)[obj.stat] ?? 1;
+    b[obj.stat] = klem((b[obj.stat] ?? 50) + ZELFZORG_TEMPO * factor);
+    b.stemming = klem((b.stemming ?? 50) + 1.5);   // zelf iets oplossen voelt goed
+    if (!b.zelfzorgGeleerd || !b.zelfzorgGeleerd[obj.id]) {
+      b.zelfzorgGeleerd = b.zelfzorgGeleerd || {};
+      b.zelfzorgGeleerd[obj.id] = true;
+      onthoud(b, "zelfzorg", "ik ontdekte dat " + obj.leer);
+    }
+    if (events && !gemeld && Math.random() < 0.3) {
+      events.push({ soort: "zelfzorg", naam: b.naam, label: obj.icoon, kleur: "#5ec6ff", animeer: true,
+        tekst: obj.icoon + " <b>" + b.naam + "</b> " + obj.actie });
+      gemeld = true;
+    }
+  }
 }
 
 // ─── Laag 4 — besef van anderen (theory of mind) ────────────────────────────────
@@ -745,6 +802,8 @@ Deno.serve(async () => {
 
   // Catch-up ticks
   for (let t = 0; t < gemist - 1; t++) {
+    // Zelfregulatie loopt door: wie bij zijn object staat, blijft rustig laden.
+    try { zelfzorgRonde(bottys, null); } catch (_) { /* niet kritisch */ }
     kiesDoelen(bottys, ZORG_PER_TICK).forEach(b => { zorg(b); acties++; });
     if (t % Math.round(VERVAL_INTERVAL / INTERVAL) === 0) {
       bottys.forEach(b => { if (!b.bezigEi) vervalEen(b); });
@@ -764,8 +823,9 @@ Deno.serve(async () => {
     // mag de tick nooit breken.
     try {
       beweeg(bottys);
+      zelfzorgRonde(bottys, events);
       socialeRonde(bottys, events);
-    } catch (_) { /* beweging/sociaal is niet kritisch voor de hive */ }
+    } catch (_) { /* beweging/zelfzorg/sociaal is niet kritisch voor de hive */ }
 
     const doelen = kiesDoelen(bottys, ZORG_PER_TICK);
     doelen.forEach((b, i) => {
