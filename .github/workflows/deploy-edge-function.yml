@@ -29,8 +29,23 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # setup-cli lost "latest" op via de GitHub API; die call kan zeldzaam
+      # rate-limiten ("Failed to resolve latest Supabase CLI release"). Daarom een
+      # eerste poging die mag falen, en na een korte wachttijd een tweede poging.
       - name: Supabase CLI installeren
+        id: cli1
         if: steps.guard.outputs.skip != 'true'
+        continue-on-error: true
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Even wachten na een rate-limit
+        if: steps.guard.outputs.skip != 'true' && steps.cli1.outcome == 'failure'
+        run: sleep 30
+
+      - name: Supabase CLI installeren (tweede poging)
+        if: steps.guard.outputs.skip != 'true' && steps.cli1.outcome == 'failure'
         uses: supabase/setup-cli@v1
         with:
           version: latest
