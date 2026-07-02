@@ -77,6 +77,11 @@ function maakId(): string {
 // dus kiezen "lekkerder" en vinden vaker iets.
 const PRIEM_LO = 2;        // het hele veld vanaf het begin
 const PRIEM_HI = 1000000;  // 78.498 priemen onder 1.000.000 (al ontdekte worden gededupeerd)
+// Euforie-afkoelperiode: na een vondst-kick zoekt een Botty ~10 min niet echt —
+// hij geniet na en broedt op strategie. Pas daarna kan hij weer vinden (en een
+// nieuwe euforie krijgen). Zo blijft de kick speciaal én worden de drives
+// (zelfzorg, bijkomen, AI-zorg) niet permanent gemaskeerd door volle bars.
+const EUFORIE_PAUZE = 10 * 60 * 1000;
 function isPriem(n: number): boolean {
   if (n < 2) return false;
   if (n % 2 === 0) return n === 2;
@@ -477,6 +482,13 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     return;
   }
 
+  // Afkoelend na een euforie: niet jagen, wel nadenken over de volgende zet.
+  if (Date.now() - (b.euforieOp || 0) < EUFORIE_PAUZE) {
+    b.gedachte = uit(kies(["Nog even nagenieten… straks weer jagen", "Mijn volgende " + smk + "-zet rijpt nog",
+      "Eerst ademhalen, dan de volgende priem", "Ik broed op een nieuwe strategie"]));
+    return;
+  }
+
   const zelf = niv >= 4 ? "Ik ken de getallen nu goed." : niv >= 2 ? "Ik begin de patronen te zien." : "Zoveel getallen nog te ontdekken.";
   b.gedachte = kies(["Ik denk na over " + smk + ".", zelf, "Welke priem wacht er op mij?", "Stil. Rekenen.", "Ik tel de stilte."]);
 }
@@ -861,10 +873,14 @@ Deno.serve(async () => {
       }
     } catch (_) { /* zonder collectie kan iedereen alsnog ontdekken */ }
 
-    const denkers = bottys.filter(b => !b.bezigEi);
+    const alleDenkers = bottys.filter(b => !b.bezigEi);
+    // Afkoelperiode: wie net een euforie had, jaagt even niet echt — hij broedt
+    // op zijn volgende zet. Alleen afgekoelde Bottys doen de vind-ronde mee.
+    const denkers  = alleDenkers.filter(b => nu - (b.euforieOp || 0) >= EUFORIE_PAUZE);
+    const broeders = alleDenkers.filter(b => nu - (b.euforieOp || 0) <  EUFORIE_PAUZE);
     // Wiskunde-ervaring eenmalig seeden uit de volledige vondsten-historie per bid
     // (alle priemen ooit, ook <10000). Alleen ophalen als er iets te seeden valt.
-    if (denkers.some(b => typeof b.vondsten !== "number")) {
+    if (alleDenkers.some(b => typeof b.vondsten !== "number")) {
       const vondstenPerBid: Record<string, number> = {};
       try {
         for (let from = 0; ; from += 1000) {
@@ -876,25 +892,21 @@ Deno.serve(async () => {
           if (data.length < 1000) break;
         }
       } catch (_) { /* geen historie → iedereen begint als novice */ }
-      denkers.forEach(b => { if (typeof b.vondsten !== "number") b.vondsten = vondstenPerBid[b.bid] || 0; });
+      alleDenkers.forEach(b => { if (typeof b.vondsten !== "number") b.vondsten = vondstenPerBid[b.bid] || 0; });
     }
     const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
     // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
     // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
-    // Met afkoelperiode: max 1× per ~10 min per Botty, anders pint een rijk
-    // priemveld alle bars permanent op 100 en worden de drives (zelfzorg,
-    // bijkomen, AI-zorg) nooit meer wakker. Tussendoor tellen vondsten gewoon.
-    const EUFORIE_PAUZE = 10 * 60 * 1000;
+    // De vind-ronde is al gefilterd op afgekoelde Bottys, dus elke verse vondst
+    // is per definitie een nieuwe kick (en start een nieuwe afkoelperiode).
     const euforisch = new Set<string>();
     const vondstMap: Record<string, number[]> = {};
     resultaten.forEach(x => {
       if (x.r.uitkomst !== "nieuw") return;
-      if (nu - (x.b.euforieOp || 0) >= EUFORIE_PAUZE) {
-        x.b.euforieOp = nu;
-        euforisch.add(x.b.bid);
-        x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
-        x.b.stemming = 100;
-      }
+      x.b.euforieOp = nu;
+      euforisch.add(x.b.bid);
+      x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
+      x.b.stemming = 100;
       vondstMap[x.b.bid] = x.r.getallen;
       // Episodisch geheugen: eerste priem ooit + het halen van een nieuw wiskunde-niveau.
       const voor = (x.b.vondsten ?? x.r.getallen.length) - x.r.getallen.length;
@@ -926,6 +938,12 @@ Deno.serve(async () => {
           ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen tussen " + PRIEM_LO + " en " + PRIEM_HI + " zijn al ontdekt"
           : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
       events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, smaak: r.smaak, niveau: r.niveau, tekst });
+    } else if (broeders.length && Math.random() < 0.25) {
+      // Iedereen koelt af: af en toe laten zien dat er gebroed wordt op strategie.
+      const b = kies(broeders);
+      const rest = Math.max(1, Math.ceil((EUFORIE_PAUZE - (nu - (b.euforieOp || 0))) / 60000));
+      events.push({ soort: "denk", naam: b.naam, uitkomst: "broeden",
+        tekst: "🧘 <b>" + b.naam + "</b> geniet na van zijn vondst en broedt op een nieuwe strategie (~" + rest + " min)" });
     }
 
     // Kennisuitwisseling
