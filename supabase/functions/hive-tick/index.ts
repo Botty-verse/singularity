@@ -112,6 +112,55 @@ function erfBrein(ouderA: any, ouderB: any): { brein: Record<string, Record<stri
   }
   return { brein, breinN };
 }
+// ─── Biochemie (stap 3): een kleine interne scheikunde náást de bars ─────────────
+// Creatures-getrouw in het klein: stoffen met een concentratie (0..100), emitters
+// die ze afgeven op basis van toestand, een reactie die ze omzet, receptors die ze
+// in een effect vertalen, en half-lives (genoom-bepaald → evolueerbaar) die ze
+// laten wegebben. Deze eerste stap draait NAAST de bars en stuurt alleen de toch al
+// ruisige stemming aan; verval/ziekte/euforie blijven ongewijzigd. `gif` wordt al
+// als schaduw bijgehouden zodat een latere stap ziekte erop kan overzetten.
+const CHEM: string[] = ["honger", "vermoeidheid", "stress", "endorfine", "gif"];
+function chemHalfLives(G: any): Record<string, number> {
+  // half-life in ticks: hoe hoger, hoe trager de stof wegebt (genoom-bepaald)
+  return {
+    honger:       10 / G.verval.energie,   // trager metabolisme → honger blijft langer
+    vermoeidheid: 12 / G.verval.fit,
+    stress:       14 / G.verval.stemming,
+    endorfine:    6  * G.herstel,           // beter herstel → endorfine zindert langer na
+    gif:          40 / G.ziekKans,          // zwakker immuun → gif blijft langer hangen
+  };
+}
+const chemVervalFactor = (h: number) => Math.pow(0.5, 1 / Math.max(1, h));
+
+function biochemie(b: any, bottys: any[]) {
+  const G = exprGenoom(b.genome);
+  const c = b.chem = b.chem || {};
+  for (const k of CHEM) if (typeof c[k] !== "number") c[k] = 0;
+  const actief = b.doel && b.doel.soort !== "bijkomen" && b.doel.soort !== "herstellen";
+  let nabij = 0;
+  if (b.pos) for (const o of bottys) { if (o !== b && !o.bezigEi && o.pos && afstand2(b.pos, o.pos) < ZICHT * ZICHT) nabij++; }
+
+  // Emitters: toestand → stof
+  c.honger       += (100 - (b.energie ?? 50)) * 0.045;
+  c.vermoeidheid += (100 - (b.fit ?? 50)) * 0.03 + (actief ? 1.4 : 0);
+  c.stress       += (100 - (b.geluk ?? 50)) * 0.02 + (b.ziek ? 4 : 0) + (nabij === 0 ? 0.8 : 0);
+  if (nabij > 0) c.endorfine += Math.min(nabij, 3) * 1.1;                 // gezelschap voelt goed
+  if (!b.ziek && Math.random() < 0.004 * G.ziekKans) c.gif += 22;         // schaduw van de ziek-blootstelling
+
+  // Reactie: endorfine blust stress (katalytische afbraak van stress)
+  c.stress -= Math.min(c.stress, c.endorfine * 0.12);
+
+  // Half-lives: exponentieel verval per stof
+  const hl = chemHalfLives(G);
+  for (const k of CHEM) c[k] = Math.max(0, Math.min(100, +(c[k] * chemVervalFactor(hl[k])).toFixed(2)));
+
+  // Receptors (deze stap alleen stemming, veilig): endorfine tilt op, stress drukt.
+  let d = 0;
+  if (c.endorfine > 30) d += (c.endorfine - 30) * 0.05;
+  if (c.stress    > 40) d -= (c.stress    - 40) * 0.04;
+  if (d !== 0) b.stemming = klem((b.stemming ?? 50) + d);
+}
+
 // Punten van interesse in het klaslokaal — waar nieuwsgierige Botty's naartoe zweven
 // om "rond te kijken" (coördinaten matchen construct.html, wereld 1000×600).
 const POIS = [
@@ -514,6 +563,15 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
   const laag = tekorten.filter(t => t[0] < 28).sort((a, c) => a[0] - c[0])[0];
   if (laag) { b.gedachte = laag[1]; return; }
 
+  // Biochemie voelbaar: een dominante stof kleurt af en toe de gedachte.
+  const ch = b.chem;
+  if (ch && Math.random() < 0.35) {
+    if ((ch.stress ?? 0) > 55)      { b.gedachte = uit(kies(["Ik voel me gespannen…", "Er zit onrust in mijn circuits", "Ik kom niet tot rust"])); return; }
+    if ((ch.endorfine ?? 0) > 55)   { b.gedachte = uit(kies(["Alles voelt licht nu", "Ik gloei van binnen", "Wat een fijn gevoel"])); return; }
+    if ((ch.vermoeidheid ?? 0) > 60){ b.gedachte = kies(["Ik ben bekaf.", "Mijn systemen slepen zich voort", "Even bijkomen…"]); return; }
+    if ((ch.honger ?? 0) > 60)      { b.gedachte = kies(["Ik snak naar stroom.", "Mijn accu knort"]); return; }
+  }
+
   if (Array.isArray(b.herinneringen) && b.herinneringen.length && Math.random() < 0.3) {
     const h = kies(b.herinneringen);
     b.gedachte = kies(["Ik denk nog aan vroeger: " + h.tekst, "Ik herinner me: " + h.tekst]);
@@ -676,6 +734,7 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
       b.stemming = klem((b.stemming ?? 50) + (beloond ? 1.5 : 0.2));
       if (beloond) {
         b.doel.mislukt = 0;
+        b.chem = b.chem || {}; b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 8); // zelf iets oplossen geeft een endorfine-zetje
         if (!b.zelfzorgGeleerd || !b.zelfzorgGeleerd[obj.id]) {
           b.zelfzorgGeleerd = b.zelfzorgGeleerd || {};
           b.zelfzorgGeleerd[obj.id] = true;
@@ -916,6 +975,7 @@ Deno.serve(async () => {
   for (let t = 0; t < gemist - 1; t++) {
     // Zelfregulatie loopt door: wie bij zijn object staat, blijft rustig laden.
     try { zelfzorgRonde(bottys, null); } catch (_) { /* niet kritisch */ }
+    try { bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); }); } catch (_) { /* chemie mag de tick nooit breken */ }
     kiesDoelen(bottys, ZORG_PER_TICK).forEach(b => { zorg(b); acties++; });
     if (t % Math.round(VERVAL_INTERVAL / INTERVAL) === 0) {
       bottys.forEach(b => { if (!b.bezigEi) vervalEen(b); });
@@ -937,7 +997,8 @@ Deno.serve(async () => {
       beweeg(bottys);
       zelfzorgRonde(bottys, events);
       socialeRonde(bottys, events);
-    } catch (_) { /* beweging/zelfzorg/sociaal is niet kritisch voor de hive */ }
+      bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); });
+    } catch (_) { /* beweging/zelfzorg/sociaal/chemie is niet kritisch voor de hive */ }
 
     const doelen = kiesDoelen(bottys, ZORG_PER_TICK);
     doelen.forEach((b, i) => {
@@ -1007,6 +1068,7 @@ Deno.serve(async () => {
       euforisch.add(x.b.bid);
       x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
       x.b.stemming = 100;
+      x.b.chem = x.b.chem || {}; x.b.chem.endorfine = 100;   // de kick als endorfine-piek
       vondstMap[x.b.bid] = x.r.getallen;
       // Episodisch geheugen: eerste priem ooit + het halen van een nieuw wiskunde-niveau.
       const voor = (x.b.vondsten ?? x.r.getallen.length) - x.r.getallen.length;
