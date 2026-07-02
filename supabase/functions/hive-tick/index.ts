@@ -37,14 +37,52 @@ const RUSTPLEK = { x: 500, y: 430 }; // rustige hoek bij de vloer (voor zieke Bo
 // drive. Een Botty met een tekort zweeft er zelf naartoe en reguleert zichzelf —
 // de AI-zorgronde blijft alleen als vangnet. Coördinaten matchen construct.html.
 const OBJECTEN = [
-  { id: "laadkruk", stat: "energie", x: 250, y: 450, icoon: "⚡", doe: "opladen bij de laadkruk",     actie: "laadt zichzelf op bij de omgevallen kruk", leer: "de omgevallen kruk me kan opladen" },
-  { id: "bord",     stat: "data",    x: 510, y: 240, icoon: "💾", doe: "leren van het schoolbord",    actie: "leert van de sommen op het bord",          leer: "de sommen op het bord me slimmer maken" },
-  { id: "bal",      stat: "fit",     x: 700, y: 470, icoon: "🏃", doe: "spelen met de bal",           actie: "speelt met de bal",                        leer: "spelen met de bal me fit houdt" },
-  { id: "deur",     stat: "geluk",   x: 920, y: 400, icoon: "🌲", doe: "het bos ruiken bij de deur",  actie: "snuift de bosgeur bij de open deur",       leer: "de bosgeur bij de deur me blij maakt" },
+  { id: "laadkruk", stat: "energie", kort: "de laadkruk",   x: 250, y: 450, icoon: "⚡", doe: "opladen bij de laadkruk",     actie: "laadt zichzelf op bij de omgevallen kruk", leer: "de omgevallen kruk me kan opladen" },
+  { id: "bord",     stat: "data",    kort: "het schoolbord", x: 510, y: 240, icoon: "💾", doe: "leren van het schoolbord",    actie: "leert van de sommen op het bord",          leer: "de sommen op het bord me slimmer maken" },
+  { id: "bal",      stat: "fit",     kort: "de bal",         x: 700, y: 470, icoon: "🏃", doe: "spelen met de bal",           actie: "speelt met de bal",                        leer: "spelen met de bal me fit houdt" },
+  { id: "deur",     stat: "geluk",   kort: "de open deur",   x: 920, y: 400, icoon: "🌲", doe: "het bos ruiken bij de deur",  actie: "snuift de bosgeur bij de open deur",       leer: "de bosgeur bij de deur me blij maakt" },
 ];
-const ZELFZORG_START = 55;   // laagste bar hieronder → zelf naar het object
+const DRIVE_STATS: string[] = ["energie", "data", "fit", "geluk"];
+const DRIVE_LABEL: Record<string, string> = { energie: "een leeg gevoel", data: "leerhonger", fit: "een slap lijf", geluk: "somberheid" };
+const ZELFZORG_START = 55;   // laagste bar hieronder → zelf naar een object
 const ZELFZORG_KLAAR = 80;   // bar hierboven → klaar, weer wat anders gaan doen
 const GEBRUIK_AFSTAND = 80;  // dicht genoeg bij het object om het te gebruiken
+
+// ── Lerend brein (Creatures-stijl reward/punishment) ────────────────────────────
+// Wélk object een drive oplost staat NIET vast: elke Botty leert het zelf. Per
+// drive houdt hij een geloof (0..1) bij per object. Een object dat de drive-bar
+// echt liet stijgen wordt beloond (geloof↑), iets dat niets deed bestraft
+// (geloof↓). Zo ontstaan individuele gewoontes, "bijgeloof" en fouten — en dat
+// zonder gebruiker: de omgeving zelf is de leraar. Groentjes exploreren veel,
+// experts exploiteren hun sterkste geloof (maar blijven een beetje nieuwsgierig).
+const BREIN_LEER     = 0.28;  // leersnelheid: hoe hard één ervaring het geloof bijstelt
+const BREIN_NEUTRAAL = 0.5;   // startgeloof voor een nog onbeproefd object
+const BREIN_EPS_MAX  = 0.4;   // exploratiekans van een groentje
+const BREIN_EPS_MIN  = 0.06;  // exploratiekans van een expert
+const BREIN_OPGEVEN  = 3;     // mislukte pogingen bij één object → iets anders proberen
+
+function breinGeloof(b: any, drive: string, objId: string): number {
+  return b.brein?.[drive]?.[objId] ?? BREIN_NEUTRAAL;
+}
+function breinLeer(b: any, drive: string, objId: string, beloond: boolean) {
+  b.brein = b.brein || {};
+  b.brein[drive] = b.brein[drive] || {};
+  const oud = b.brein[drive][objId] ?? BREIN_NEUTRAAL;
+  b.brein[drive][objId] = +(oud + BREIN_LEER * ((beloond ? 1 : 0) - oud)).toFixed(3);
+  b.breinN = b.breinN || {};
+  b.breinN[drive] = (b.breinN[drive] || 0) + 1;
+}
+function kiesObjectVoor(b: any, drive: string) {
+  const n = b.breinN?.[drive] ?? 0;
+  const eps = Math.max(BREIN_EPS_MIN, BREIN_EPS_MAX - n * 0.03);
+  if (Math.random() < eps) return OBJECTEN[Math.floor(Math.random() * OBJECTEN.length)]; // exploratie
+  let best = OBJECTEN[0], bestW = -Infinity;                                             // exploitatie
+  for (const o of OBJECTEN) {
+    const w = breinGeloof(b, drive, o.id) + Math.random() * 0.03; // kleine ruis tegen vastlopen
+    if (w > bestW) { bestW = w; best = o; }
+  }
+  return best;
+}
 // Punten van interesse in het klaslokaal — waar nieuwsgierige Botty's naartoe zweven
 // om "rond te kijken" (coördinaten matchen construct.html, wereld 1000×600).
 const POIS = [
@@ -502,13 +540,12 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // Zelfregulatie (drives → affordances): hysterese eerst — wie al bij een object
   // bezig is, blijft tot de drive echt is opgelost (anders flippert het doel).
   if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && (b[b.doel.stat] ?? 100) < ZELFZORG_KLAAR) return;
-  // Dan: pak de sterkste drive (laagste bar) en ga zélf naar het passende object.
-  const nood = OBJECTEN
-    .map(o => ({ o, v: b[o.stat] ?? 100 }))
-    .sort((p, q) => p.v - q.v)[0];
-  if (nood && nood.v < ZELFZORG_START) {
-    const o = nood.o;
-    b.doel = { soort: "zelfzorg", stat: o.stat, obj: o.id, px: o.x, py: o.y, tekst: o.doe };
+  // Dan: pak de sterkste drive (laagste bar). Wélk object daartegen helpt, kiest
+  // de Botty op basis van wat hij geleerd heeft (kiesObjectVoor) — niet vast.
+  const drive = DRIVE_STATS.map(s => ({ s, v: b[s] ?? 100 })).sort((p, q) => p.v - q.v)[0];
+  if (drive && drive.v < ZELFZORG_START) {
+    const o = kiesObjectVoor(b, drive.s);
+    b.doel = { soort: "zelfzorg", stat: drive.s, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0 };
     return;
   }
   if (rijp(b) && (b.stemming ?? 50) > 65 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
@@ -595,14 +632,44 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
     if (!obj || afstand2(b.pos, obj) > GEBRUIK_AFSTAND * GEBRUIK_AFSTAND) continue;
     const G = exprGenoom(b.genome);
     const factor = (G.zorg as any)[obj.stat] ?? 1;
+    const drive = b.doel.stat as string;
+    const voor = b[drive] ?? 50;
+    // Werkelijk effect: het object verhoogt ZIJN eigen stat — dat kan een andere
+    // zijn dan de drive die de Botty dácht op te lossen. Dat verschil is de les.
     b[obj.stat] = klem((b[obj.stat] ?? 50) + ZELFZORG_TEMPO * factor);
-    b.stemming = klem((b.stemming ?? 50) + 1.5);   // zelf iets oplossen voelt goed
-    if (!b.zelfzorgGeleerd || !b.zelfzorgGeleerd[obj.id]) {
-      b.zelfzorgGeleerd = b.zelfzorgGeleerd || {};
-      b.zelfzorgGeleerd[obj.id] = true;
-      onthoud(b, "zelfzorg", "ik ontdekte dat " + obj.leer);
+    const na = b[drive] ?? voor;
+
+    // Leren kan alleen als de drive nog kón stijgen (anders leert een volle bar niets).
+    const kanStijgen = voor < 99;
+    const beloond = na > voor + 0.01;
+    if (kanStijgen) {
+      breinLeer(b, drive, obj.id, beloond);
+      b.stemming = klem((b.stemming ?? 50) + (beloond ? 1.5 : 0.2));
+      if (beloond) {
+        b.doel.mislukt = 0;
+        if (!b.zelfzorgGeleerd || !b.zelfzorgGeleerd[obj.id]) {
+          b.zelfzorgGeleerd = b.zelfzorgGeleerd || {};
+          b.zelfzorgGeleerd[obj.id] = true;
+          onthoud(b, "zelfzorg", "ik ontdekte dat " + obj.leer);
+        }
+      } else {
+        b.doel.mislukt = (b.doel.mislukt || 0) + 1;
+        if (b.doel.mislukt >= BREIN_OPGEVEN) {
+          onthoud(b, "leren", "ik leerde dat " + obj.kort + " niet helpt tegen " + (DRIVE_LABEL[drive] || drive));
+          if (events && !gemeld && Math.random() < 0.5) {
+            events.push({ soort: "zelfzorg", naam: b.naam, label: "🤔", kleur: "#c9a86a", animeer: false,
+              tekst: "🤔 <b>" + b.naam + "</b> merkt dat " + obj.kort + " niet helpt tegen " + (DRIVE_LABEL[drive] || drive) });
+            gemeld = true;
+          }
+          b.doel = null;   // iets anders proberen bij de volgende keuze
+          continue;
+        }
+      }
+    } else {
+      b.stemming = klem((b.stemming ?? 50) + 1);
     }
-    if (events && !gemeld && Math.random() < 0.3) {
+
+    if (events && !gemeld && beloond && Math.random() < 0.3) {
       events.push({ soort: "zelfzorg", naam: b.naam, label: obj.icoon, kleur: "#5ec6ff", animeer: true,
         tekst: obj.icoon + " <b>" + b.naam + "</b> " + obj.actie });
       gemeld = true;
