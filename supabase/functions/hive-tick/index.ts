@@ -455,6 +455,38 @@ function rijp(b: any) {
     && (b.datakwaliteit ?? 50) + (b.efficientie ?? 50) >= 80
     && !b.bezigEi;
 }
+
+// ─── Sterfelijkheid: levenskracht-klok ──────────────────────────────────────────
+// Creatures: het brein-orgaan heeft een life-force; wordt die 0, dan sterft de
+// creature (Genetics Kit p.50). Onze levenskracht (0..100) beweegt naar een doel
+// dat bepaald wordt door ouderdom (een dalend plafond) minus acute nood (ziek,
+// uithongering, gif). Zo sterven vooral de oude en chronisch-zwakke Bottys —
+// jonge, gezonde Bottys overleven zelfs tegenslag. Tick-frequentie-onafhankelijk:
+// het evenwicht ligt vast, alleen de aanloop hangt van het aantal calls af.
+const OUDERDOM_START = 4000;  // leeftijd-eenheden (realSec/agingSpeed) waarop veroudering begint
+const OUDERDOM_DOOD  = 8000;  // hier staat het plafond op 0 → sterven van ouderdom
+const MIN_POP = 4;            // zachte vloer: de hive sterft nooit hieronder uit
+const MAX_POP = 12;           // zachte cap: daarboven vervangt een geboorte de zwakste ouder
+const DOEL_POP = 9;           // streefgetal voor de geboortekans
+function senescence(b: any): number {
+  const leeftijd = (Date.now() - (b.geboren ?? Date.now())) / 1000 / exprGenoom(b.genome).agingSpeed;
+  return Math.max(0, Math.min(1, (leeftijd - OUDERDOM_START) / (OUDERDOM_DOOD - OUDERDOM_START)));
+}
+function updateLevenskracht(b: any) {
+  if (typeof b.levenskracht !== "number") b.levenskracht = 100;
+  const plafond = 100 * (1 - senescence(b));       // ouderdom verlaagt het plafond permanent
+  let acuut = 0;                                    // acute nood drukt het doel tijdelijk omlaag
+  if (b.ziek) acuut += 12;
+  const laagste = Math.min(b.energie ?? 50, b.data ?? 50, b.fit ?? 50, b.geluk ?? 50);
+  if (laagste < 12) acuut += (12 - laagste) * 1.5;  // uithongering
+  const gif = b.chem?.gif ?? 0;
+  if (gif > 40) acuut += (gif - 40) * 0.3;
+  const doel = Math.max(0, plafond - acuut);
+  b.levenskracht = Math.max(0, Math.min(100, b.levenskracht + (doel - b.levenskracht) * 0.1));
+}
+function isDood(b: any): boolean {
+  return !b.bezigEi && ((b.levenskracht ?? 100) <= 0.5 || senescence(b) >= 1);
+}
 function geneScore(b: any) { return (b.datakwaliteit ?? 50) + (b.efficientie ?? 50); }
 // Urgentie: hoe lager, hoe eerder zorg nodig. De láágste losse stat telt
 // (één kritieke waarde is erger dan een matig gemiddelde), zieken springen voor.
@@ -960,6 +992,7 @@ Deno.serve(async () => {
     if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome).grootte;
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
+    if (typeof b.levenskracht !== "number") b.levenskracht = 100;   // sterfelijkheid
     plekVan(b);   // De Construct: geef elke Botty een startpositie in de arena
   });
 
@@ -994,6 +1027,7 @@ Deno.serve(async () => {
     bottys.forEach(b => {
       const s = huidigeStage(b); if (s !== b.stage) b.stage = s;
       updateStemming(b, bezoekers);
+      updateLevenskracht(b);
     });
   }
 
@@ -1026,6 +1060,7 @@ Deno.serve(async () => {
     bottys.forEach(b => {
       const s = huidigeStage(b); if (s !== b.stage) b.stage = s;
       updateStemming(b, bezoekers);
+      updateLevenskracht(b);
     });
 
     // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie).
@@ -1144,8 +1179,11 @@ Deno.serve(async () => {
       }
     }
 
-    // Voortplanting — genomen kruisen hier
-    if (Math.random() < 0.05) {
+    // Voortplanting — genomen kruisen hier. Geboortekans stijgt als de populatie
+    // krimpt (door sterfte), zodat de hive zichzelf naar het streefgetal herstelt.
+    const popLevend = bottys.filter((b: any) => !b.bezigEi).length;
+    const kweekKans = popLevend <= 5 ? 0.16 : popLevend < DOEL_POP ? 0.09 : popLevend < MAX_POP ? 0.05 : 0.025;
+    if (Math.random() < kweekKans) {
       const kandidaten = bottys.filter(rijp);
       if (kandidaten.length >= 2) {
         // Slimme partnerkeuze: kies het paar dat fit, genetisch divers én slim is.
@@ -1217,7 +1255,10 @@ Deno.serve(async () => {
           });
         } catch (_) { /* stamboom is niet kritisch */ }
 
-        if (idx >= 0) bottys[idx] = kind;
+        // Onder de cap groeit de hive (het kind vervangt een gestorven Botty);
+        // aan de cap maakt de zwakste ouder plaats voor het kind.
+        if (bottys.length < MAX_POP) bottys.push(kind);
+        else if (idx >= 0) bottys[idx] = kind;
 
         if (immigrant) {
           events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
@@ -1237,6 +1278,21 @@ Deno.serve(async () => {
         }
       }
     }
+
+    // Sterfelijkheid: wie geen levenskracht meer heeft, sterft — maar de hive zakt
+    // nooit onder de zachte vloer (de laatste paar leven op tot een geboorte volgt).
+    try {
+      for (const dode of bottys.filter(isDood)) {
+        if (bottys.length <= MIN_POP) { dode.levenskracht = Math.max(dode.levenskracht ?? 0, 8); continue; }
+        const i = bottys.indexOf(dode);
+        if (i < 0) continue;
+        bottys.splice(i, 1);
+        const leefdeMin = Math.round((nu - (dode.geboren ?? nu)) / 60000);
+        const oorzaak = senescence(dode) >= 1 ? "ouderdom" : dode.ziek ? "ziekte" : "uitputting";
+        events.push({ soort: "gestorven", naam: dode.naam, generatie: dode.generatie ?? 1,
+          tekst: "🕯️ <b>" + dode.naam + "</b> is niet meer — generatie " + (dode.generatie ?? 1) + " · leefde " + leefdeMin + " min · " + oorzaak });
+      }
+    } catch (_) { /* sterfte mag de tick nooit breken */ }
 
     // Bewustzijn: elke Botty vormt een innerlijke gedachte op basis van zijn staat,
     // zijn vondst van deze tick, zijn relaties en zijn herinneringen.
