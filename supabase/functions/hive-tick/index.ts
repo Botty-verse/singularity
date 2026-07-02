@@ -27,6 +27,8 @@ const PARTNER_DIVERSITEIT_GEWICHT = 0.12;
 const PARTNER_IQ_GEWICHT = 0.2;
 // Agency: een ouder die zélf een kind wil, telt zwaarder mee in de partnerkeuze.
 const PARTNER_WIL_GEWICHT = 30;
+// Fertiliteit: gestreste Bottys zijn minder vruchtbaar → minder aantrekkelijk als ouder.
+const PARTNER_STRESS_GEWICHT = 0.35;
 // De Construct: een 2D-arena waarin de Botty's rondlopen (top-down, units).
 const WERELD_B = 1000;          // breedte
 const WERELD_H = 600;           // hoogte
@@ -131,6 +133,10 @@ function chemHalfLives(G: any): Record<string, number> {
   };
 }
 const chemVervalFactor = (h: number) => Math.pow(0.5, 1 / Math.max(1, h));
+// Stress ondermijnt de weerstand (Creatures p.16/245: hoge stress → lagere
+// immuniteit én fertiliteit). Factor 1.0 (geen stress) .. 2.5 (max stress).
+const stressVan = (b: any): number => b.chem?.stress ?? 0;
+const stressFactor = (b: any): number => 1 + stressVan(b) / 100 * 1.5;
 
 function biochemie(b: any, bottys: any[]) {
   const G = exprGenoom(b.genome);
@@ -145,10 +151,13 @@ function biochemie(b: any, bottys: any[]) {
   c.vermoeidheid += (100 - (b.fit ?? 50)) * 0.03 + (actief ? 1.4 : 0);
   c.stress       += (100 - (b.geluk ?? 50)) * 0.02 + (b.ziek ? 4 : 0) + (nabij === 0 ? 0.8 : 0);
   if (nabij > 0) c.endorfine += Math.min(nabij, 3) * 1.1;                 // gezelschap voelt goed
-  if (!b.ziek && Math.random() < 0.004 * G.ziekKans) c.gif += 22;         // schaduw van de ziek-blootstelling
+  if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b)) c.gif += 22; // stress verzwakt de weerstand
 
-  // Reactie: endorfine blust stress (katalytische afbraak van stress)
-  c.stress -= Math.min(c.stress, c.endorfine * 0.12);
+  // Reactie: endorfine blust stress (katalytische afbraak). Bewust zwakker (0.06)
+  // zodat endorfine ambiënte stress dempt maar acute stress (ziek/eenzaam) niet
+  // volledig maskeert — anders bouwt stress nooit op en zijn de fertiliteit/
+  // immuniteit-effecten onzichtbaar.
+  c.stress -= Math.min(c.stress, c.endorfine * 0.06);
 
   // Half-lives: exponentieel verval per stof
   const hl = chemHalfLives(G);
@@ -521,7 +530,8 @@ function vervalEen(b: any) {
   b.fit      = klem(b.fit      - 1.6 * G.verval.fit);
   b.geluk    = klem(b.geluk    - 1.5 * G.verval.geluk);
   b.stemming = klem((b.stemming ?? 50) - 1.6 * G.verval.stemming);
-  if (!b.ziek && Math.random() < 0.004 * G.ziekKans) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
+  // Immuniteit: hoge stress verzwakt de weerstand → grotere ziektekans.
+  if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b)) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
 }
 
 // ─── Bewustzijn: innerlijke gedachte + episodisch geheugen ──────────────────────
@@ -635,7 +645,8 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
     b.doel = { soort: "zelfzorg", stat: drive.s, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0 };
     return;
   }
-  if (rijp(b) && (b.stemming ?? 50) > 65 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
+  // Fertiliteit: te veel stress onderdrukt de voortplantingsdrang (Creatures p.16).
+  if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
   if (mult(genoomBytes(b.genome), 11) > 1.05 && Math.random() < 0.45) {
     const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
     if (an.length) {
@@ -1147,7 +1158,8 @@ Deno.serve(async () => {
             const score = geneScore(a) + geneScore(b2)
               + PARTNER_DIVERSITEIT_GEWICHT * genoomAfstand(a.genome, b2.genome)
               + PARTNER_IQ_GEWICHT * ((a.iq ?? 100) + (b2.iq ?? 100))
-              + PARTNER_WIL_GEWICHT * wil;
+              + PARTNER_WIL_GEWICHT * wil
+              - PARTNER_STRESS_GEWICHT * (stressVan(a) + stressVan(b2));   // stress verlaagt fertiliteit
             if (!beste || score > beste.score) beste = { a, b: b2, score };
           }
         // De minst-fitte ouder maakt plaats voor het kind; de fitste blijft.
