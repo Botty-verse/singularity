@@ -83,6 +83,35 @@ function kiesObjectVoor(b: any, drive: string) {
   }
   return best;
 }
+// Erfelijke gewoontes (stap 2): een kind erft het gemengde geloof van beide
+// ouders — culturele overdracht bovenop de genetische. Zo begint een kind van
+// efficiënte foragers met een voorsprong, maar mutatie + halvering houden ruimte
+// voor eigen ontdekkingen (en voor het afleren van ouderlijk "bijgeloof").
+const BREIN_ERF_MUTATIE = 0.12;  // kans dat een geërfd geloof willekeurig verschuift
+function erfBrein(ouderA: any, ouderB: any): { brein: Record<string, Record<string, number>>; breinN: Record<string, number> } {
+  const brein: Record<string, Record<string, number>> = {};
+  const breinN: Record<string, number> = {};
+  for (const drive of DRIVE_STATS) {
+    const a = ouderA.brein?.[drive] || {};
+    const b = ouderB.brein?.[drive] || {};
+    const ids = new Set([...Object.keys(a), ...Object.keys(b)]);
+    if (!ids.size) continue;
+    const rij: Record<string, number> = {};
+    for (const id of ids) {
+      const va = a[id] ?? BREIN_NEUTRAAL, vb = b[id] ?? BREIN_NEUTRAAL;
+      let w = (va + vb) / 2;
+      // Naar neutraal trekken: het kind érft de neiging maar niet de zekerheid —
+      // het moet zelf nog bevestigen (halveert de afstand tot neutraal).
+      w = BREIN_NEUTRAAL + (w - BREIN_NEUTRAAL) * 0.6;
+      if (Math.random() < BREIN_ERF_MUTATIE) w += (Math.random() - 0.5) * 0.4;
+      rij[id] = +Math.max(0, Math.min(1, w)).toFixed(3);
+    }
+    brein[drive] = rij;
+    // Startervaring: genoeg om iets minder blind te exploreren, niet als expert.
+    breinN[drive] = 3;
+  }
+  return { brein, breinN };
+}
 // Punten van interesse in het klaslokaal — waar nieuwsgierige Botty's naartoe zweven
 // om "rond te kijken" (coördinaten matchen construct.html, wereld 1000×600).
 const POIS = [
@@ -783,12 +812,16 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
 
   const kindStemming = klem(((ouderA.stemming ?? 50) + (ouderB.stemming ?? 50)) / 2 + (Math.random() * 20 - 10));
 
+  // Erfelijke gewoontes: het kind erft het gemengde brein van beide ouders.
+  const { brein, breinN } = erfBrein(ouderA, ouderB);
+
   return maakBotty(naam, { ...kleur, naam: kleur.naam || "mix" }, gen, {
     datakwaliteit: dk, efficientie: ef, mutaties,
     stemming: kindStemming,
     genome: kindGenoom,
     grootte: G.grootte,
     erfenis,
+    brein, breinN,
   });
 }
 
