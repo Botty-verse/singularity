@@ -522,6 +522,19 @@ function updateLevenskracht(b: any) {
 function isDood(b: any): boolean {
   return !b.bezigEi && ((b.levenskracht ?? 100) <= 0.5 || senescence(b) >= 1);
 }
+
+// ─── Groei bijhouden: een levenslange staat van dienst per Botty ─────────────────
+// Accumuleert mijlpalen tijdens het leven (piek-IQ, priemen, woorden, vrienden,
+// niveau; kinderen wordt bij de geboorte opgehoogd). Bij de dood vormt dit het
+// grafschrift dat in de `levens`-tabel bewaard blijft.
+function updateGroei(b: any) {
+  const g = b.groei = b.groei || { piekIQ: b.iq ?? 100, kinderen: 0 };
+  if ((b.iq ?? 100) > (g.piekIQ ?? 0)) g.piekIQ = b.iq;
+  g.vondsten = b.vondsten ?? 0;
+  g.niveau   = wiskundeNiveau(b.vondsten ?? 0);
+  g.woorden  = b.lexicon ? Object.keys(b.lexicon).length : 0;
+  g.vrienden = b.relaties ? Object.keys(b.relaties).length : 0;
+}
 function geneScore(b: any) { return (b.datakwaliteit ?? 50) + (b.efficientie ?? 50); }
 // Urgentie: hoe lager, hoe eerder zorg nodig. De láágste losse stat telt
 // (één kritieke waarde is erger dan een matig gemiddelde), zieken springen voor.
@@ -1056,6 +1069,7 @@ Deno.serve(async () => {
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
     if (typeof b.levenskracht !== "number") b.levenskracht = 100;   // sterfelijkheid
+    if (!b.groei) b.groei = { piekIQ: b.iq ?? 100, kinderen: 0 };   // levenslange groei-teller
     plekVan(b);   // De Construct: geef elke Botty een startpositie in de arena
   });
 
@@ -1091,6 +1105,7 @@ Deno.serve(async () => {
       const s = huidigeStage(b); if (s !== b.stage) b.stage = s;
       updateStemming(b, bezoekers);
       updateLevenskracht(b);
+      updateGroei(b);
     });
   }
 
@@ -1124,6 +1139,7 @@ Deno.serve(async () => {
       const s = huidigeStage(b); if (s !== b.stage) b.stage = s;
       updateStemming(b, bezoekers);
       updateLevenskracht(b);
+      updateGroei(b);
     });
 
     // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie).
@@ -1292,6 +1308,8 @@ Deno.serve(async () => {
           }
           onthoud(kind, "geboorte", "ik werd geboren als kind van " + ouderA.naam + " en " + ouderB.naam);
           onthoud(ouderB, "kind", "ik kreeg een kind: " + kind.naam);
+          // Groei: beide ouders krijgen een kind op hun naam.
+          for (const ouder of [ouderA, ouderB]) { ouder.groei = ouder.groei || { piekIQ: ouder.iq ?? 100, kinderen: 0 }; ouder.groei.kinderen = (ouder.groei.kinderen || 0) + 1; }
           events.push({ soort: "kweek-start", naamA: ouderA.naam, naamB: ouderB.naam,
             tekst: "💞 De AI koppelt <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> — beste genen" });
         }
@@ -1344,18 +1362,43 @@ Deno.serve(async () => {
 
     // Sterfelijkheid: wie geen levenskracht meer heeft, sterft — maar de hive zakt
     // nooit onder de zachte vloer (de laatste paar leven op tot een geboorte volgt).
+    // Elk sterven laat een grafschrift na in de `levens`-tabel (blijvend spoor).
+    const grafschriften: any[] = [];
     try {
       for (const dode of bottys.filter(isDood)) {
         if (bottys.length <= MIN_POP) { dode.levenskracht = Math.max(dode.levenskracht ?? 0, 8); continue; }
         const i = bottys.indexOf(dode);
         if (i < 0) continue;
         bottys.splice(i, 1);
-        const leefdeMin = Math.round((nu - (dode.geboren ?? nu)) / 60000);
+        const leeftijdSec = Math.round((nu - (dode.geboren ?? nu)) / 1000);
         const oorzaak = senescence(dode) >= 1 ? "ouderdom" : dode.ziek ? "ziekte" : "uitputting";
+        const g = dode.groei || {};
+        const piekIQ = Math.round(g.piekIQ ?? dode.iq ?? 100);
+        const kinderen = g.kinderen ?? 0;
+        const woorden = dode.lexicon ? Object.keys(dode.lexicon).length : 0;
+        grafschriften.push({
+          bid: dode.bid ?? null, naam: dode.naam, generatie: dode.generatie ?? 1,
+          geboren: dode.geboren ? new Date(dode.geboren).toISOString() : null,
+          gestorven: new Date(nu).toISOString(), leeftijd_sec: leeftijdSec, oorzaak,
+          piek_iq: piekIQ, vondsten: dode.vondsten ?? 0, kinderen, woorden,
+          vrienden: dode.relaties ? Object.keys(dode.relaties).length : 0,
+          niveau: wiskundeNiveau(dode.vondsten ?? 0), genome: dode.genome ?? null,
+        });
+        const naliet = [
+          piekIQ > 100 ? "piek-IQ " + piekIQ : null,
+          (dode.vondsten ?? 0) > 0 ? (dode.vondsten + " priemen") : null,
+          kinderen > 0 ? (kinderen + " kind" + (kinderen !== 1 ? "eren" : "")) : null,
+          woorden > 0 ? (woorden + " woord" + (woorden !== 1 ? "en" : "")) : null,
+        ].filter(Boolean).join(", ");
         events.push({ soort: "gestorven", naam: dode.naam, generatie: dode.generatie ?? 1,
-          tekst: "🕯️ <b>" + dode.naam + "</b> is niet meer — generatie " + (dode.generatie ?? 1) + " · leefde " + leefdeMin + " min · " + oorzaak });
+          tekst: "🕯️ <b>" + dode.naam + "</b> is niet meer — generatie " + (dode.generatie ?? 1)
+            + " · leefde " + Math.round(leeftijdSec / 60) + " min · " + oorzaak
+            + (naliet ? " · liet na: " + naliet : "") });
       }
     } catch (_) { /* sterfte mag de tick nooit breken */ }
+    if (grafschriften.length) {
+      try { await supabase.from("levens").insert(grafschriften); } catch (_) { /* grafschrift is niet kritisch */ }
+    }
 
     // Bewustzijn: elke Botty vormt een innerlijke gedachte op basis van zijn staat,
     // zijn vondst van deze tick, zijn relaties en zijn herinneringen.
