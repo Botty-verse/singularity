@@ -881,11 +881,20 @@ Deno.serve(async () => {
     const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
     // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
     // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
+    // Met afkoelperiode: max 1× per ~10 min per Botty, anders pint een rijk
+    // priemveld alle bars permanent op 100 en worden de drives (zelfzorg,
+    // bijkomen, AI-zorg) nooit meer wakker. Tussendoor tellen vondsten gewoon.
+    const EUFORIE_PAUZE = 10 * 60 * 1000;
+    const euforisch = new Set<string>();
     const vondstMap: Record<string, number[]> = {};
     resultaten.forEach(x => {
       if (x.r.uitkomst !== "nieuw") return;
-      x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
-      x.b.stemming = 100;
+      if (nu - (x.b.euforieOp || 0) >= EUFORIE_PAUZE) {
+        x.b.euforieOp = nu;
+        euforisch.add(x.b.bid);
+        x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
+        x.b.stemming = 100;
+      }
       vondstMap[x.b.bid] = x.r.getallen;
       // Episodisch geheugen: eerste priem ooit + het halen van een nieuw wiskunde-niveau.
       const voor = (x.b.vondsten ?? x.r.getallen.length) - x.r.getallen.length;
@@ -911,7 +920,8 @@ Deno.serve(async () => {
         ? "🧠 <b>" + pick.b.naam + "</b> " + (aantal > 1
             ? "vond " + aantal + " priemen (" + r.getallen.join(", ") + ")"
             : "koos priemgetal " + r.getal)
-          + " — specialist in " + r.smaak + " · 📐 wiskunde-niveau " + r.niveau + " (+" + aantal + ", IQ " + r.iq + ") 🎉 bars op 100%!"
+          + " — specialist in " + r.smaak + " · 📐 wiskunde-niveau " + r.niveau + " (+" + aantal + ", IQ " + r.iq + ")"
+          + (euforisch.has(pick.b.bid) ? " 🎉 bars op 100%!" : "")
         : r.uitkomst === "leeg"
           ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen tussen " + PRIEM_LO + " en " + PRIEM_HI + " zijn al ontdekt"
           : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
