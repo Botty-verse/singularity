@@ -170,6 +170,41 @@ function biochemie(b: any, bottys: any[]) {
   if (d !== 0) b.stemming = klem((b.stemming ?? 50) + d);
 }
 
+// ─── Taal (fase 1): woorden ontstaan, verspreiden en driften ────────────────────
+// Emergente verb-object-taal (Creatures p.381-390), maar tussen de Bottys zelf.
+// Elke Botty houdt een lexicon bij: concept → zelfverzonnen woord. Bij een sterke
+// ervaring (geslaagde zelfzorg) munt hij een woord; in de sociale ronde geeft hij
+// het door, soms met klank-mutatie (dialect-drift). Zo convergeert de hive langzaam
+// naar een gedeelde taal — met varianten. Concepten fase 1: de vier objecten.
+const CONCEPTEN: string[] = OBJECTEN.map(o => o.id);
+const CONCEPT_LABEL: Record<string, string> = Object.fromEntries(OBJECTEN.map(o => [o.id, o.kort]));
+const TAAL_MK = "kmtsnrlpvhbdgz".split("");
+const TAAL_KL = "aeiou".split("");
+const taalSyl = (): string => TAAL_MK[Math.floor(Math.random() * TAAL_MK.length)] + TAAL_KL[Math.floor(Math.random() * TAAL_KL.length)];
+function muntWoord(): string { return Math.random() < 0.45 ? taalSyl() : taalSyl() + taalSyl(); }
+function muteerWoord(w: string): string {
+  const r = Math.random();
+  if (r < 0.5 && w.length >= 2) {                       // één klank verandert
+    const i = Math.floor(Math.random() * w.length);
+    const vervang = TAAL_KL.includes(w[i]) ? TAAL_KL[Math.floor(Math.random() * TAAL_KL.length)] : TAAL_MK[Math.floor(Math.random() * TAAL_MK.length)];
+    return w.slice(0, i) + vervang + w.slice(i + 1);
+  }
+  if (r < 0.8) return w + taalSyl();                    // langer
+  return w.length > 2 ? w.slice(0, -2) : w + taalSyl(); // korter
+}
+// De spreker geeft zijn woord voor één concept door aan de luisteraar (soms met drift).
+function praat(spreker: any, luisteraar: any): { concept: string; woord: string } | null {
+  const lex = spreker.lexicon; if (!lex) return null;
+  const bekend = CONCEPTEN.filter(c => lex[c]);
+  if (!bekend.length) return null;
+  const concept = bekend[Math.floor(Math.random() * bekend.length)];
+  const woord = lex[concept];
+  luisteraar.lexicon = luisteraar.lexicon || {};
+  if (luisteraar.lexicon[concept] === woord) return null;
+  luisteraar.lexicon[concept] = Math.random() < 0.12 ? muteerWoord(woord) : woord;
+  return { concept, woord: luisteraar.lexicon[concept] };
+}
+
 // Punten van interesse in het klaslokaal — waar nieuwsgierige Botty's naartoe zweven
 // om "rond te kijken" (coördinaten matchen construct.html, wereld 1000×600).
 const POIS = [
@@ -656,6 +691,17 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     return;
   }
 
+  // Taal: soms mijmert een Botty over zijn eigen woord voor iets.
+  if (b.lexicon && Math.random() < 0.2) {
+    const bekend = CONCEPTEN.filter(c => b.lexicon[c]);
+    if (bekend.length) {
+      const c = kies(bekend);
+      b.gedachte = uit(kies(["“" + b.lexicon[c] + "”… zo noem ik " + (CONCEPT_LABEL[c] || c),
+        "In mijn hoofd heet " + (CONCEPT_LABEL[c] || c) + " “" + b.lexicon[c] + "”", "“" + b.lexicon[c] + "”"]));
+      return;
+    }
+  }
+
   const zelf = niv >= 4 ? "Ik ken de getallen nu goed." : niv >= 2 ? "Ik begin de patronen te zien." : "Zoveel getallen nog te ontdekken.";
   b.gedachte = kies(["Ik denk na over " + smk + ".", zelf, "Welke priem wacht er op mij?", "Stil. Rekenen.", "Ik tel de stilte."]);
 }
@@ -778,6 +824,13 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
       if (beloond) {
         b.doel.mislukt = 0;
         b.chem = b.chem || {}; b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 8); // zelf iets oplossen geeft een endorfine-zetje
+        // Taal: munt een woord voor dit object als je er nog geen hebt.
+        b.lexicon = b.lexicon || {};
+        if (!b.lexicon[obj.id]) {
+          b.lexicon[obj.id] = muntWoord();
+          if (events && Math.random() < 0.5) events.push({ soort: "taal", naam: b.naam,
+            tekst: "🗣️ <b>" + b.naam + "</b> munt een woord voor " + obj.kort + ": “" + b.lexicon[obj.id] + "”" });
+        }
         if (!b.zelfzorgGeleerd || !b.zelfzorgGeleerd[obj.id]) {
           b.zelfzorgGeleerd = b.zelfzorgGeleerd || {};
           b.zelfzorgGeleerd[obj.id] = true;
@@ -821,7 +874,8 @@ function socialeRonde(bottys: any[], events: object[]) {
   for (const b of actief) {
     if (b.relaties) for (const k in b.relaties) { b.relaties[k] *= 0.98; if (b.relaties[k] < 0.5) delete b.relaties[k]; }
   }
-  // Per Botty: buren waarnemen → emotionele besmetting + affiniteit.
+  // Per Botty: buren waarnemen → emotionele besmetting + affiniteit + taal.
+  let praatGedaan = false;
   for (const b of actief) {
     const emp = empathie(b);
     let som = 0, n = 0;
@@ -830,6 +884,15 @@ function socialeRonde(bottys: any[], events: object[]) {
       n++; som += (c.stemming ?? 50);
       b.relaties = b.relaties || {};
       b.relaties[c.bid] = Math.min(100, (b.relaties[c.bid] || 0) + 1); // samen zijn schept band
+      // Taal: af en toe zegt b een woord tegen buur c, die het overneemt.
+      if (Math.random() < 0.25) {
+        const p = praat(b, c);
+        if (p && !praatGedaan && Math.random() < 0.4) {
+          events.push({ soort: "taal", naamA: b.naam, naamB: c.naam,
+            tekst: "🗨️ <b>" + b.naam + "</b> zegt “" + p.woord + "” (" + (CONCEPT_LABEL[p.concept] || p.concept) + ") tegen <b>" + c.naam + "</b>" });
+          praatGedaan = true;
+        }
+      }
     }
     if (n) {
       const gem = som / n;                                  // schuif licht naar de buur-stemming
