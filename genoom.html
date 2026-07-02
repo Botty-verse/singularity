@@ -48,6 +48,16 @@
   .levensloop ul{list-style:none;display:flex;flex-direction:column;gap:.22rem;font-size:.78rem;color:#a8d4be;}
   .levensloop li::before{content:"• ";color:#5ec6ff;}
 
+  /* Biochemie-soup */
+  .biochem{margin-top:.7rem;border-top:1px solid #0f2c1d;padding-top:.5rem;}
+  .biochem h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#7fb89a;margin-bottom:.35rem;}
+  .biochem h4 small{text-transform:none;letter-spacing:0;color:#5f8f78;font-weight:400;}
+  .chemrij{display:grid;grid-template-columns:1.3rem 5rem 1fr 2rem;align-items:center;gap:.4rem;margin:.2rem 0;font-size:.76rem;}
+  .chemrij .cn{color:#a8d4be;}
+  .chembar{height:7px;background:#0a1f13;border-radius:99px;overflow:hidden;}
+  .chembar>span{display:block;height:100%;border-radius:99px;opacity:.92;transition:width .4s ease;}
+  .chemrij .cv{text-align:right;font-variant-numeric:tabular-nums;color:#cfe7dd;font-weight:700;}
+
   /* Divergerende balk rond neutraal (×1.0 = midden) */
   .meterrij{grid-column:1 / -1;margin:.1rem 0 .15rem;}
   .meter{position:relative;height:8px;background:#0a1f13;border-radius:99px;overflow:hidden;}
@@ -134,6 +144,26 @@
     return '<div class="meterrij"><div class="meter"><span class="mid"></span><span class="vul" style="'+vul+'"></span></div></div>';
   }
 
+  // Biochemie-soup (stap 3): interne stoffen als gekleurde balkjes
+  var CHEMIE = [
+    { k:"honger",       ico:"🍽️", naam:"honger",       kl:"#f0a02a" },
+    { k:"vermoeidheid", ico:"😴", naam:"vermoeidheid", kl:"#7f9cc6" },
+    { k:"stress",       ico:"⚡", naam:"stress",        kl:"#e0556b" },
+    { k:"endorfine",    ico:"✨", naam:"endorfine",     kl:"#39ff85" },
+    { k:"gif",          ico:"☠️", naam:"gif",           kl:"#b57ee0" }
+  ];
+  function chemHtml(b){
+    if(!b.chem) return "";
+    var rijen = CHEMIE.map(function(c){
+      var v = Math.max(0, Math.min(100, Math.round(b.chem[c.k]||0)));
+      return '<div class="chemrij"><span title="'+esc(c.naam)+'">'+c.ico+'</span>'
+        + '<span class="cn">'+esc(c.naam)+'</span>'
+        + '<span class="chembar"><span style="width:'+v+'%;background:'+c.kl+'"></span></span>'
+        + '<span class="cv">'+v+'</span></div>';
+    }).join("");
+    return '<div class="biochem"><h4>🧪 Biochemie <small>interne stoffen · 0–100</small></h4>'+rijen+'</div>';
+  }
+
   function kaartHtml(b){
     var by = genoomBytes(b.genome);
     var p = b.kleur || paletten[0];
@@ -169,6 +199,7 @@
       + (b.gedachte ? '<div class="g-bubbel">💭 '+esc(b.gedachte)+(b.doel&&b.doel.tekst ? ' <span style="color:#a3ffce">· 🎯 '+esc(b.doel.tekst)+'</span>' : '')+'</div>' : '')
       + vrienden
       + rijen
+      + chemHtml(b)
       + herin
       + '</div>';
   }
