@@ -40,6 +40,49 @@
   .obj-halo{animation:objectPuls 3.6s ease-in-out infinite;}
   @keyframes objectPuls{0%,100%{opacity:.16}50%{opacity:.42}}
   .gebruik{animation:broed 1.6s ease-in-out infinite;}
+
+  /* ── Creatures-laag: de Hand, spraakbubbels, selectie, verzorgerskit ── */
+  svg.kamer{cursor:none;}
+  .hand{pointer-events:none;transition:opacity .2s;}
+  .hand text{filter:drop-shadow(2px 3px 2px rgba(0,0,0,.35));}
+  .hand.aait text{transform-box:fill-box;transform-origin:50% 80%;animation:aai .5s ease-in-out infinite;}
+  @keyframes aai{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(10deg)}}
+  .botje{cursor:none;}
+  .botje.sel .sprite{filter:drop-shadow(0 0 9px #ffe6a8) drop-shadow(0 0 20px rgba(246,199,90,.55));}
+  .botje.dim text{opacity:.35;}
+  .bubbel{animation:bubbelIn .22s ease-out;pointer-events:none;}
+  @keyframes bubbelIn{0%{opacity:0}100%{opacity:1}}
+  .bubbel rect{fill:#fff8e6;stroke:#8a6b3f;stroke-width:2;}
+  .bubbel path{fill:#fff8e6;stroke:#8a6b3f;stroke-width:2;}
+  .bubbel text{font:700 14px Nunito,sans-serif;fill:#4a3418;text-anchor:middle;stroke:none;paint-order:normal;}
+  .hartje{animation:hartje 1.15s ease-out forwards;pointer-events:none;font:16px sans-serif;}
+  @keyframes hartje{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-46px)}}
+
+  .kit{margin-top:.8rem;background:linear-gradient(180deg,#241a10,#1c130b);border:2px solid #6b4a2b;
+       border-radius:16px;padding:.9rem 1.1rem;box-shadow:inset 0 1px 0 rgba(255,230,168,.12),0 6px 24px rgba(0,0,0,.4);}
+  .kit-kop{display:flex;align-items:center;gap:.5rem;font-weight:900;color:#f6c75a;font-size:.92rem;
+           letter-spacing:.04em;text-transform:uppercase;}
+  .kit-kop .lampje{width:8px;height:8px;border-radius:50%;background:#39ff85;animation:broed 2.4s ease-in-out infinite;}
+  .kit-leeg{margin-top:.5rem;color:#b89a6a;font-size:.88rem;font-style:italic;}
+  .kit-body{display:flex;flex-wrap:wrap;gap:1.1rem;align-items:center;margin-top:.7rem;}
+  .kit-portret{width:74px;height:92px;flex-shrink:0;background:#14100a;border:2px solid #4a3a28;border-radius:12px;padding:4px;}
+  .kit-info{min-width:150px;flex:1 1 150px;}
+  .kit-naam{font-weight:900;font-size:1.15rem;color:#ffe6a8;}
+  .kit-sub{font-size:.75rem;color:#b89a6a;margin-top:.1rem;}
+  .kit-gedachte{margin-top:.45rem;font-size:.82rem;color:#e6d2a8;font-style:italic;line-height:1.4;
+                background:#14100a;border:1px solid #4a3a28;border-radius:10px;padding:.4rem .6rem;}
+  .kit-drives{flex:1 1 220px;min-width:200px;display:flex;flex-direction:column;gap:.35rem;}
+  .drive{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:#cbb189;}
+  .drive .dlabel{width:88px;flex-shrink:0;text-align:right;}
+  .drive .dbar{flex:1;height:9px;background:#14100a;border:1px solid #4a3a28;border-radius:99px;overflow:hidden;}
+  .drive .dbar>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8a5a1c,#f6c75a);transition:width .6s ease;}
+  .drive.hoog .dbar>span{background:linear-gradient(90deg,#8a2c1c,#e0556b);}
+  .kit-hart{flex:0 0 150px;text-align:center;}
+  .ecg-venster{background:#07210f;border:2px solid #1f4a2d;border-radius:10px;overflow:hidden;height:44px;position:relative;}
+  .ecg-band{position:absolute;top:0;left:0;height:100%;width:200%;display:flex;
+            animation:ecg var(--dur,1.4s) linear infinite;}
+  @keyframes ecg{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .kit-bpm{font-size:.72rem;color:#7fffb0;margin-top:.3rem;font-family:monospace;}
   footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #3a2a18;width:100%;}
   footer a{color:#b89a6a;text-decoration:none;font-weight:700;font-size:.9rem;}
   footer a:hover{color:#ffe6a8;}
@@ -49,7 +92,8 @@
 <header>
   <h1>🏫 Het klaslokaal</h1>
   <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
-    hebben het lokaal voor zichzelf — ze lopen rond, zoeken elkaar op, en aan het bord wachten de priemen.</p>
+    hebben het lokaal voor zichzelf. <strong>Jij bent de hand</strong> — klik op een Botty om ’m te volgen
+    en te observeren, klik nog eens om te kietelen. Luister: ze brabbelen.</p>
   <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html">🗺️ Genoom-kaart</a>
 </header>
 
@@ -228,11 +272,37 @@
 
       <!-- Botty-laag (gevuld door JS) -->
       <g id="laag"></g>
+      <!-- spraakbubbels + hartjes -->
+      <g id="fxlaag"></g>
+      <!-- De Hand: jouw aanwezigheid in de Construct -->
+      <g id="hand" class="hand" opacity="0"><text x="-8" y="26" style="font:34px sans-serif">🖐</text></g>
     </svg>
   </div>
   <div class="status">
     <span id="st-links">🏫 Verbinden met de hive…</span>
     <span id="st-rechts"></span>
+  </div>
+
+  <!-- Verzorgerskit (Creatures-stijl observatiepaneel) -->
+  <div class="kit" id="kit">
+    <div class="kit-kop"><span class="lampje"></span> Verzorgerskit</div>
+    <div class="kit-leeg" id="kit-leeg">Klik op een Botty in het lokaal om ’m te observeren. De camera volgt, de kit leest de driften uit.</div>
+    <div class="kit-body" id="kit-body" hidden>
+      <svg class="kit-portret" id="kit-portret" viewBox="0 0 200 250" aria-label="portret"></svg>
+      <div class="kit-info">
+        <div class="kit-naam" id="kit-naam"></div>
+        <div class="kit-sub" id="kit-sub"></div>
+        <div class="kit-gedachte" id="kit-gedachte">…</div>
+      </div>
+      <div class="kit-drives" id="kit-drives"></div>
+      <div class="kit-hart">
+        <div class="ecg-venster"><div class="ecg-band" id="ecg-band">
+          <svg viewBox="0 0 150 44" preserveAspectRatio="none" style="width:50%;height:100%"><path d="M0,24 h40 l8,-13 8,24 8,-18 5,7 h81" fill="none" stroke="#39ff85" stroke-width="2.5"/></svg>
+          <svg viewBox="0 0 150 44" preserveAspectRatio="none" style="width:50%;height:100%"><path d="M0,24 h40 l8,-13 8,24 8,-18 5,7 h81" fill="none" stroke="#39ff85" stroke-width="2.5"/></svg>
+        </div></div>
+        <div class="kit-bpm" id="kit-bpm">— klop/min</div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -273,6 +343,11 @@
   ];
 
   var laag = document.getElementById("laag");
+  var fxlaag = document.getElementById("fxlaag");
+  var handEl = document.getElementById("hand");
+  var kamerEl = document.getElementById("kamer");
+  var sel = null;                       // naam van de geselecteerde Botty
+  var cam = { x:0, y:0, w:1000 };       // camera (viewBox), lerp't naar doel
   // Objectlaag: zachte pulserende halo + icoon per affordance-object
   (function(){
     var ol = document.getElementById("objectlaag");
@@ -412,8 +487,153 @@
       } else nd.gebruik.setAttribute("opacity", "0");
       nd.ring.setAttribute("fill", b.ziek ? "#e0556b" : (DOEL_KLEUR[b.doel && b.doel.soort] || "#9aa0a4"));
       if(b.gedachte){ var t=nd.g.querySelector("title")||nd.g.appendChild(document.createElementNS(SVGNS,"title")); t.textContent = b.naam+": "+b.gedachte; }
+      // selectie-markering + namen dimmen van de rest
+      nd.g.classList.toggle("sel", sel === b.naam);
+      nd.g.classList.toggle("dim", !!sel && sel !== b.naam);
+      // spraakbubbel volgt de spreker
+      if(nd.bub){
+        nd.bubTtl -= 16;
+        if(nd.bubTtl <= 0){ if(nd.bub.parentNode) nd.bub.parentNode.removeChild(nd.bub); nd.bub = null; }
+        else nd.bub.setAttribute("transform","translate("+r.x+","+(y0-26)+")");
+      }
+      nd.laatstY0 = y0; nd.laatstH = h;
     });
+    // camera: volg de geselecteerde Botty (Creatures-stijl), anders het hele lokaal
+    var doelCam;
+    if(sel && nodes[sel]){
+      var sr = nodes[sel].render, cw = 560;
+      doelCam = { w:cw,
+        x: Math.max(0, Math.min(1000-cw, sr.x - cw/2)),
+        y: Math.max(0, Math.min(600-cw*0.6, Math.max(150, Math.min(470, sr.y)) - cw*0.32)) };
+    } else doelCam = { x:0, y:0, w:1000 };
+    cam.x += (doelCam.x-cam.x)*0.07; cam.y += (doelCam.y-cam.y)*0.07; cam.w += (doelCam.w-cam.w)*0.07;
+    kamerEl.setAttribute("viewBox", cam.x.toFixed(1)+" "+cam.y.toFixed(1)+" "+cam.w.toFixed(1)+" "+(cam.w*0.6).toFixed(1));
+    // hand meeschalen met de zoom zodat hij altijd even groot oogt
+    if(handPos){ var hs = cam.w/1000; handEl.setAttribute("transform","translate("+handPos.x+","+handPos.y+") scale("+hs.toFixed(3)+")"); }
+    updateKitLive();
     requestAnimationFrame(frame);
+  }
+
+  // ── De Hand: jouw cursor in de wereld ────────────────────────────────────
+  var handPos = null;
+  function svgCoord(ev){
+    var pt = kamerEl.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    var m = kamerEl.getScreenCTM(); if(!m) return null;
+    return pt.matrixTransform(m.inverse());
+  }
+  kamerEl.addEventListener("pointermove", function(ev){
+    var p = svgCoord(ev); if(!p) return;
+    handPos = { x:p.x, y:p.y };
+    handEl.setAttribute("opacity","1");
+  });
+  kamerEl.addEventListener("pointerleave", function(){ handEl.setAttribute("opacity","0"); handPos=null; });
+
+  // klik: selecteer de dichtstbijzijnde Botty — nogmaals klikken = kietelen
+  kamerEl.addEventListener("click", function(ev){
+    var p = svgCoord(ev); if(!p) return;
+    var beste = null, besteD = 75*75;
+    bottys.forEach(function(b){
+      var nd = nodes[b.naam]; if(!nd) return;
+      var cy = Math.max(150, Math.min(470, nd.render.y));
+      var dx = nd.render.x - p.x, dy = cy - p.y, d2 = dx*dx + dy*dy;
+      if(d2 < besteD){ besteD = d2; beste = b.naam; }
+    });
+    if(beste && beste === sel){ kietel(beste); }
+    else if(beste){ sel = beste; updateKit(); }
+    else { sel = null; updateKit(); }
+  });
+
+  // ── Kietelen: hartjes, gegiechel, blije hand ─────────────────────────────
+  var GIECHEL = ["hihi!","kietel kietel!","hihihi","nog eens!","dat kietelt!"];
+  function kietel(naam){
+    var nd = nodes[naam]; if(!nd) return;
+    zeg(nd, GIECHEL[Math.floor(Math.random()*GIECHEL.length)]);
+    handEl.classList.add("aait");
+    setTimeout(function(){ handEl.classList.remove("aait"); }, 900);
+    for(var i=0;i<3;i++){
+      (function(i){ setTimeout(function(){
+        var h = document.createElementNS(SVGNS,"text");
+        h.setAttribute("class","hartje");
+        h.setAttribute("x", nd.render.x - 20 + Math.random()*40);
+        h.setAttribute("y", (nd.laatstY0||nd.render.y) - 6);
+        h.textContent = Math.random()<0.5 ? "💛" : "❤️";
+        fxlaag.appendChild(h);
+        setTimeout(function(){ if(h.parentNode) h.parentNode.removeChild(h); }, 1200);
+      }, i*180); })(i);
+    }
+  }
+
+  // ── Brabbelen: Creatures-babytaal per doel/toestand ──────────────────────
+  var BRABBEL = {
+    priemjacht:   ["ikke zoek priem","priem waar?","getal getal getal","deelbaar? nee!"],
+    gezelschap:   ["wil vriend","samen leuk","waar iedereen?","botty bij botty"],
+    herstellen:   ["botty moe","even rusten","zzz…","oplaadje doen"],
+    bijkomen:     ["poeh poeh","even zitten","botty bijkomen"],
+    voortplanting:["botty verliefd 💕","mooi botty daar","hartje snel"],
+    nieuwsgierig: ["dat wat?","ooh mooi","ikke kijken","glimmend ding!"],
+    zelfzorg:     ["ikke speel","dit fijn","zelf doen!"],
+    ziek:         ["botty au","voel raar","niet lekker…"]
+  };
+  function zeg(nd, tekst){
+    if(nd.bub && nd.bub.parentNode) nd.bub.parentNode.removeChild(nd.bub);
+    var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","bubbel");
+    var w = tekst.length*7.6 + 22;
+    g.innerHTML = '<rect x="'+(-w/2)+'" y="-30" width="'+w+'" height="24" rx="11"/>'
+                + '<path d="M-5,-7 L0,2 L5,-7 Z"/>'
+                + '<text y="-13">'+esc(tekst)+'</text>';
+    fxlaag.appendChild(g);
+    nd.bub = g; nd.bubTtl = 2400;
+  }
+  setInterval(function(){
+    if(document.hidden || !bottys.length) return;
+    if(Math.random() < 0.35) return;                    // stiltes horen erbij
+    var b = bottys[Math.floor(Math.random()*bottys.length)];
+    var nd = nodes[b.naam]; if(!nd || nd.bub) return;
+    var pot = b.ziek ? BRABBEL.ziek : (BRABBEL[b.doel && b.doel.soort] || BRABBEL.nieuwsgierig);
+    zeg(nd, pot[Math.floor(Math.random()*pot.length)]);
+  }, 4200);
+
+  // ── Verzorgerskit ────────────────────────────────────────────────────────
+  var DRIVES = [
+    { id:"moe",     label:"😴 Moeheid",     bron:"energie" },
+    { id:"honger",  label:"💾 Datahonger",  bron:"data" },
+    { id:"stijf",   label:"🦴 Stijfheid",   bron:"fit" },
+    { id:"eenzaam", label:"💔 Eenzaamheid", bron:"geluk" }
+  ];
+  var kitDrives = document.getElementById("kit-drives");
+  DRIVES.forEach(function(d){
+    var rij = document.createElement("div"); rij.className = "drive"; rij.id = "drive-"+d.id;
+    rij.innerHTML = '<span class="dlabel">'+d.label+'</span><span class="dbar"><span style="width:0%"></span></span>';
+    kitDrives.appendChild(rij);
+  });
+  var kitStageLabel = { baby:"Baby", tiener:"Tiener", volwassen:"Volwassen" };
+  function updateKit(){
+    var leeg = document.getElementById("kit-leeg"), body = document.getElementById("kit-body");
+    var b = sel && bottys.find(function(x){ return x.naam === sel; });
+    if(!b){ sel = null; leeg.hidden = false; body.hidden = true; return; }
+    leeg.hidden = true; body.hidden = false;
+    document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
+    document.getElementById("kit-naam").textContent = b.naam;
+  }
+  var kitPuls = 0;
+  function updateKitLive(){
+    if(!sel || (kitPuls++ % 30) !== 0) return;          // ±2x per seconde is genoeg
+    var b = bottys.find(function(x){ return x.naam === sel; });
+    if(!b){ sel = null; updateKit(); return; }
+    var g = (b.energie+b.data+b.fit+b.geluk)/4;
+    document.getElementById("kit-sub").textContent =
+      (kitStageLabel[b.stage]||b.stage) + " · generatie " + (b.generatie||1)
+      + (b.ziek ? " · 🤒 ziek" : "") + " · doel: " + (b.doel && b.doel.soort || "dwalen");
+    document.getElementById("kit-gedachte").textContent = "“" + (b.gedachte || "…") + "”";
+    DRIVES.forEach(function(d){
+      var v = Math.max(0, Math.min(100, 100 - (b[d.bron]||0)));
+      var rij = document.getElementById("drive-"+d.id);
+      rij.querySelector(".dbar > span").style.width = v + "%";
+      rij.classList.toggle("hoog", v > 65);
+    });
+    var bpm = Math.round(55 + (100-g)*1.1 + (b.ziek?25:0));
+    document.getElementById("ecg-band").style.setProperty("--dur", (60/bpm*2).toFixed(2)+"s");
+    document.getElementById("kit-bpm").textContent = "♥ " + bpm + " klop/min";
   }
 
   laad();
