@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "mcp__Supabase__apply_migration",
+      "mcp__Supabase__deploy_edge_function"
+    ]
+  }
+}
