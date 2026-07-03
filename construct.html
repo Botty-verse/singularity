@@ -29,7 +29,9 @@
   .status b{color:#f6c75a;}
   .blad{animation:dwarrel linear infinite;}
   @keyframes dwarrel{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(-40px,560px) rotate(320deg)}}
-  .rays{animation:gloed 7s ease-in-out infinite;}
+  .rays{animation:gloed 7s ease-in-out infinite;transition:opacity 5s ease;}
+  body.nacht .rays{animation:none;opacity:.06;}
+  body.nacht .blad{visibility:hidden;}
   @keyframes gloed{0%,100%{opacity:.85}50%{opacity:1}}
   .stoom{animation:stoom 5s ease-in-out infinite;transform-origin:center;}
   @keyframes stoom{0%{opacity:0;transform:translateY(6px)}40%{opacity:.2}100%{opacity:0;transform:translateY(-14px)}}
@@ -283,6 +285,26 @@
       <g id="laag"></g>
       <!-- spraakbubbels + hartjes -->
       <g id="fxlaag"></g>
+      <!-- Nacht: blauwe deken, maan en sterren (opacity via JS, volgt de Nederlandse klok) -->
+      <g id="nachtlaag" style="opacity:0;transition:opacity 5s ease;pointer-events:none">
+        <rect x="0" y="0" width="1000" height="600" fill="#1a2a55" opacity="0.5" style="mix-blend-mode:multiply"/>
+        <rect x="0" y="0" width="1000" height="600" fill="#0b1533" opacity="0.30"/>
+        <g clip-path="url(#raamL)">
+          <rect x="60" y="70" width="200" height="150" fill="#0d1838" opacity="0.72"/>
+          <circle cx="128" cy="112" r="20" fill="#f3ecd2"/>
+          <circle cx="121" cy="106" r="17" fill="#152246"/>
+          <circle cx="88" cy="95" r="1.6" fill="#fff" opacity="0.9"/><circle cx="180" cy="88" r="1.3" fill="#fff" opacity="0.7"/>
+          <circle cx="215" cy="120" r="1.8" fill="#fff" opacity="0.85"/><circle cx="150" cy="170" r="1.2" fill="#fff" opacity="0.6"/>
+          <circle cx="95" cy="185" r="1.5" fill="#fff" opacity="0.75"/>
+        </g>
+        <g clip-path="url(#raamR)">
+          <rect x="740" y="70" width="200" height="150" fill="#0d1838" opacity="0.72"/>
+          <circle cx="778" cy="98" r="1.6" fill="#fff" opacity="0.85"/><circle cx="852" cy="86" r="1.4" fill="#fff" opacity="0.7"/>
+          <circle cx="908" cy="112" r="1.9" fill="#fff" opacity="0.9"/><circle cx="820" cy="150" r="1.2" fill="#fff" opacity="0.6"/>
+          <circle cx="880" cy="180" r="1.5" fill="#fff" opacity="0.75"/>
+        </g>
+        <g clip-path="url(#deurgat)"><rect x="934" y="298" width="66" height="214" fill="#0d1838" opacity="0.6"/></g>
+      </g>
       <!-- De Hand: jouw aanwezigheid in de Construct -->
       <g id="hand" class="hand" opacity="0"><text x="-8" y="26" style="font:34px sans-serif">🖐</text></g>
     </svg>
@@ -342,7 +364,21 @@
   var WERELD_B = 1000;                 // moet matchen met de edge function
   var VLOER = 512;                     // y van de vloer in de SVG
   var SVGNS = "http://www.w3.org/2000/svg";
-  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff" };
+  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff" };
+
+  // ── Dag & nacht op Nederlandse kloktijd (zelfde regel als de edge function) ──
+  function isNacht(){
+    var uur = Number(new Intl.DateTimeFormat("nl-NL",{timeZone:"Europe/Amsterdam",hour:"numeric",hour12:false}).format(new Date()));
+    return uur >= 22 || uur < 7;
+  }
+  var nacht = false;
+  function updateNacht(){
+    nacht = isNacht();
+    document.body.classList.toggle("nacht", nacht);
+    document.getElementById("nachtlaag").style.opacity = nacht ? "1" : "0";
+  }
+  updateNacht();
+  setInterval(updateNacht, 60000);
   // Affordance-objecten — moeten matchen met OBJECTEN in de edge function
   var OBJECTEN = [
     { id:"laadkruk", x:250, y:450, icoon:"⚡" },
@@ -387,7 +423,8 @@
         bottys = (res.data.bottys || []).filter(function(b){ return b && b.naam; });
         eieren = res.data.eieren || [];
         renderEieren();
-        document.getElementById("st-links").textContent = "🏫 " + bottys.length + " Botty's in het klaslokaal"
+        document.getElementById("st-links").textContent = (nacht ? "🌙 De hive slaapt · " : "🏫 ")
+          + bottys.length + " Botty's in het klaslokaal"
           + (eieren.length ? " · 🥚 " + eieren.length + " in de broedmachine" : "");
         var z = bottys.filter(function(b){ return b.ziek; }).length;
         document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"");
@@ -480,7 +517,7 @@
     if((soort==="zelfzorg" || soort==="nieuwsgierig") && b.doel && typeof b.doel.px==="number"){
       // naar het affordance-object / punt van interesse dat de server koos
       nd.tx = b.doel.px + (Math.random()-0.5)*40; nd.ty = b.doel.py + (Math.random()-0.5)*30;
-    } else if(soort==="bijkomen" || soort==="herstellen"){
+    } else if(soort==="bijkomen" || soort==="herstellen" || soort==="slapen"){
       nd.tx = RUST.x + (Math.random()-0.5)*240; nd.ty = RUST.y + (Math.random()-0.4)*90;
     } else if(soort==="gezelschap"){
       var sx=0, sy=0, n=0;
@@ -530,8 +567,9 @@
       var schaalBasis = (b.stage==="baby"?0.34:b.stage==="tiener"?0.42:0.5) * (b.grootte||1);
       var w = 200*schaalBasis, h = 250*schaalBasis;
       // ZWEVEN: wereld-y → zweef-hoogte (center), + zachte constante hover-bob
-      var hoverY = Math.max(150, Math.min(470, r.y));
-      var bob = Math.sin(ts/500 + r.x*0.05) * 6;
+      var inSlaap = b.doel && b.doel.soort === "slapen";
+      var hoverY = inSlaap ? 455 : Math.max(150, Math.min(470, r.y));   // slapers zakken naar de vloer
+      var bob = Math.sin(ts/(inSlaap?1400:500) + r.x*0.05) * (inSlaap?2:6);   // trage ademhaling
       var x0 = r.x - w/2, y0 = hoverY - h/2 + bob;
       // transform met facing-flip
       if(linksom) nd.inner.setAttribute("transform","translate("+(x0+w)+","+y0+") scale("+(-schaalBasis)+","+schaalBasis+")");
@@ -549,7 +587,11 @@
       // zelfzorg-icoon: zichtbaar zolang de Botty zijn object daadwerkelijk gebruikt
       var bezig = b.doel && b.doel.soort === "zelfzorg" && typeof b.doel.px === "number"
         && (Math.abs(r.x - b.doel.px) < 90) && (Math.abs(r.y - Math.max(ROAM.ylo, Math.min(ROAM.yhi, b.doel.py))) < 90);
-      if(bezig){
+      if(inSlaap){
+        nd.gebruik.textContent = "💤";
+        nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 12);
+        nd.gebruik.setAttribute("opacity", "0.85");
+      } else if(bezig){
         var obj = OBJECTEN.filter(function(o){ return o.id === b.doel.obj; })[0];
         nd.gebruik.textContent = obj ? obj.icoon : "✨";
         nd.gebruik.setAttribute("x", r.x + 30); nd.gebruik.setAttribute("y", y0 - 18);
@@ -642,6 +684,7 @@
     voortplanting:["botty verliefd 💕","mooi botty daar","hartje snel"],
     nieuwsgierig: ["dat wat?","ooh mooi","ikke kijken","glimmend ding!"],
     zelfzorg:     ["ikke speel","dit fijn","zelf doen!"],
+    slapen:       ["zzz…","*snurk*","mmm… priempje…","zzz… vriendje…"],
     ziek:         ["botty au","voel raar","niet lekker…"]
   };
   function zeg(nd, tekst){

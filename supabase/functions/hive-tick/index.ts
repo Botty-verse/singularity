@@ -142,7 +142,7 @@ function biochemie(b: any, bottys: any[]) {
   const G = exprGenoom(b.genome);
   const c = b.chem = b.chem || {};
   for (const k of CHEM) if (typeof c[k] !== "number") c[k] = 0;
-  const actief = b.doel && b.doel.soort !== "bijkomen" && b.doel.soort !== "herstellen";
+  const actief = b.doel && b.doel.soort !== "bijkomen" && b.doel.soort !== "herstellen" && b.doel.soort !== "slapen";
   let nabij = 0;
   if (b.pos) for (const o of bottys) { if (o !== b && !o.bezigEi && o.pos && afstand2(b.pos, o.pos) < ZICHT * ZICHT) nabij++; }
 
@@ -609,6 +609,8 @@ function zorg(b: any) {
 
 // ─── Verval ───────────────────────────────────────────────────────────────────
 function vervalEen(b: any) {
+  // Wie slaapt vervalt niet maar herstelt (dag/nacht-cyclus)
+  if (NACHT && slaapt(b)) { slaap(b); return; }
   const G = exprGenoom(b.genome);
   b.energie  = klem(b.energie  - 2.4 * G.verval.energie);
   b.data     = klem(b.data     - (heeft(b, "zonnepaneel") ? 0.8 : 1.6) * G.verval.data);
@@ -617,6 +619,58 @@ function vervalEen(b: any) {
   b.stemming = klem((b.stemming ?? 50) - 1.6 * G.verval.stemming);
   // Immuniteit: hoge stress verzwakt de weerstand → grotere ziektekans.
   if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b)) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
+}
+
+// ─── Dag & nacht: de hive leeft op Nederlandse kloktijd ──────────────────────────
+// 's Nachts (22:00–07:00 Europe/Amsterdam) slaapt de hive: Botty's zoeken de
+// rustplek, verval keert om in herstel, de AI-verzorger pauzeert, kweek en
+// priemjacht liggen stil. Slapen is functioneel: dromen spelen herinneringen na
+// en consolideren het brein (het sterkst geleerde verband wordt iets sterker,
+// zwakke verbanden slijten richting neutraal — zoals slaap echte synapsen snoeit).
+const NACHT_START = 22, NACHT_EIND = 7;
+function amsterdamUur(t: number): number {
+  return Number(new Intl.DateTimeFormat("nl-NL", { timeZone: "Europe/Amsterdam", hour: "numeric", hour12: false })
+    .format(new Date(t)));
+}
+function isNacht(t: number): boolean { const u = amsterdamUur(t); return u >= NACHT_START || u < NACHT_EIND; }
+let NACHT = false;   // per request gezet in de serve-handler
+
+function slaapt(b: any): boolean { return b.doel?.soort === "slapen"; }
+
+// Eén slaap-tick: herstel i.p.v. verval (aangeroepen op het verval-ritme)
+function slaap(b: any) {
+  const G = exprGenoom(b.genome);
+  b.energie  = klem((b.energie ?? 50) + 2.4 * G.herstel);
+  b.fit      = klem((b.fit ?? 50) + 0.6 * G.herstel);
+  b.stemming = klem((b.stemming ?? 50) + 0.3);
+  const c = b.chem;
+  if (c) {
+    c.vermoeidheid = Math.max(0, (c.vermoeidheid ?? 0) - 3);
+    c.stress       = Math.max(0, (c.stress ?? 0) - 1.5);
+  }
+}
+
+// Dromen: herinnering naspelen + brein-consolidatie
+function droom(b: any): string {
+  const herin = Array.isArray(b.herinneringen) && b.herinneringen.length ? kies(b.herinneringen) : null;
+  const tekst = herin
+    ? kies(["ik droom dat " + herin.tekst, "in mijn droom " + herin.tekst + " — alweer", "flarden: " + herin.tekst])
+    : kies(["ik droom van zachte getallen", "ik droom van zon door het raam", "ik droom dat ik kan vliegen"]);
+  b.gedachte = tekst;
+  if (b.brein) {
+    for (const stat of Object.keys(b.brein)) {
+      const w = b.brein[stat]; if (!w || typeof w !== "object") continue;
+      const ids = Object.keys(w); if (!ids.length) continue;
+      const top = ids.sort((p, q) => (w[q] ?? 0) - (w[p] ?? 0))[0];
+      for (const id of ids) {
+        w[id] = Math.round((id === top
+          ? Math.min(0.95, (w[id] ?? 0.5) + 0.004)          // het geleerde verankert
+          : (w[id] ?? 0.5) + (0.5 - (w[id] ?? 0.5)) * 0.02  // ruis slijt naar neutraal
+        ) * 1000) / 1000;
+      }
+    }
+  }
+  return tekst;
 }
 
 // ─── Bewustzijn: innerlijke gedachte + episodisch geheugen ──────────────────────
@@ -730,6 +784,9 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
 // gekoppeld, gezelschap-zoekers ontmoeten elkaar, gedreven jagers zoeken feller).
 function kiesDoel(b: any, ctx: { anderen: any[] }) {
   if (b.ziek) { b.doel = { soort: "herstellen", tekst: "weer beter worden" }; return; }
+  // 's Nachts slaapt iedereen die niet ziek is
+  if (NACHT) { b.doel = { soort: "slapen", tekst: "slapen tot de ochtend" }; return; }
+  if (slaapt(b)) b.doel = null;   // ochtend: wakker worden, vers doel kiezen
   // Zelfregulatie (drives → affordances): hysterese eerst — wie al bij een object
   // bezig is, blijft tot de drive echt is opgelost (anders flippert het doel).
   if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && (b[b.doel.stat] ?? 100) < ZELFZORG_KLAAR) return;
@@ -788,7 +845,7 @@ function beweeg(bottys: any[]) {
       const ander = bottys.filter(x => x !== b && !x.bezigEi && rijp(x))
         .sort((u, v) => afstand2(p, plekVan(u)) - afstand2(p, plekVan(v)))[0];
       if (ander) doelwit = plekVan(ander);
-    } else if (soort === "herstellen" || soort === "bijkomen") {
+    } else if (soort === "herstellen" || soort === "bijkomen" || soort === "slapen") {
       doelwit = RUSTPLEK;
     } else if ((soort === "nieuwsgierig" || soort === "zelfzorg") && typeof b.doel.px === "number") {
       doelwit = { x: b.doel.px, y: b.doel.py };
@@ -887,7 +944,7 @@ const ZICHT = 160;                       // perceptie-straal in de arena
 function empathie(b: any): number { return Math.max(0, mult(genoomBytes(b.genome), 11) - 1); }
 
 function socialeRonde(bottys: any[], events: object[]) {
-  const actief = bottys.filter(b => !b.bezigEi && b.pos);
+  const actief = bottys.filter(b => !b.bezigEi && b.pos && !slaapt(b));
   // Affiniteit zakt langzaam weg (vriendschap moet onderhouden worden).
   for (const b of actief) {
     if (b.relaties) for (const k in b.relaties) { b.relaties[k] *= 0.98; if (b.relaties[k] < 0.5) delete b.relaties[k]; }
@@ -1084,6 +1141,7 @@ Deno.serve(async (req) => {
   });
 
   const nu = Date.now();
+  NACHT = isNacht(nu);   // dag/nacht op Nederlandse kloktijd
   const gemist = Math.min(Math.floor((nu - (state.last_updated_at || nu)) / INTERVAL), MAX_CATCHUP_TICKS);
   const vervalTicks = Math.floor(gemist * INTERVAL / VERVAL_INTERVAL);
 
@@ -1107,7 +1165,7 @@ Deno.serve(async (req) => {
     // Zelfregulatie loopt door: wie bij zijn object staat, blijft rustig laden.
     try { zelfzorgRonde(bottys, null); } catch (_) { /* niet kritisch */ }
     try { bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); }); } catch (_) { /* chemie mag de tick nooit breken */ }
-    kiesDoelen(bottys, ZORG_PER_TICK).forEach(b => { zorg(b); acties++; });
+    if (!NACHT) kiesDoelen(bottys, ZORG_PER_TICK).forEach(b => { zorg(b); acties++; });   // 's nachts rust ook de AI-verzorger
     if (t % Math.round(VERVAL_INTERVAL / INTERVAL) === 0) {
       bottys.forEach(b => { if (!b.bezigEi) vervalEen(b); });
     }
@@ -1133,7 +1191,7 @@ Deno.serve(async (req) => {
       bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); });
     } catch (_) { /* beweging/zelfzorg/sociaal/chemie is niet kritisch voor de hive */ }
 
-    const doelen = kiesDoelen(bottys, ZORG_PER_TICK);
+    const doelen = NACHT ? [] : kiesDoelen(bottys, ZORG_PER_TICK);   // 's nachts rust ook de AI-verzorger
     doelen.forEach((b, i) => {
       if (b.bezigEi) return;
       acties++;
@@ -1169,7 +1227,7 @@ Deno.serve(async (req) => {
       }
     } catch (_) { /* zonder collectie kan iedereen alsnog ontdekken */ }
 
-    const alleDenkers = bottys.filter(b => !b.bezigEi);
+    const alleDenkers = bottys.filter(b => !b.bezigEi && !(NACHT && slaapt(b)));   // slapers jagen niet
     // Afkoelperiode: wie net een euforie had, jaagt even niet echt — hij broedt
     // op zijn volgende zet. Alleen afgekoelde Bottys doen de vind-ronde mee.
     const denkers  = alleDenkers.filter(b => nu - (b.euforieOp || 0) >= EUFORIE_PAUZE);
@@ -1272,7 +1330,7 @@ Deno.serve(async (req) => {
     // krimpt (door sterfte), zodat de hive zichzelf naar het streefgetal herstelt.
     const popLevend = bottys.filter((b: any) => !b.bezigEi).length;
     const kweekKans = popLevend <= 5 ? 0.16 : popLevend < DOEL_POP ? 0.09 : popLevend < MAX_POP ? 0.05 : 0.025;
-    if (Math.random() < kweekKans) {
+    if (!NACHT && Math.random() < kweekKans) {   // 's nachts wordt er niet gekweekt
       const kandidaten = bottys.filter(rijp);
       if (kandidaten.length >= 2) {
         // Slimme partnerkeuze: kies het paar dat fit, genetisch divers én slim is.
@@ -1407,7 +1465,14 @@ Deno.serve(async (req) => {
 
     // Bewustzijn: elke Botty vormt een innerlijke gedachte op basis van zijn staat,
     // zijn vondst van deze tick, zijn relaties en zijn herinneringen.
-    bottys.forEach(b => { if (!b.bezigEi) denkBewust(b, { getallen: vondstMap[b.bid], anderen: bottys }); });
+    bottys.forEach(b => { if (!b.bezigEi && !(NACHT && slaapt(b))) denkBewust(b, { getallen: vondstMap[b.bid], anderen: bottys }); });
+    // Dromen: slapers spelen af en toe een herinnering na en consolideren hun brein
+    if (NACHT) for (const b of bottys) {
+      if (b.bezigEi || !slaapt(b) || Math.random() > 0.10) continue;
+      const dtekst = droom(b);
+      if (Math.random() < 0.35) events.push({ soort: "droom", naam: b.naam,
+        tekst: "💤 <b>" + b.naam + "</b> droomt: \u201c" + dtekst + "\u201d" });
+    }
   }
 
   // ─── Broedmachine: eieren komen uit ────────────────────────────────────────────
