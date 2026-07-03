@@ -651,23 +651,16 @@
       '<span class="knip">▌</span> 💞 De AI koppelt <b>' + ev.ouderA + '</b> en <b>' + ev.ouderB + '</b>…';
     setTimeout(function(){
       elA.kaart.classList.remove("paart"); elB.kaart.classList.remove("paart");
-      // OuderA vertrekt
-      elA.wrap.classList.add("weg");
       document.getElementById("ticker").innerHTML =
-        '<span class="knip">▌</span> 👋 <b>' + ev.ouderA + '</b> zwaait gedag en vertrekt…';
+        '<span class="knip">▌</span> 🥚 Het ei in de broedmachine komt uit…';
       setTimeout(function(){
-        elA.wrap.classList.remove("weg");
+        var e = ev.erfenis;
+        var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+ev.ouderA+', <b>'+e.vanB+'</b> van '+ev.ouderB
+                      + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') : '';
         document.getElementById("ticker").innerHTML =
-          '<span class="knip">▌</span> 🥚 Een ei verschijnt in de hive…';
-        setTimeout(function(){
-          var e = ev.erfenis;
-          var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+ev.ouderA+', <b>'+e.vanB+'</b> van '+ev.ouderB
-                        + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') : '';
-          document.getElementById("ticker").innerHTML =
-            '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> is geboren — generatie ' + ev.generatie + erf;
-          bezigKweek = false;
-        }, 3000);
-      }, 1600);
+          '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> is geboren — generatie ' + ev.generatie + erf;
+        bezigKweek = false;
+      }, 2400);
     }, 1700);
   }
 

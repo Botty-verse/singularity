@@ -57,6 +57,12 @@
   .bubbel text{font:700 14px Nunito,sans-serif;fill:#4a3418;text-anchor:middle;stroke:none;paint-order:normal;}
   .hartje{animation:hartje 1.15s ease-out forwards;pointer-events:none;font:16px sans-serif;}
   @keyframes hartje{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-46px)}}
+  /* broedmachine-eieren */
+  .ei-echt{cursor:none;}
+  .ei-echt.rijp .ei-schaal{transform-box:fill-box;transform-origin:50% 90%;animation:wiebel 1.1s ease-in-out infinite;}
+  @keyframes wiebel{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+  .ei-echt .ei-label{font:700 10px Nunito,sans-serif;fill:#ffe6a8;text-anchor:middle;paint-order:stroke;stroke:#1c130b;stroke-width:3px;}
+  .ei-echt.rijp .ei-label{fill:#7fffb0;}
 
   .kit{margin-top:.8rem;background:linear-gradient(180deg,#241a10,#1c130b);border:2px solid #6b4a2b;
        border-radius:16px;padding:.9rem 1.1rem;box-shadow:inset 0 1px 0 rgba(255,230,168,.12),0 6px 24px rgba(0,0,0,.4);}
@@ -93,7 +99,8 @@
   <h1>🏫 Het klaslokaal</h1>
   <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
     hebben het lokaal voor zichzelf. <strong>Jij bent de hand</strong> — klik op een Botty om ’m te volgen
-    en te observeren, klik nog eens om te kietelen. Luister: ze brabbelen.</p>
+    en te observeren, klik nog eens om te kietelen. En houd de <strong>broedmachine</strong> linksonder in
+    de gaten: legt een paar een ei, dan mag jíj het uitbroeden.</p>
   <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html">🗺️ Genoom-kaart</a>
 </header>
 
@@ -259,8 +266,10 @@
         <!-- incubator/broedplek met gloeiend ei -->
         <ellipse cx="92" cy="500" rx="30" ry="22" fill="url(#broedgloed)" class="broed"/>
         <ellipse cx="92" cy="506" rx="20" ry="6" fill="#3a2c1d"/>
-        <path d="M92,486 a10,13 0 1 0 0.1,0 Z" fill="#f3e6cf" stroke="#c9a227" stroke-width="1.5"/>
-        <path d="M86,492 q6,4 12,0" fill="none" stroke="#caa15c" stroke-width="1.2"/>
+        <g id="ei-deco"><path d="M92,486 a10,13 0 1 0 0.1,0 Z" fill="#f3e6cf" stroke="#c9a227" stroke-width="1.5"/>
+        <path d="M86,492 q6,4 12,0" fill="none" stroke="#caa15c" stroke-width="1.2"/></g>
+        <!-- echte eieren uit de kweek (gevuld door JS) -->
+        <g id="eilaag"></g>
         <!-- stoom -->
         <path class="stoom" d="M206,420 q-6,-12 4,-22 q8,-10 0,-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.18"/>
         <path class="stoom" style="animation-delay:-3s" d="M150,396 q-6,-12 3,-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.14"/>
@@ -372,14 +381,75 @@
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
 
   function laad(){
-    return supabase.from("hive_state").select("bottys").eq("id","main").single()
+    return supabase.from("hive_state").select("bottys,eieren").eq("id","main").single()
       .then(function(res){
         if(res.error || !res.data) return;
         bottys = (res.data.bottys || []).filter(function(b){ return b && b.naam; });
-        document.getElementById("st-links").textContent = "🏫 " + bottys.length + " Botty's in het klaslokaal";
+        eieren = res.data.eieren || [];
+        renderEieren();
+        document.getElementById("st-links").textContent = "🏫 " + bottys.length + " Botty's in het klaslokaal"
+          + (eieren.length ? " · 🥚 " + eieren.length + " in de broedmachine" : "");
         var z = bottys.filter(function(b){ return b.ziek; }).length;
         document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"");
       });
+  }
+
+  // ── Broedmachine: eieren renderen & uitbroeden ────────────────────────────
+  var eieren = [];
+  var eilaag = document.getElementById("eilaag");
+  var eiDeco = document.getElementById("ei-deco");
+  var broedBezig = false;
+  function renderEieren(){
+    eiDeco.setAttribute("opacity", eieren.length ? "0" : "1");
+    eilaag.innerHTML = "";
+    eieren.forEach(function(ei, i){
+      var cx = 92 + i*34, cy = 498;
+      var rijp = Date.now() >= (ei.rijpOp || 0);
+      var g = document.createElementNS(SVGNS,"g");
+      g.setAttribute("class","ei-echt" + (rijp ? " rijp" : ""));
+      var restS = Math.max(0, Math.ceil(((ei.rijpOp||0) - Date.now())/1000));
+      g.innerHTML =
+          (rijp ? '<ellipse cx="'+cx+'" cy="'+cy+'" rx="24" ry="18" fill="url(#broedgloed)" class="broed"/>' : '')
+        + '<g class="ei-schaal"><path d="M'+cx+','+(cy-16)+' a11,14 0 1 0 0.1,0 Z" fill="#f3e6cf" stroke="'+(rijp?"#39ff85":"#c9a227")+'" stroke-width="1.8"/>'
+        + '<path d="M'+(cx-6)+','+(cy-9)+' q6,4 12,0" fill="none" stroke="#caa15c" stroke-width="1.2"/></g>'
+        + '<text class="ei-label" x="'+cx+'" y="'+(cy-24)+'">'+(rijp ? "🖐 broed uit!" : "rijp over "+restS+"s")+'</text>';
+      var t = document.createElementNS(SVGNS,"title");
+      t.textContent = "Ei van " + (ei.ouderA||"?") + " × " + (ei.ouderB||"?");
+      g.appendChild(t);
+      g.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        if(rijp) broedUit(ei);
+        else zegBijIncubator("nog even geduld…");
+      });
+      eilaag.appendChild(g);
+    });
+  }
+  setInterval(function(){ if(eieren.length) renderEieren(); }, 1000);   // countdown ververst
+  function zegBijIncubator(tekst){
+    var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","bubbel");
+    var w = tekst.length*7.6 + 22;
+    g.setAttribute("transform","translate(112,436)");
+    g.innerHTML = '<rect x="'+(-w/2)+'" y="-30" width="'+w+'" height="24" rx="11"/>'
+                + '<path d="M-5,-7 L0,2 L5,-7 Z"/><text y="-13">'+esc(tekst)+'</text>';
+    fxlaag.appendChild(g);
+    setTimeout(function(){ if(g.parentNode) g.parentNode.removeChild(g); }, 2200);
+  }
+  function broedUit(ei){
+    if(broedBezig) return;
+    broedBezig = true;
+    zegBijIncubator("🥚 tik… tik… krak!");
+    fetch(TICK_URL, { method:"POST", headers:{ "Content-Type":"application/json" },
+                      body: JSON.stringify({ actie:"broed", ei: ei.id }) })
+      .then(function(){ return laad(); })
+      .then(function(){
+        broedBezig = false;
+        var kuiken = bottys.filter(function(b){ return b.naam === (ei.kind && ei.kind.naam); })[0];
+        if(kuiken){
+          zegBijIncubator("🐣 " + kuiken.naam + " is er!");
+          setTimeout(function(){ var nd = nodes[kuiken.naam]; if(nd) zeg(nd, "hallo wereld!"); }, 1400);
+        }
+      })
+      .catch(function(){ broedBezig = false; zegBijIncubator("⚠️ dat lukte niet…"); });
   }
   function tickEnLaad(){ if(document.hidden) return; fetch(TICK_URL,{method:"POST"}).catch(function(){}).then(function(){ laad(); }); }
 
@@ -641,7 +711,8 @@
   setInterval(tickEnLaad, 3000);
   supabase.channel("klaslokaal")
     .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
-        function(p){ if(p.new && p.new.bottys){ bottys = p.new.bottys.filter(function(b){return b&&b.naam;}); } })
+        function(p){ if(p.new && p.new.bottys){ bottys = p.new.bottys.filter(function(b){return b&&b.naam;});
+          if(p.new.eieren){ eieren = p.new.eieren; renderEieren(); } } })
     .subscribe();
 })();
 </script>
