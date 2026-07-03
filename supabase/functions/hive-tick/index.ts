@@ -609,8 +609,10 @@ function zorg(b: any) {
 
 // ─── Verval ───────────────────────────────────────────────────────────────────
 function vervalEen(b: any) {
-  // Wie slaapt vervalt niet maar herstelt (dag/nacht-cyclus)
-  if (NACHT && slaapt(b)) { slaap(b); return; }
+  // Wie slaapt vervalt niet maar herstelt (dag/nacht-cyclus). Ook zieken en
+  // uitgeputten rusten 's nachts uit op de rustplek — de AI-verzorger slaapt
+  // immers ook, dus zonder dit zou een zieke de hele nacht wegkwijnen.
+  if (NACHT && (slaapt(b) || b.doel?.soort === "herstellen" || b.doel?.soort === "bijkomen")) { slaap(b); return; }
   const G = exprGenoom(b.genome);
   b.energie  = klem(b.energie  - 2.4 * G.verval.energie);
   b.data     = klem(b.data     - (heeft(b, "zonnepaneel") ? 0.8 : 1.6) * G.verval.data);
@@ -1480,6 +1482,9 @@ Deno.serve(async (req) => {
   // afloopt zodat de hive nooit stilvalt zonder publiek.
   async function komUit(ei: any, hoe: string) {
     const kind = ei.kind; if (!kind) return;
+    // De naam werd bij het leggen gekozen; is hij inmiddels bezet (immigrant,
+    // ander ei), dan krijgt het kuiken bij het uitkomen een verse naam.
+    if (bottys.some((b: any) => b.naam === kind.naam)) kind.naam = kiesNaam(bottys.map((b: any) => b.naam));
     kind.geboren = nu;
     kind.pos = { x: 90 + Math.random() * 50, y: WERELD_H - 70 };   // kruipt uit de incubator
     // aan de cap maakt de zwakste levende plaats voor het kuiken
