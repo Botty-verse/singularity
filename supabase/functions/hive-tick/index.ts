@@ -502,6 +502,11 @@ const OUDERDOM_START = 4000;  // leeftijd-eenheden (realSec/agingSpeed) waarop v
 const OUDERDOM_DOOD  = 8000;  // hier staat het plafond op 0 → sterven van ouderdom
 const MIN_POP = 4;            // zachte vloer: de hive sterft nooit hieronder uit
 const MAX_POP = 12;           // zachte cap: daarboven vervangt een geboorte de zwakste ouder
+
+// ─── Broedmachine: kweek legt een ei, een bezoeker broedt het uit ────────────────
+const MAX_EIEREN    = 2;             // max eieren tegelijk in de broedmachine
+const BROEDTIJD_MS  = 90_000;        // ei is rijp na 1,5 minuut warmte
+const AUTO_BROED_MS = 20 * 60_000;   // vangnet: zonder bezoeker komt het ei vanzelf uit
 const DOEL_POP = 9;           // streefgetal voor de geboortekans
 function senescence(b: any): number {
   const leeftijd = (Date.now() - (b.geboren ?? Date.now())) / 1000 / exprGenoom(b.genome).agingSpeed;
@@ -1056,10 +1061,15 @@ async function broadcast(payload: object) {
 }
 
 // ─── Hoofdlus ─────────────────────────────────────────────────────────────────
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  // Bezoekersverzoek (optioneel): { actie: "broed", ei: "<id>" } broedt een rijp ei uit
+  let vraag: any = null;
+  try { vraag = await req.json(); } catch (_) { /* geen body = gewone tick */ }
+
   const { data: row, error } = await supabase.from("hive_state").select("*").eq("id", "main").single();
   let state = (error || !row) ? maakNieuweHive() : row;
   let bottys: any[] = state.bottys || [];
+  const eieren: any[] = Array.isArray(state.eieren) ? state.eieren : [];
 
   // Backfill: bestaande Bottys zonder genoom krijgen een baseline (gedrag ongewijzigd)
   const baseline = bytesNaarGenoom(new Uint8Array(GENOOM_LEN).fill(128));
@@ -1279,10 +1289,9 @@ Deno.serve(async () => {
               - PARTNER_STRESS_GEWICHT * (stressVan(a) + stressVan(b2));   // stress verlaagt fertiliteit
             if (!beste || score > beste.score) beste = { a, b: b2, score };
           }
-        // De minst-fitte ouder maakt plaats voor het kind; de fitste blijft.
-        const ouderA = geneScore(beste.a) <= geneScore(beste.b) ? beste.a : beste.b; // vertrekt
-        const ouderB = ouderA === beste.a ? beste.b : beste.a;                        // blijft
-        const idx = bottys.indexOf(ouderA);
+        const ouderA = geneScore(beste.a) <= geneScore(beste.b) ? beste.a : beste.b;
+        const ouderB = ouderA === beste.a ? beste.b : beste.a;
+        const idx = bottys.indexOf(ouderA);   // alleen gebruikt als een immigrant plaats inneemt
         const popDiv = popDiversiteit(bottys);
 
         let kind: any, verwantschap = 0, inteeltStraf = 0, immigrant = false;
@@ -1295,7 +1304,7 @@ Deno.serve(async () => {
           onthoud(kind, "aankomst", "ik arriveerde als verse mutant");
           events.push({ soort: "immigrant", naamKind: kind.naam,
             tekst: "🌱 <b>" + kind.naam + "</b> arriveert als verse mutant — de genenpoel werd te eenvormig (diversiteit " + Math.round(popDiv) + ")" });
-        } else {
+        } else if (eieren.length < MAX_EIEREN) {
           kind = maakKind(ouderA, ouderB, bottys.map((b: any) => b.naam));
           // Inteelt-depressie: hoe kleiner de genetische afstand, hoe zwakker het kind
           const dist = genoomAfstand(ouderA.genome, ouderB.genome);
@@ -1312,50 +1321,46 @@ Deno.serve(async () => {
           for (const ouder of [ouderA, ouderB]) { ouder.groei = ouder.groei || { piekIQ: ouder.iq ?? 100, kinderen: 0 }; ouder.groei.kinderen = (ouder.groei.kinderen || 0) + 1; }
           events.push({ soort: "kweek-start", naamA: ouderA.naam, naamB: ouderB.naam,
             tekst: "💞 De AI koppelt <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> — beste genen" });
+        } else {
+          kind = null;   // broedmachine vol — geen kweek deze tick
         }
-        const verwR = Math.round(verwantschap * 100) / 100;
 
-        lastKweek = {
-          ouderA: immigrant ? null : ouderA.naam, ouderB: immigrant ? null : ouderB.naam,
-          kind: kind.naam, generatie: kind.generatie,
-          genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
-          verwantschap: verwR, immigrant,
-        };
-
-        // Stamboom: leg deze geboorte vast (best-effort, blokkeert de tick niet)
-        try {
-          await supabase.from("geboorten").insert({
-            kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
-            oudera_id: immigrant ? null : ouderA.bid, oudera_naam: immigrant ? null : ouderA.naam,
-            ouderb_id: immigrant ? null : ouderB.bid, ouderb_naam: immigrant ? null : ouderB.naam,
-            genome: kind.genome, grootte: kind.grootte,
-            van_a: kind.erfenis?.vanA ?? null,
-            van_b: kind.erfenis?.vanB ?? null,
-            mutaties: kind.erfenis?.mutaties ?? null,
+        if (kind && immigrant) {
+          // Immigranten arriveren direct (vers bloed wacht niet in een ei)
+          const verwR = 0;
+          lastKweek = {
+            ouderA: null, ouderB: null,
+            kind: kind.naam, generatie: kind.generatie,
+            genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
             verwantschap: verwR, immigrant,
-          });
-        } catch (_) { /* stamboom is niet kritisch */ }
-
-        // Onder de cap groeit de hive (het kind vervangt een gestorven Botty);
-        // aan de cap maakt de zwakste ouder plaats voor het kind.
-        if (bottys.length < MAX_POP) bottys.push(kind);
-        else if (idx >= 0) bottys[idx] = kind;
-
-        if (immigrant) {
+          };
+          try {
+            await supabase.from("geboorten").insert({
+              kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
+              oudera_id: null, oudera_naam: null, ouderb_id: null, ouderb_naam: null,
+              genome: kind.genome, grootte: kind.grootte,
+              van_a: kind.erfenis?.vanA ?? null, van_b: kind.erfenis?.vanB ?? null,
+              mutaties: kind.erfenis?.mutaties ?? null,
+              verwantschap: verwR, immigrant,
+            });
+          } catch (_) { /* stamboom is niet kritisch */ }
+          if (bottys.length < MAX_POP) bottys.push(kind);
+          else if (idx >= 0) bottys[idx] = kind;
           events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
             genome: kind.genome, grootte: kind.grootte, immigrant: true,
             tekst: "🐣 <b>" + kind.naam + "</b> (verse mutant) is geboren — generatie " + kind.generatie });
-        } else {
-          const e = kind.erfenis;
-          const erfenisTekst = e
-            ? " · " + e.vanA + "+" + e.vanB + " genen, " + e.mutaties + " mutatie" + (e.mutaties !== 1 ? "s" : "")
-            : "";
-          const straftekst = inteeltStraf >= 1
-            ? " · ⚠️ inteelt (−" + Math.round(inteeltStraf) + " fitness" + (kind.ziek ? ", ziek geboren" : "") + ")"
-            : "";
-          events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
-            genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis, verwantschap: verwR,
-            tekst: "🐣 <b>" + kind.naam + "</b> is geboren — generatie " + kind.generatie + erfenisTekst + straftekst });
+        } else if (kind) {
+          // Broedmachine: het paar legt een ei; een bezoeker (of de tijd) broedt het uit
+          const verwR = Math.round(verwantschap * 100) / 100;
+          eieren.push({
+            id: maakId(), kind,
+            ouderA: ouderA.naam, ouderB: ouderB.naam,
+            ouderA_bid: ouderA.bid, ouderB_bid: ouderB.bid,
+            verwantschap: verwR, inteeltStraf: Math.round(inteeltStraf),
+            gelegd: nu, rijpOp: nu + BROEDTIJD_MS,
+          });
+          events.push({ soort: "ei-gelegd", naamA: ouderA.naam, naamB: ouderB.naam,
+            tekst: "🥚 <b>" + ouderA.naam + "</b> en <b>" + ouderB.naam + "</b> leggen een ei in de broedmachine — wie broedt het uit?" });
         }
       }
     }
@@ -1405,12 +1410,78 @@ Deno.serve(async () => {
     bottys.forEach(b => { if (!b.bezigEi) denkBewust(b, { getallen: vondstMap[b.bid], anderen: bottys }); });
   }
 
+  // ─── Broedmachine: eieren komen uit ────────────────────────────────────────────
+  // Een ei komt uit als (a) een bezoeker een rijp ei aanklikt, of (b) het vangnet
+  // afloopt zodat de hive nooit stilvalt zonder publiek.
+  async function komUit(ei: any, hoe: string) {
+    const kind = ei.kind; if (!kind) return;
+    kind.geboren = nu;
+    kind.pos = { x: 90 + Math.random() * 50, y: WERELD_H - 70 };   // kruipt uit de incubator
+    // aan de cap maakt de zwakste levende plaats voor het kuiken
+    const levend = bottys.filter((b: any) => !b.bezigEi);
+    if (levend.length >= MAX_POP) {
+      const zwakste = [...levend].sort((a: any, b: any) => geneScore(a) - geneScore(b))[0];
+      const i = bottys.indexOf(zwakste);
+      if (i >= 0) {
+        bottys.splice(i, 1);
+        events.push({ soort: "vertrokken", naam: zwakste.naam,
+          tekst: "👋 <b>" + zwakste.naam + "</b> maakt plaats voor het kuiken en vertrekt" });
+      }
+    }
+    bottys.push(kind);
+    try {
+      await supabase.from("geboorten").insert({
+        kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
+        oudera_id: ei.ouderA_bid ?? null, oudera_naam: ei.ouderA ?? null,
+        ouderb_id: ei.ouderB_bid ?? null, ouderb_naam: ei.ouderB ?? null,
+        genome: kind.genome, grootte: kind.grootte,
+        van_a: kind.erfenis?.vanA ?? null, van_b: kind.erfenis?.vanB ?? null,
+        mutaties: kind.erfenis?.mutaties ?? null,
+        verwantschap: ei.verwantschap ?? 0, immigrant: false,
+      });
+    } catch (_) { /* stamboom is niet kritisch */ }
+    lastKweek = {
+      ouderA: ei.ouderA ?? null, ouderB: ei.ouderB ?? null,
+      kind: kind.naam, generatie: kind.generatie,
+      genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis,
+      verwantschap: ei.verwantschap ?? 0, immigrant: false,
+    };
+    const e = kind.erfenis;
+    const erfenisTekst = e
+      ? " · " + e.vanA + "+" + e.vanB + " genen, " + e.mutaties + " mutatie" + (e.mutaties !== 1 ? "s" : "")
+      : "";
+    const straftekst = (ei.inteeltStraf ?? 0) >= 1
+      ? " · ⚠️ inteelt (−" + ei.inteeltStraf + " fitness" + (kind.ziek ? ", ziek geboren" : "") + ")"
+      : "";
+    events.push({ soort: "geboren", naamKind: kind.naam, generatie: kind.generatie,
+      genome: kind.genome, grootte: kind.grootte, erfenis: kind.erfenis, verwantschap: ei.verwantschap ?? 0,
+      tekst: "🐣 <b>" + kind.naam + "</b> komt uit het ei — generatie " + kind.generatie
+        + " · " + hoe + erfenisTekst + straftekst });
+  }
+
+  // (a) bezoeker broedt een rijp ei uit
+  if (vraag && vraag.actie === "broed" && typeof vraag.ei === "string") {
+    const i = eieren.findIndex((e: any) => e.id === vraag.ei);
+    if (i >= 0 && nu >= (eieren[i].rijpOp ?? 0)) {
+      const ei = eieren.splice(i, 1)[0];
+      await komUit(ei, "uitgebroed door een bezoeker");
+    }
+  }
+  // (b) vangnet: te lang genegeerde eieren komen vanzelf uit
+  for (const ei of [...eieren]) {
+    if (nu - (ei.gelegd ?? nu) >= AUTO_BROED_MS) {
+      const i = eieren.indexOf(ei);
+      if (i >= 0) { eieren.splice(i, 1); await komUit(ei, "vanzelf uitgekomen"); }
+    }
+  }
+
   await supabase.from("hive_state").upsert({
     id: "main", bottys,
     first_opened: state.first_opened ?? nu,
     acties,
     last_updated_at: nu,
     last_kweek: lastKweek,
+    eieren,
   });
 
   for (const ev of events) await broadcast(ev);
