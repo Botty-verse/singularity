@@ -50,6 +50,7 @@
   .hand.aait text{transform-box:fill-box;transform-origin:50% 80%;animation:aai .5s ease-in-out infinite;}
   @keyframes aai{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(10deg)}}
   .botje{cursor:none;}
+  .botje .sprite{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32));}
   .botje.sel .sprite{filter:drop-shadow(0 0 9px #ffe6a8) drop-shadow(0 0 20px rgba(246,199,90,.55));}
   .botje.dim text{opacity:.35;}
   .bubbel{animation:bubbelIn .22s ease-out;pointer-events:none;}
@@ -147,13 +148,78 @@
         <radialGradient id="broedgloed" cx="0.5" cy="0.5" r="0.6">
           <stop offset="0" stop-color="#ffe6a8" stop-opacity="0.9"/><stop offset="1" stop-color="#f6c75a" stop-opacity="0"/>
         </radialGradient>
+        <!-- rijkere materialen -->
+        <linearGradient id="vloerGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#6a4526"/><stop offset="1" stop-color="#4a301a"/>
+        </linearGradient>
+        <linearGradient id="hout" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8a5a30"/><stop offset="0.5" stop-color="#6e4522"/><stop offset="1" stop-color="#573417"/>
+        </linearGradient>
+        <linearGradient id="glasGlans" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.30"/>
+          <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.05"/>
+          <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.16"/>
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="bladGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#5fa03f"/><stop offset="1" stop-color="#3f6b2a"/>
+        </linearGradient>
+        <linearGradient id="kleedGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#b5533a"/><stop offset="1" stop-color="#8a3a28"/>
+        </linearGradient>
+        <radialGradient id="bottyGlans" cx="0.4" cy="0.32" r="0.55">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="wandVignet" cx="0.5" cy="0.42" r="0.75">
+          <stop offset="0.55" stop-color="#000000" stop-opacity="0"/><stop offset="1" stop-color="#000000" stop-opacity="0.32"/>
+        </radialGradient>
+        <!-- fijne pleister-/houtnerf, subtiel zodat de vlakken niet plat ogen -->
+        <filter id="korrel" x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
+          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0" result="na"/>
+          <feComposite in="na" in2="SourceGraphic" operator="in" result="grain"/>
+          <feBlend in="SourceGraphic" in2="grain" mode="multiply"/>
+        </filter>
+        <filter id="propSchaduw" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#1c120a" flood-opacity="0.42"/>
+        </filter>
       </defs>
-      <!-- muur + vloer -->
+      <!-- muur: basiskleur + fijne pleisterkorrel + lambrisering onderaan -->
       <rect x="0" y="0" width="1000" height="520" fill="url(#muur)"/>
-      <rect x="0" y="505" width="1000" height="95" fill="#5b3c20"/>
-      <g stroke="#3f2914" stroke-width="2" opacity="0.5">
-        <line x1="0" y1="540" x2="1000" y2="540"/><line x1="120" y1="505" x2="90" y2="600"/>
-        <line x1="360" y1="505" x2="345" y2="600"/><line x1="620" y1="505" x2="640" y2="600"/><line x1="860" y1="505" x2="895" y2="600"/>
+      <rect x="0" y="0" width="1000" height="520" fill="#6a4d2e" opacity="0.5" filter="url(#korrel)"/>
+      <!-- lambrisering (wandpanelen op de onderste muurhelft) -->
+      <g>
+        <rect x="0" y="360" width="1000" height="145" fill="#4d3620"/>
+        <rect x="0" y="356" width="1000" height="10" fill="#6b4a2b"/>
+        <g fill="none" stroke="#3a2914" stroke-width="2" opacity="0.7">
+          <rect x="18" y="374" width="150" height="118" rx="4"/><rect x="188" y="374" width="150" height="118" rx="4"/>
+          <rect x="358" y="374" width="150" height="118" rx="4"/><rect x="528" y="374" width="150" height="118" rx="4"/>
+          <rect x="698" y="374" width="150" height="118" rx="4"/><rect x="868" y="374" width="118" height="118" rx="4"/>
+        </g>
+        <g stroke="#7a5836" stroke-width="1.4" opacity="0.5">
+          <line x1="20" y1="376" x2="166" y2="376"/><line x1="190" y1="376" x2="336" y2="376"/><line x1="360" y1="376" x2="506" y2="376"/>
+          <line x1="530" y1="376" x2="676" y2="376"/><line x1="700" y1="376" x2="846" y2="376"/><line x1="870" y1="376" x2="984" y2="376"/>
+        </g>
+      </g>
+      <!-- vloer: gradient, planken met naden én lichte glans -->
+      <rect x="0" y="505" width="1000" height="95" fill="url(#vloerGrad)"/>
+      <g stroke="#3a2512" stroke-width="2.5" opacity="0.7">
+        <line x1="0" y1="540" x2="1000" y2="540"/>
+        <line x1="120" y1="505" x2="90" y2="600"/><line x1="360" y1="505" x2="345" y2="600"/>
+        <line x1="620" y1="505" x2="640" y2="600"/><line x1="860" y1="505" x2="895" y2="600"/>
+      </g>
+      <g stroke="#7a552e" stroke-width="1" opacity="0.4">
+        <line x1="122" y1="507" x2="92" y2="602"/><line x1="362" y1="507" x2="347" y2="602"/>
+        <line x1="622" y1="507" x2="642" y2="602"/><line x1="862" y1="507" x2="897" y2="602"/>
+      </g>
+      <rect x="0" y="505" width="1000" height="6" fill="#8a6636" opacity="0.35"/>
+      <!-- vloerkleed: warmte + diepte onder de Botty's -->
+      <g opacity="0.92">
+        <ellipse cx="520" cy="552" rx="230" ry="42" fill="url(#kleedGrad)"/>
+        <ellipse cx="520" cy="552" rx="230" ry="42" fill="none" stroke="#e8c98a" stroke-width="3" opacity="0.5"/>
+        <ellipse cx="520" cy="552" rx="200" ry="34" fill="none" stroke="#e8c98a" stroke-width="1.5" opacity="0.4"/>
+        <ellipse cx="520" cy="552" rx="150" ry="25" fill="none" stroke="#f3e6cf" stroke-width="1.2" opacity="0.3" stroke-dasharray="6 5"/>
+        <ellipse cx="520" cy="552" rx="60" ry="11" fill="#e8c98a" opacity="0.25"/>
       </g>
       <!-- ramen: gelaagde bos-vista (verre haas → middenbos → warm gebladerte) -->
       <g>
@@ -175,7 +241,13 @@
         <line x1="160" y1="70" x2="160" y2="220" stroke="#3f2914" stroke-width="6"/><line x1="60" y1="145" x2="260" y2="145" stroke="#3f2914" stroke-width="6"/>
         <rect x="740" y="70" width="200" height="150" rx="6" fill="none" stroke="#3f2914" stroke-width="8"/>
         <line x1="840" y1="70" x2="840" y2="220" stroke="#3f2914" stroke-width="6"/><line x1="740" y1="145" x2="940" y2="145" stroke="#3f2914" stroke-width="6"/>
-      </g>
+        <!-- glas-glans: diagonale reflectie over de ruiten -->
+        <g clip-path="url(#raamL)"><polygon points="60,70 130,70 90,220 60,220" fill="url(#glasGlans)"/><polygon points="170,70 205,70 150,220 120,220" fill="url(#glasGlans)" opacity="0.6"/></g>
+        <g clip-path="url(#raamR)"><polygon points="740,70 810,70 770,220 740,220" fill="url(#glasGlans)"/><polygon points="850,70 885,70 830,220 800,220" fill="url(#glasGlans)" opacity="0.6"/></g>
+        <!-- vensterbank + plantje -->
+        <rect x="52" y="218" width="216" height="10" rx="3" fill="url(#hout)" stroke="#3a2914" stroke-width="2"/>
+        <rect x="732" y="218" width="216" height="10" rx="3" fill="url(#hout)" stroke="#3a2914" stroke-width="2"/>
+        <g transform="translate(232,204)"><path d="M0,14 h16 l-2,-14 h-12 Z" fill="#c76a3a" stroke="#8a3f22" stroke-width="1.5"/><path d="M8,0 q-10,-6 -12,-16 q10,2 12,10 q2,-10 12,-14 q0,12 -12,20 Z" fill="url(#bladGrad)"/></g>
       <!-- god-rays: warme lichtbundels door de ramen -->
       <g class="rays" style="mix-blend-mode:screen">
         <polygon points="90,90 230,90 470,520 250,520" fill="url(#straal)" opacity="0.5"/>
@@ -190,7 +262,45 @@
         <text x="378" y="150" fill="#a9d6c2" style="font:400 18px monospace">99991  100003  100019 …</text>
         <text x="378" y="178" fill="#a9d6c2" style="font:400 18px monospace">p = ?   p±2 ?   2p+1 ?</text>
         <text x="378" y="208" fill="#e6c06a" style="font:italic 16px Nunito">— wie vindt de volgende?</text>
-        <rect x="430" y="232" width="150" height="8" rx="3" fill="#6b4a2b"/>
+        <!-- krijtrand met krijtjes + wisser -->
+        <rect x="378" y="230" width="264" height="10" rx="3" fill="url(#hout)" stroke="#4a3016" stroke-width="1.5"/>
+        <rect x="392" y="232" width="20" height="5" rx="2.5" fill="#f3ecd2"/>
+        <rect x="418" y="232" width="16" height="5" rx="2.5" fill="#f6c75a"/>
+        <rect x="440" y="232" width="14" height="5" rx="2.5" fill="#7fd9ff"/>
+        <rect x="600" y="229" width="34" height="12" rx="2" fill="#3a2a18" stroke="#22160c" stroke-width="1"/><rect x="600" y="229" width="34" height="5" rx="2" fill="#c8b48a"/>
+        <!-- krijtstof-veeg voor sfeer -->
+        <path d="M470,150 q40,-8 70,4" fill="none" stroke="#cfeede" stroke-width="2" opacity="0.18"/>
+      </g>
+
+      <!-- Wanddecoratie: vlaggenlijn, boekenkast, poster (klaslokaal-detail) -->
+      <g class="wanddeco">
+        <!-- vlaggenlijn langs de bovenrand -->
+        <path d="M20,30 Q250,66 500,44 T980,34" fill="none" stroke="#5b3c20" stroke-width="2"/>
+        <g stroke="#3a2914" stroke-width="0.5">
+          <polygon points="70,38 92,38 81,58" fill="#e0556b"/><polygon points="150,44 172,44 161,64" fill="#f6c75a"/>
+          <polygon points="230,48 252,48 241,68" fill="#5ec6ff"/><polygon points="740,44 762,44 751,64" fill="#5fd0a8"/>
+          <polygon points="820,40 842,40 831,60" fill="#f6a623"/><polygon points="900,37 922,37 911,57" fill="#c89bff"/>
+        </g>
+        <!-- boekenkast tussen bord en rechterraam -->
+        <g filter="url(#propSchaduw)" transform="translate(676,250)">
+          <rect x="0" y="0" width="60" height="120" rx="3" fill="url(#hout)" stroke="#3a2914" stroke-width="2.5"/>
+          <line x1="3" y1="40" x2="57" y2="40" stroke="#3a2914" stroke-width="2"/><line x1="3" y1="80" x2="57" y2="80" stroke="#3a2914" stroke-width="2"/>
+          <g stroke="#2a1c10" stroke-width="0.6">
+            <rect x="7" y="10" width="8" height="28" fill="#c05545"/><rect x="16" y="12" width="7" height="26" fill="#4f8fbf"/><rect x="24" y="9" width="9" height="29" fill="#e0a836"/><rect x="34" y="13" width="7" height="25" fill="#5fa06a"/><rect x="42" y="10" width="9" height="28" fill="#8a6fd0"/>
+            <rect x="8" y="50" width="7" height="28" fill="#5fa06a"/><rect x="16" y="52" width="9" height="26" fill="#c05545"/><rect x="26" y="49" width="7" height="29" fill="#4f8fbf"/><rect x="34" y="53" width="8" height="25" fill="#e0a836"/><rect x="44" y="50" width="7" height="28" fill="#c89bff"/>
+          </g>
+          <!-- globe op de bovenplank... nee, kleine plant -->
+          <g transform="translate(30,88)"><rect x="-6" y="18" width="12" height="10" rx="2" fill="#c76a3a" stroke="#8a3f22" stroke-width="1"/><path d="M0,18 q-12,-4 -14,-18 q12,2 14,12 q2,-12 15,-16 q0,14 -15,22 Z" fill="url(#bladGrad)"/></g>
+        </g>
+        <!-- poster met priem-spiraal boven de boekenkast-zijde -->
+        <g filter="url(#propSchaduw)" transform="translate(280,250)">
+          <rect x="0" y="0" width="70" height="92" rx="2" fill="#f3ecd6" stroke="#c9b489" stroke-width="2"/>
+          <circle cx="35" cy="40" r="26" fill="none" stroke="#b5533a" stroke-width="1.5" opacity="0.8"/>
+          <path d="M35,40 m0,-4 a4,4 0 1 1 -0.1,0 M35,40 m0,-11 a11,11 0 1 1 -0.1,0 M35,40 m0,-19 a19,19 0 1 1 -0.1,0" fill="none" stroke="#2f8f86" stroke-width="1.3"/>
+          <circle cx="35" cy="21" r="2" fill="#e0556b"/><circle cx="52" cy="46" r="2" fill="#e0556b"/><circle cx="22" cy="52" r="2" fill="#e0556b"/>
+          <text x="35" y="82" text-anchor="middle" style="font:700 9px Nunito" fill="#6b4a2b">PRIEMSPIRAAL</text>
+          <circle cx="35" cy="4" r="2.5" fill="#8a6a3a"/>
+        </g>
       </g>
       <!-- klok -->
       <g transform="translate(330,120)"><circle r="22" fill="#f3e6cf" stroke="#3f2914" stroke-width="4"/><line x1="0" y1="0" x2="0" y2="-13" stroke="#2b2b2b" stroke-width="3"/><line x1="0" y1="0" x2="9" y2="4" stroke="#2b2b2b" stroke-width="3"/></g>
@@ -292,6 +402,19 @@
         <path class="stoom" d="M206,420 q-6,-12 4,-22 q8,-10 0,-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.18"/>
         <path class="stoom" style="animation-delay:-3s" d="M150,396 q-6,-12 3,-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.14"/>
       </g>
+
+      <!-- grote vloerplant bij de deur -->
+      <g filter="url(#propSchaduw)" transform="translate(892,452)">
+        <path d="M-20,58 L-14,20 h28 L20,58 Z" fill="#b5702a" stroke="#7a4a1c" stroke-width="2.5"/>
+        <rect x="-22" y="14" width="44" height="10" rx="3" fill="#c98a2e" stroke="#7a4a1c" stroke-width="2"/>
+        <g fill="url(#bladGrad)" stroke="#2f5a22" stroke-width="1">
+          <path d="M0,16 q-30,-14 -34,-52 q26,6 34,34 Z"/><path d="M0,16 q30,-14 34,-52 q-26,6 -34,34 Z"/>
+          <path d="M0,16 q-14,-30 2,-64 q14,26 2,52 Z"/><path d="M0,16 q-22,-24 -14,-56 q22,14 20,42 Z"/><path d="M0,16 q22,-24 14,-56 q-22,14 -20,42 Z"/>
+        </g>
+      </g>
+
+      <!-- zacht vignet: donkere hoeken voor filmische diepte -->
+      <rect x="0" y="0" width="1000" height="600" fill="url(#wandVignet)" pointer-events="none"/>
 
       <!-- Affordance-objecten: zachte halo's op de plekken waar Botty's zichzelf
            kunnen reguleren (gevuld door JS, coördinaten uit OBJECTEN) -->
@@ -523,7 +646,9 @@
     var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","botje");
     var schaduw = document.createElementNS(SVGNS,"ellipse"); schaduw.setAttribute("fill","rgba(0,0,0,.3)");
     var inner = document.createElementNS(SVGNS,"g"); inner.setAttribute("class","sprite");
-    inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur || paletten[0]);
+    inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur || paletten[0])
+      // glans-hooglicht linksboven op de kop → minder plat, meer volume
+      + '<ellipse cx="82" cy="60" rx="26" ry="30" fill="url(#bottyGlans)" pointer-events="none" transform="rotate(-18 82 60)"/>';
     var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam;
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
     var gebruik = document.createElementNS(SVGNS,"text"); gebruik.setAttribute("class","gebruik");
