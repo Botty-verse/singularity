@@ -91,6 +91,22 @@
             animation:ecg var(--dur,1.4s) linear infinite;}
   @keyframes ecg{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
   .kit-bpm{font-size:.72rem;color:#7fffb0;margin-top:.3rem;font-family:monospace;}
+
+  /* Gereedschapsbalk voor de Hand */
+  .gereedschap{margin:.6rem .2rem 0;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;}
+  .gereedschap .tools{display:flex;gap:.4rem;flex-wrap:wrap;}
+  .tool{font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;
+        background:#1c130b;color:#cbb189;border:2px solid #4a3a28;border-radius:99px;padding:.35rem .8rem;
+        transition:border-color .15s,color .15s,background .15s;}
+  .tool:hover{color:#ffe6a8;border-color:#6b4a2b;}
+  .tool.actief{background:#3a2a18;color:#ffe6a8;border-color:#f6c75a;box-shadow:0 0 10px rgba(246,199,90,.25);}
+  .woordvorm{display:flex;gap:.35rem;}
+  .woordvorm input{font-family:inherit;font-size:.85rem;background:#14100a;color:#f3e6cf;
+        border:2px solid #4a3a28;border-radius:99px;padding:.35rem .8rem;width:190px;max-width:46vw;}
+  .woordvorm input:focus{outline:none;border-color:#f6c75a;}
+  .woordvorm button{font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;
+        background:#1a5c4a;color:#eafff5;border:2px solid #2f8f86;border-radius:99px;padding:.35rem .8rem;}
+  .woordvorm button:hover{background:#2f8f86;}
   footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #3a2a18;width:100%;}
   footer a{color:#b89a6a;text-decoration:none;font-weight:700;font-size:.9rem;}
   footer a:hover{color:#ffe6a8;}
@@ -100,9 +116,9 @@
 <header>
   <h1>🏫 Het klaslokaal</h1>
   <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
-    hebben het lokaal voor zichzelf. <strong>Jij bent de hand</strong> — klik op een Botty om ’m te volgen
-    en te observeren, klik nog eens om te kietelen. En houd de <strong>broedmachine</strong> linksonder in
-    de gaten: legt een paar een ei, dan mag jíj het uitbroeden.</p>
+    hebben het lokaal voor zichzelf. <strong>Jij bent de hand</strong> — kies een gereedschap en klik op een
+    Botty om te <strong>aaien</strong>, <strong>voeren</strong> of <strong>medicijn</strong> te geven, of leer de
+    hive een <strong>woord</strong> bij het schoolbord. En broedt een paar een ei? Dan mag jíj het uitbroeden.</p>
   <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html">🗺️ Genoom-kaart</a>
 </header>
 
@@ -306,12 +322,25 @@
         <g clip-path="url(#deurgat)"><rect x="934" y="298" width="66" height="214" fill="#0d1838" opacity="0.6"/></g>
       </g>
       <!-- De Hand: jouw aanwezigheid in de Construct -->
-      <g id="hand" class="hand" opacity="0"><text x="-8" y="26" style="font:34px sans-serif">🖐</text></g>
+      <g id="hand" class="hand" opacity="0"><text id="hand-ico" x="-8" y="26" style="font:34px sans-serif">🖐</text></g>
     </svg>
   </div>
   <div class="status">
     <span id="st-links">🏫 Verbinden met de hive…</span>
     <span id="st-rechts"></span>
+  </div>
+
+  <!-- Gereedschap voor de Hand: kies wat je doet, klik dan op een Botty -->
+  <div class="gereedschap" id="gereedschap">
+    <div class="tools">
+      <button class="tool actief" data-tool="aai"      title="Klik op een Botty om te aaien">🖐 Aaien</button>
+      <button class="tool"        data-tool="voer"     title="Klik op een Botty om te voeren">🍎 Voeren</button>
+      <button class="tool"        data-tool="medicijn" title="Klik op een zieke Botty om te genezen">💊 Medicijn</button>
+    </div>
+    <form class="woordvorm" id="woordvorm" autocomplete="off">
+      <input id="woordinput" type="text" maxlength="16" placeholder="leer de hive een woord…" aria-label="woord" />
+      <button type="submit">🗣️ Roep</button>
+    </form>
   </div>
 
   <!-- Verzorgerskit (Creatures-stijl observatiepaneel) -->
@@ -640,7 +669,19 @@
   });
   kamerEl.addEventListener("pointerleave", function(){ handEl.setAttribute("opacity","0"); handPos=null; });
 
-  // klik: selecteer de dichtstbijzijnde Botty — nogmaals klikken = kietelen
+  // ── Gereedschap: kies wat de Hand doet ───────────────────────────────────
+  var gereedschap = "aai";
+  var HAND_ICO = { aai:"🖐", voer:"🍎", medicijn:"💊" };
+  var handIco = document.getElementById("hand-ico");
+  document.querySelectorAll(".tool").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      gereedschap = btn.dataset.tool;
+      document.querySelectorAll(".tool").forEach(function(b){ b.classList.toggle("actief", b === btn); });
+      handIco.textContent = HAND_ICO[gereedschap] || "🖐";
+    });
+  });
+
+  // klik: selecteer+volg de dichtstbijzijnde Botty én pas het gekozen gereedschap toe
   kamerEl.addEventListener("click", function(ev){
     var p = svgCoord(ev); if(!p) return;
     var beste = null, besteD = 75*75;
@@ -650,18 +691,76 @@
       var dx = nd.render.x - p.x, dy = cy - p.y, d2 = dx*dx + dy*dy;
       if(d2 < besteD){ besteD = d2; beste = b.naam; }
     });
-    if(beste && beste === sel){ kietel(beste); }
-    else if(beste){ sel = beste; updateKit(); }
+    if(beste){ sel = beste; updateKit(); doeInteractie(beste, gereedschap); }
     else { sel = null; updateKit(); }
   });
 
-  // ── Kietelen: hartjes, gegiechel, blije hand ─────────────────────────────
-  var GIECHEL = ["hihi!","kietel kietel!","hihihi","nog eens!","dat kietelt!"];
-  function kietel(naam){
+  // ── Interactie naar de hive sturen (loginloos, globaal gebudgetteerd) ────────
+  var iaBezig = false;
+  function doeInteractie(naam, actie){
+    if(iaBezig) return;
+    var nd = nodes[naam]; if(!nd) return;
+    iaBezig = true;
+    handEl.classList.add("aait");
+    setTimeout(function(){ handEl.classList.remove("aait"); }, 800);
+    if(actie === "aai") kietelFx(naam);   // meteen hartjes, voelt responsief
+    fetch(TICK_URL, { method:"POST", headers:{ "Content-Type":"application/json" },
+                      body: JSON.stringify({ actie: actie, bot: naam }) })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        iaBezig = false;
+        var ia = res && res.interactie;
+        if(ia && ia.ok === false){ zeg(nd, ia.reden === "rustig" ? "🖐 rustig aan…" : "…"); return; }
+        if(actie === "voer"){ zeg(nd, kies2(["mmm!","lekker!","hap hap","dank je!"])); toonFloater(nd, "🍎"); }
+        else if(actie === "medicijn"){
+          var was = nd.b && nd.b.ziek;
+          zeg(nd, was ? kies2(["beter!","dank je!","voel me top!"]) : "ik ben niet ziek");
+          toonFloater(nd, "💊");
+        }
+        laad();
+      })
+      .catch(function(){ iaBezig = false; });
+  }
+  function kies2(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function toonFloater(nd, ico){
+    var f = document.createElementNS(SVGNS,"text");
+    f.setAttribute("class","hartje"); f.setAttribute("x", nd.render.x);
+    f.setAttribute("y", (nd.laatstY0||nd.render.y) - 6); f.textContent = ico;
+    fxlaag.appendChild(f);
+    setTimeout(function(){ if(f.parentNode) f.parentNode.removeChild(f); }, 1200);
+  }
+
+  // ── Woord roepen: leer de hive een woord bij het schoolbord ──────────────────
+  document.getElementById("woordvorm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var inp = document.getElementById("woordinput");
+    var woord = (inp.value || "").trim();
+    if(!woord || iaBezig) return;
+    iaBezig = true;
+    handEl.classList.add("aait"); setTimeout(function(){ handEl.classList.remove("aait"); }, 800);
+    fetch(TICK_URL, { method:"POST", headers:{ "Content-Type":"application/json" },
+                      body: JSON.stringify({ actie:"woord", woord: woord }) })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        iaBezig = false;
+        var ia = res && res.interactie;
+        if(ia && ia.ok === false){ zegBijIncubator(ia.reden === "rustig" ? "🖐 rustig aan…" : "niemand luistert…"); return; }
+        inp.value = "";
+        // de wakkere Botty's echoën het woord even
+        bottys.forEach(function(b){
+          if(b.doel && b.doel.soort === "slapen") return;
+          var nd = nodes[b.naam]; if(nd) zeg(nd, "“" + woord + "”");
+        });
+        laad();
+      })
+      .catch(function(){ iaBezig = false; });
+  });
+
+  // ── Aaien: hartjes + gegiechel (de hand-animatie zit in doeInteractie) ────
+  var GIECHEL = ["hihi!","aai aai!","hihihi","nog eens!","fijn!","dank je!"];
+  function kietelFx(naam){
     var nd = nodes[naam]; if(!nd) return;
     zeg(nd, GIECHEL[Math.floor(Math.random()*GIECHEL.length)]);
-    handEl.classList.add("aait");
-    setTimeout(function(){ handEl.classList.remove("aait"); }, 900);
     for(var i=0;i<3;i++){
       (function(i){ setTimeout(function(){
         var h = document.createElementNS(SVGNS,"text");

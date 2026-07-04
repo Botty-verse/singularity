@@ -507,6 +507,21 @@ const MAX_POP = 12;           // zachte cap: daarboven vervangt een geboorte de 
 const MAX_EIEREN    = 2;             // max eieren tegelijk in de broedmachine
 const BROEDTIJD_MS  = 90_000;        // ei is rijp na 1,5 minuut warmte
 const AUTO_BROED_MS = 20 * 60_000;   // vangnet: zonder bezoeker komt het ei vanzelf uit
+
+// ─── Bezoekersinteractie: de Hand grijpt in (aaien / voeren / medicijn / woord) ──
+// Geen login: het is één gedeelde hive, dus een GLOBALE token-bucket beschermt de
+// simulatie. Alle bezoekers putten uit dezelfde emmer; is die leeg, dan wacht de
+// hand even. Zo kan geen enkele kijker (of bot) de hive ontregelen, ook niet met
+// honderd tegelijk.
+const IA_BUCKET_MAX   = 12;          // burst: zoveel ingrepen mogen er kort achter elkaar
+const IA_REFILL_MS    = 2500;        // daarna vult de emmer met 1 token per 2,5 s (~24/min)
+function interactieBudget(state: any, nu: number): { tokens: number; laatst: number } {
+  const b = (state.ia_bucket && typeof state.ia_bucket.tokens === "number")
+    ? state.ia_bucket : { tokens: IA_BUCKET_MAX, laatst: nu };
+  const bij = Math.max(0, (nu - (b.laatst ?? nu)) / IA_REFILL_MS);
+  return { tokens: Math.min(IA_BUCKET_MAX, b.tokens + bij), laatst: nu };
+}
+
 const DOEL_POP = 9;           // streefgetal voor de geboortekans
 function senescence(b: any): number {
   const leeftijd = (Date.now() - (b.geboren ?? Date.now())) / 1000 / exprGenoom(b.genome).agingSpeed;
@@ -1529,6 +1544,114 @@ Deno.serve(async (req) => {
         + " · " + hoe + erfenisTekst + straftekst });
   }
 
+  // ─── Bezoekersinteractie toepassen (globaal gebudgetteerd) ────────────────────
+  let iaBucket = interactieBudget(state, nu);
+  let iaEvent: any = null;
+  function vindBot(naam: any) {
+    return typeof naam === "string" ? bottys.find((b: any) => b.naam === naam && !b.bezigEi) : null;
+  }
+  function boostEndorfine(b: any, hoeveel: number) {
+    b.chem = b.chem || {};
+    b.chem.endorfine = Math.min(100, (b.chem.endorfine ?? 0) + hoeveel);
+    b.chem.stress = Math.max(0, (b.chem.stress ?? 0) - hoeveel * 0.5);
+  }
+  if (vraag && vraag.actie && vraag.actie !== "broed") {
+    if (iaBucket.tokens < 1) {
+      iaEvent = { ok: false, reden: "rustig" };   // emmer leeg: hand wacht even
+    } else {
+      const kost = () => { iaBucket.tokens -= 1; };
+
+      // 1) AAIEN — attentie voelt goed (endorfine, stemming) én bekrachtigt wat de
+      //    Botty NU doet: staat hij bij een object voor een drive, dan leert hij dat
+      //    dat object helpt. Zo voed jij als bezoeker het leren mee (Creatures).
+      if (vraag.actie === "aai") {
+        const b = vindBot(vraag.bot);
+        if (b) {
+          kost();
+          boostEndorfine(b, 26);
+          b.stemming = klem((b.stemming ?? 50) + 12);
+          b.geluk = klem((b.geluk ?? 50) + 6);
+          let leer = "";
+          if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && b.doel.obj) {
+            breinLeer(b, b.doel.stat, b.doel.obj, true);   // "goed zo, blijf dat doen"
+            const o = OBJECTEN.find(x => x.id === b.doel.obj);
+            if (o) leer = " — leert dat " + o.kort + " goed is";
+          }
+          onthoud(b, "geaaid", "een warme hand aaide me");
+          iaEvent = { ok: true, soort: "aai", naam: b.naam,
+            tekst: "🖐 <b>" + b.naam + "</b> wordt geaaid — voelt zich gezien" + leer };
+        }
+      }
+
+      // 2) VOEREN — een hapje data/energie: tilt de laagste bar op, dempt honger.
+      else if (vraag.actie === "voer") {
+        const b = vindBot(vraag.bot);
+        if (b) {
+          kost();
+          const laagste = DRIVE_STATS.map(s => ({ s, v: b[s] ?? 100 })).sort((p, q) => p.v - q.v)[0];
+          b[laagste.s] = klem((b[laagste.s] ?? 50) + 22);
+          b.chem = b.chem || {}; b.chem.honger = Math.max(0, (b.chem.honger ?? 0) - 30);
+          b.stemming = klem((b.stemming ?? 50) + 6);
+          onthoud(b, "gevoerd", "een hand gaf me iets lekkers");
+          iaEvent = { ok: true, soort: "voer", naam: b.naam,
+            tekst: "🍎 <b>" + b.naam + "</b> krijgt een hapje — " + DRIVE_LABEL[laagste.s] + " stilt" };
+        }
+      }
+
+      // 3) MEDICIJN — geneest een zieke Botty (of stelt gerust als hij gezond is).
+      else if (vraag.actie === "medicijn") {
+        const b = vindBot(vraag.bot);
+        if (b) {
+          kost();
+          if (b.ziek) {
+            b.ziek = false;
+            b.chem = b.chem || {}; b.chem.gif = 0;
+            b.energie = klem((b.energie ?? 50) + 8); b.fit = klem((b.fit ?? 50) + 8);
+            b.stemming = klem((b.stemming ?? 50) + 16);
+            onthoud(b, "genezen", "een bezoeker gaf me medicijn toen ik ziek was");
+            iaEvent = { ok: true, soort: "medicijn", naam: b.naam,
+              tekst: "💊 <b>" + b.naam + "</b> is genezen door een bezoeker" };
+          } else {
+            boostEndorfine(b, 8);
+            iaEvent = { ok: true, soort: "medicijn", naam: b.naam,
+              tekst: "💊 <b>" + b.naam + "</b> is niet ziek — voelt zich prima" };
+          }
+        }
+      }
+
+      // 4) WOORD ROEPEN — je leert de hive een woord bij het schoolbord. Wie wakker en
+      //    dichtbij genoeg is pikt het op (baby's verbasteren het). Het woord landt in
+      //    hun lexicon → telt mee in hun woordenschat en grafschrift-nalatenschap.
+      else if (vraag.actie === "woord") {
+        const woord = String(vraag.woord ?? "").trim().slice(0, 16).replace(/[<>&"]/g, "");
+        if (woord) {
+          kost();
+          const bord = OBJECTEN.find(o => o.id === "bord")!;
+          const leerlingen = bottys.filter((b: any) =>
+            !b.bezigEi && !(NACHT && slaapt(b)) && b.pos && afstand2(b.pos, bord) < (ZICHT * 1.6) ** 2);
+          const doelgroep = leerlingen.length ? leerlingen : bottys.filter((b: any) => !b.bezigEi && !(NACHT && slaapt(b)));
+          const geleerd: string[] = [];
+          for (const b of doelgroep) {
+            b.lexicon = b.lexicon || {};
+            const concept = "mens:" + woord.toLowerCase();
+            const baby = huidigeStage(b) === "baby";
+            b.lexicon[concept] = baby && Math.random() < 0.6 ? muteerWoord(woord) : woord;
+            b.geluk = klem((b.geluk ?? 50) + 4);
+            boostEndorfine(b, 6);
+            if (!b.herinneringen?.some((h: any) => h.soort === "woord-geleerd" && h.tekst.includes(woord)))
+              onthoud(b, "woord-geleerd", "een mens leerde me het woord “" + woord + "”");
+            geleerd.push(b.naam);
+          }
+          if (geleerd.length) {
+            iaEvent = { ok: true, soort: "woord", woord,
+              tekst: "🗣️ De hive leert het woord “" + woord + "” — " + geleerd.length + " Botty" + (geleerd.length !== 1 ? "'s" : "") + " pikken het op" };
+          } else { iaBucket.tokens += 1; iaEvent = { ok: false, reden: "niemand luistert" }; }
+        }
+      }
+    }
+    if (iaEvent && iaEvent.ok && iaEvent.tekst) events.push({ soort: "interactie", tekst: iaEvent.tekst });
+  }
+
   // (a) bezoeker broedt een rijp ei uit
   if (vraag && vraag.actie === "broed" && typeof vraag.ei === "string") {
     const i = eieren.findIndex((e: any) => e.id === vraag.ei);
@@ -1552,12 +1675,13 @@ Deno.serve(async (req) => {
     last_updated_at: nu,
     last_kweek: lastKweek,
     eieren,
+    ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu },
   });
 
   for (const ev of events) await broadcast(ev);
 
   return new Response(
-    JSON.stringify({ ok: true, ticks: gemist, events: events.length, bezoekers }),
+    JSON.stringify({ ok: true, ticks: gemist, events: events.length, bezoekers, interactie: iaEvent }),
     { headers: { "Content-Type": "application/json" } },
   );
 });
