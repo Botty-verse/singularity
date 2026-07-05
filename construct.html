@@ -108,6 +108,9 @@
   .woordvorm button{font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;
         background:#1a5c4a;color:#eafff5;border:2px solid #2f8f86;border-radius:99px;padding:.35rem .8rem;}
   .woordvorm button:hover{background:#2f8f86;}
+  .geluidknop{background:#1c130b !important;color:#cbb189 !important;border:2px solid #4a3a28 !important;}
+  .geluidknop:hover{color:#ffe6a8 !important;border-color:#6b4a2b !important;}
+  .geluidknop.aan{background:#3a2a18 !important;color:#ffe6a8 !important;border-color:#f6c75a !important;}
   footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #3a2a18;width:100%;}
   footer a{color:#b89a6a;text-decoration:none;font-weight:700;font-size:.9rem;}
   footer a:hover{color:#ffe6a8;}
@@ -463,6 +466,7 @@
     <form class="woordvorm" id="woordvorm" autocomplete="off">
       <input id="woordinput" type="text" maxlength="16" placeholder="leer de hive een woord…" aria-label="woord" />
       <button type="submit">🗣️ Roep</button>
+      <button type="button" id="geluidknop" class="geluidknop" title="Botty-stemmen aan/uit" aria-pressed="false">🔇 Stem uit</button>
     </form>
   </div>
 
@@ -504,6 +508,7 @@
 <script src="assets/botty-config.js"></script>
 <script src="assets/botty-render.js"></script>
 <script src="assets/botty-sprites.js"></script>
+<script src="assets/botty-audio.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
@@ -635,7 +640,7 @@
         var kuiken = bottys.filter(function(b){ return b.naam === (ei.kind && ei.kind.naam); })[0];
         if(kuiken){
           zegBijIncubator("🐣 " + kuiken.naam + " is er!");
-          setTimeout(function(){ var nd = nodes[kuiken.naam]; if(nd) zeg(nd, "hallo wereld!"); }, 1400);
+          setTimeout(function(){ var nd = nodes[kuiken.naam]; if(nd) zeg(nd, "hallo wereld!", "blij"); }, 1400);
         }
       })
       .catch(function(){ broedBezig = false; zegBijIncubator("⚠️ dat lukte niet…"); });
@@ -795,6 +800,26 @@
   kamerEl.addEventListener("pointerleave", function(){ handEl.setAttribute("opacity","0"); handPos=null; });
 
   // ── Gereedschap: kies wat de Hand doet ───────────────────────────────────
+  // ── Botty-stemmen: mute-knop + ontgrendelen bij het eerste gebaar ─────────
+  var geluidKnop = document.getElementById("geluidknop");
+  function tekenGeluidKnop(){
+    var aan = window.BottyAudio && !BottyAudio.isGedempt();
+    geluidKnop.textContent = aan ? "🔊 Stem aan" : "🔇 Stem uit";
+    geluidKnop.classList.toggle("aan", !!aan);
+    geluidKnop.setAttribute("aria-pressed", aan ? "true" : "false");
+  }
+  geluidKnop.addEventListener("click", function(){
+    if(!window.BottyAudio) return;
+    BottyAudio.setDemping(!BottyAudio.isGedempt());   // toggelt + unlockt binnen dit gebaar
+    tekenGeluidKnop();
+  });
+  tekenGeluidKnop();
+  // Elk eerste gebaar hervat de AudioContext (browservereiste), 1×.
+  document.addEventListener("pointerdown", function once(){
+    if(window.BottyAudio) BottyAudio.unlock();
+    document.removeEventListener("pointerdown", once);
+  }, { once:true });
+
   var gereedschap = "aai";
   var HAND_ICO = { aai:"🖐", voer:"🍎", medicijn:"💊" };
   var handIco = document.getElementById("hand-ico");
@@ -836,10 +861,10 @@
         iaBezig = false;
         var ia = res && res.interactie;
         if(ia && ia.ok === false){ zeg(nd, ia.reden === "rustig" ? "🖐 rustig aan…" : "…"); return; }
-        if(actie === "voer"){ zeg(nd, kies2(["mmm!","lekker!","hap hap","dank je!"])); toonFloater(nd, "🍎"); }
+        if(actie === "voer"){ zeg(nd, kies2(["mmm!","lekker!","hap hap","dank je!"]), "blij"); toonFloater(nd, "🍎"); }
         else if(actie === "medicijn"){
           var was = nd.b && nd.b.ziek;
-          zeg(nd, was ? kies2(["beter!","dank je!","voel me top!"]) : "ik ben niet ziek");
+          zeg(nd, was ? kies2(["beter!","dank je!","voel me top!"]) : "ik ben niet ziek", was ? "blij" : "praat");
           toonFloater(nd, "💊");
         }
         laad();
@@ -885,7 +910,7 @@
   var GIECHEL = ["hihi!","aai aai!","hihihi","nog eens!","fijn!","dank je!"];
   function kietelFx(naam){
     var nd = nodes[naam]; if(!nd) return;
-    zeg(nd, GIECHEL[Math.floor(Math.random()*GIECHEL.length)]);
+    zeg(nd, GIECHEL[Math.floor(Math.random()*GIECHEL.length)], "blij");
     for(var i=0;i<3;i++){
       (function(i){ setTimeout(function(){
         var h = document.createElementNS(SVGNS,"text");
@@ -911,7 +936,7 @@
     slapen:       ["zzz…","*snurk*","mmm… priempje…","zzz… vriendje…"],
     ziek:         ["botty au","voel raar","niet lekker…"]
   };
-  function zeg(nd, tekst){
+  function zeg(nd, tekst, stemming){
     if(nd.bub && nd.bub.parentNode) nd.bub.parentNode.removeChild(nd.bub);
     var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","bubbel");
     var w = tekst.length*7.6 + 22;
@@ -920,14 +945,18 @@
                 + '<text y="-13">'+esc(tekst)+'</text>';
     fxlaag.appendChild(g);
     nd.bub = g; nd.bubTtl = 2400;
+    // stemgeluid: elke bubbel van een Botty krijgt zijn eigen gebrabbel
+    if(window.BottyAudio && nd.b) BottyAudio.spreek(nd.b, stemming || "praat");
   }
   setInterval(function(){
     if(document.hidden || !bottys.length) return;
     if(Math.random() < 0.35) return;                    // stiltes horen erbij
     var b = bottys[Math.floor(Math.random()*bottys.length)];
     var nd = nodes[b.naam]; if(!nd || nd.bub) return;
-    var pot = b.ziek ? BRABBEL.ziek : (BRABBEL[b.doel && b.doel.soort] || BRABBEL.nieuwsgierig);
-    zeg(nd, pot[Math.floor(Math.random()*pot.length)]);
+    var soort = b.doel && b.doel.soort;
+    var stemming = b.ziek ? "ziek" : (soort === "slapen" ? "slaap" : "praat");
+    var pot = b.ziek ? BRABBEL.ziek : (BRABBEL[soort] || BRABBEL.nieuwsgierig);
+    zeg(nd, pot[Math.floor(Math.random()*pot.length)], stemming);
   }, 4200);
 
   // ── Verzorgerskit ────────────────────────────────────────────────────────
