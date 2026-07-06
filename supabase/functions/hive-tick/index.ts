@@ -62,15 +62,28 @@ const BREIN_NEUTRAAL = 0.5;   // startgeloof voor een nog onbeproefd object
 const BREIN_EPS_MAX  = 0.4;   // exploratiekans van een groentje
 const BREIN_EPS_MIN  = 0.06;  // exploratiekans van een expert
 const BREIN_OPGEVEN  = 3;     // mislukte pogingen bij één object → iets anders proberen
+const BREIN_ATROFIE  = 0.012; // ongebruikte overtuigingen zakken langzaam terug naar neutraal
 
 function breinGeloof(b: any, drive: string, objId: string): number {
   return b.brein?.[drive]?.[objId] ?? BREIN_NEUTRAAL;
 }
+// Leren = drive-reductie, CHEMISCH GEPOORT (Creatures): de beloningsstof endorfine
+// zet de plasticiteit open. Een bezoeker die aait geeft endorfine → versterkt precies
+// datgene wat de Botty op dat moment leert. Naast versterking: atrofie van de rest.
 function breinLeer(b: any, drive: string, objId: string, beloond: boolean) {
   b.brein = b.brein || {};
   b.brein[drive] = b.brein[drive] || {};
+  const endorfine = b.chem?.endorfine ?? 0;
+  const poort = 0.6 + Math.min(1, endorfine / 60) * 0.9;   // plasticiteits-poort 0.6..1.5×
+  const lr = BREIN_LEER * poort;
   const oud = b.brein[drive][objId] ?? BREIN_NEUTRAAL;
-  b.brein[drive][objId] = +(oud + BREIN_LEER * ((beloond ? 1 : 0) - oud)).toFixed(3);
+  b.brein[drive][objId] = +Math.max(0, Math.min(1, oud + lr * ((beloond ? 1 : 0) - oud))).toFixed(3);
+  // Atrofie: de andere overtuigingen voor deze drive driften langzaam naar neutraal.
+  for (const id of Object.keys(b.brein[drive])) {
+    if (id === objId) continue;
+    const w = b.brein[drive][id];
+    b.brein[drive][id] = +(w + (BREIN_NEUTRAAL - w) * BREIN_ATROFIE).toFixed(3);
+  }
   b.breinN = b.breinN || {};
   b.breinN[drive] = (b.breinN[drive] || 0) + 1;
 }
@@ -121,7 +134,10 @@ function erfBrein(ouderA: any, ouderB: any): { brein: Record<string, Record<stri
 // laten wegebben. Deze eerste stap draait NAAST de bars en stuurt alleen de toch al
 // ruisige stemming aan; verval/ziekte/euforie blijven ongewijzigd. `gif` wordt al
 // als schaduw bijgehouden zodat een latere stap ziekte erop kan overzetten.
-const CHEM: string[] = ["honger", "vermoeidheid", "stress", "endorfine", "gif"];
+// Drives als chemicaliën (Creatures-getrouw). Naast de vier bar-drives dragen we
+// drie "gevoelens" mee die het gedrag én het gezicht sturen: verveling, angst,
+// eenzaamheid — met eigen emitters, half-lives en receptors.
+const CHEM: string[] = ["honger", "vermoeidheid", "stress", "endorfine", "gif", "verveling", "angst", "eenzaamheid"];
 function chemHalfLives(G: any): Record<string, number> {
   // half-life in ticks: hoe hoger, hoe trager de stof wegebt (genoom-bepaald)
   return {
@@ -130,6 +146,9 @@ function chemHalfLives(G: any): Record<string, number> {
     stress:       14 / G.verval.stemming,
     endorfine:    6  * G.herstel,           // beter herstel → endorfine zindert langer na
     gif:          40 / G.ziekKans,          // zwakker immuun → gif blijft langer hangen
+    verveling:    18,                       // verveling bouwt traag op en zakt traag
+    angst:        8  / G.ziekKans,          // angst ebt vrij snel weg als de dreiging voorbij is
+    eenzaamheid:  16 * G.social,            // socialere Bottys voelen eenzaamheid langer na
   };
 }
 const chemVervalFactor = (h: number) => Math.pow(0.5, 1 / Math.max(1, h));
@@ -152,6 +171,14 @@ function biochemie(b: any, bottys: any[]) {
   c.stress       += (100 - (b.geluk ?? 50)) * 0.02 + (b.ziek ? 4 : 0) + (nabij === 0 ? 0.8 : 0);
   if (nabij > 0) c.endorfine += Math.min(nabij, 3) * 1.1;                 // gezelschap voelt goed
   if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b)) c.gif += 22; // stress verzwakt de weerstand
+  // Nieuwe drives (emitters):
+  // verveling: stijgt bij doelloos jagen/dwalen, daalt bij zelfzorg, gezelschap en euforie.
+  const bezigLeuk = b.doel && (b.doel.soort === "zelfzorg" || b.doel.soort === "gezelschap" || b.doel.soort === "nieuwsgierig");
+  c.verveling    += (bezigLeuk ? -1.4 : 0.7) - Math.min(c.endorfine, 30) * 0.03;
+  // angst: ziekte en overbevolking maken bang; endorfine stelt gerust.
+  c.angst        += (b.ziek ? 2.4 : 0) + (nabij >= 4 ? 0.7 : 0) + (c.gif ?? 0) * 0.02 - Math.min(c.endorfine, 40) * 0.04;
+  // eenzaamheid: stijgt in je eentje, zakt snel in gezelschap.
+  c.eenzaamheid  += (nabij === 0 ? 1.3 : -2.2);
 
   // Reactie: endorfine blust stress (katalytische afbraak). Bewust zwakker (0.06)
   // zodat endorfine ambiënte stress dempt maar acute stress (ziek/eenzaam) niet
@@ -163,11 +190,25 @@ function biochemie(b: any, bottys: any[]) {
   const hl = chemHalfLives(G);
   for (const k of CHEM) c[k] = Math.max(0, Math.min(100, +(c[k] * chemVervalFactor(hl[k])).toFixed(2)));
 
-  // Receptors (deze stap alleen stemming, veilig): endorfine tilt op, stress drukt.
+  // Receptors: endorfine tilt de stemming op, stress/verveling/angst/eenzaamheid drukken.
   let d = 0;
-  if (c.endorfine > 30) d += (c.endorfine - 30) * 0.05;
-  if (c.stress    > 40) d -= (c.stress    - 40) * 0.04;
+  if (c.endorfine   > 30) d += (c.endorfine   - 30) * 0.05;
+  if (c.stress      > 40) d -= (c.stress      - 40) * 0.04;
+  if (c.verveling   > 50) d -= (c.verveling   - 50) * 0.025;
+  if (c.angst       > 45) d -= (c.angst       - 45) * 0.05;
+  if (c.eenzaamheid > 50) d -= (c.eenzaamheid - 50) * 0.03;
   if (d !== 0) b.stemming = klem((b.stemming ?? 50) + d);
+
+  // Dominant gevoel → gezichtsuitdrukking (de client leest b.humeur). Ziek en slaap
+  // krijgen client-side voorrang; hier bepalen we bang/eenzaam/verveeld/blij.
+  const kandidaten: [string, number][] = [
+    ["bang",     (c.angst ?? 0)       - 45],
+    ["eenzaam",  (c.eenzaamheid ?? 0) - 55],
+    ["verveeld", (c.verveling ?? 0)   - 58],
+    ["blij",     (c.endorfine ?? 0)   - 58],
+  ];
+  kandidaten.sort((x, y) => y[1] - x[1]);
+  b.humeur = kandidaten[0][1] > 0 ? kandidaten[0][0] : "";
 }
 
 // ─── Taal (fase 1): woorden ontstaan, verspreiden en driften ────────────────────

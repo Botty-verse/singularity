@@ -68,11 +68,14 @@
   /* slapende Botty ligt stil */
   #laag .botje.slaap .arm-l,#laag .botje.slaap .arm-r,#laag .botje.slaap .been,#laag .botje.slaap .antenne{animation-play-state:paused;}
   /* ── Gezichtsuitdrukkingen (overlays, standaard onzichtbaar) ── */
-  #laag .oogdicht,#laag .lach,#laag .blos,#laag .ziekgezicht{opacity:0;transition:opacity .16s ease;}
+  #laag .oogdicht,#laag .lach,#laag .blos,#laag .ziekgezicht,#laag .expr-verveeld,#laag .expr-bang,#laag .expr-eenzaam{opacity:0;transition:opacity .16s ease;}
   #laag .botje.knipper .oogdicht,#laag .botje.slaap .oogdicht{opacity:1;}
   #laag .botje.blij .lach{opacity:1;}
   #laag .botje.blij .blos{opacity:.9;}
   #laag .botje.ziek .ziekgezicht{opacity:1;}
+  #laag .botje.verveeld .expr-verveeld{opacity:1;}
+  #laag .botje.bang .expr-bang{opacity:1;}
+  #laag .botje.eenzaam .expr-eenzaam{opacity:1;}
   .botje.sel .sprite{filter:drop-shadow(0 0 9px #ffe6a8) drop-shadow(0 0 20px rgba(246,199,90,.55));}
   .botje.dim text{opacity:.35;}
   .bubbel{animation:bubbelIn .22s ease-out;pointer-events:none;}
@@ -437,7 +440,16 @@
       + '<g class="blos" pointer-events="none"><ellipse cx="79" cy="97" rx="6.5" ry="3.6" fill="#ff9ec9"/><ellipse cx="121" cy="97" rx="6.5" ry="3.6" fill="#ff9ec9"/></g>'
       + '<g class="ziekgezicht" pointer-events="none"><path d="M84,73 l11,5 M116,73 l-11,5" stroke="#14403c" stroke-width="2.6" stroke-linecap="round"/>'
       +   '<path d="M92,104 q8,-6 16,0" fill="none" stroke="#14403c" stroke-width="3" stroke-linecap="round"/>'
-      +   '<ellipse cx="126" cy="70" rx="4" ry="6" fill="#8fd6ff" opacity="0.8"/></g>';
+      +   '<ellipse cx="126" cy="70" rx="4" ry="6" fill="#8fd6ff" opacity="0.8"/></g>'
+      // verveeld: halfdichte ogen + vlakke mond
+      + '<g class="expr-verveeld" pointer-events="none"><rect x="84" y="78" width="12" height="7" rx="3" fill="'+pal.scherm+'"/><rect x="104" y="78" width="12" height="7" rx="3" fill="'+pal.scherm+'"/>'
+      +   '<line x1="90" y1="103" x2="110" y2="103" stroke="#14403c" stroke-width="3.5" stroke-linecap="round"/></g>'
+      // bang: opgetrokken wenkbrauwen + klein rond mondje + zweetdruppel
+      + '<g class="expr-bang" pointer-events="none"><path d="M84,71 l11,-4 M116,71 l-11,-4" stroke="#14403c" stroke-width="2.6" stroke-linecap="round"/>'
+      +   '<ellipse cx="100" cy="104" rx="4.5" ry="5.5" fill="#14403c"/><ellipse cx="127" cy="70" rx="4" ry="6" fill="#8fd6ff" opacity="0.85"/></g>'
+      // eenzaam: hangende mond + traan
+      + '<g class="expr-eenzaam" pointer-events="none"><path d="M92,105 q8,-6 16,0" fill="none" stroke="#14403c" stroke-width="3" stroke-linecap="round"/>'
+      +   '<ellipse cx="90" cy="96" rx="3" ry="4.5" fill="#8fd6ff" opacity="0.85"/></g>';
     var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam;
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
     var gebruik = document.createElementNS(SVGNS,"text"); gebruik.setAttribute("class","gebruik");
@@ -563,10 +575,14 @@
         nd.volgendeKnipper = ts + 2200 + Math.random()*4200;
       }
       if(nd.knipperTot && ts > nd.knipperTot){ nd.g.classList.remove("knipper"); nd.knipperTot = 0; }
-      var blij = nd.blijTot && Date.now() < nd.blijTot;
+      var blij = (nd.blijTot && Date.now() < nd.blijTot) || b.humeur === "blij";
+      var vrij = !b.ziek && !inSlaap && !blij;   // ziek/slaap/blij hebben voorrang
       nd.g.classList.toggle("slaap", !!inSlaap);
       nd.g.classList.toggle("ziek", !!b.ziek && !inSlaap);
       nd.g.classList.toggle("blij", !!blij && !b.ziek && !inSlaap);
+      nd.g.classList.toggle("bang", vrij && b.humeur === "bang");
+      nd.g.classList.toggle("eenzaam", vrij && b.humeur === "eenzaam");
+      nd.g.classList.toggle("verveeld", vrij && b.humeur === "verveeld");
 
       // vloer-schaduw onder de voeten
       nd.schaduw.setAttribute("cx", r.x.toFixed(1)); nd.schaduw.setAttribute("cy", (voetY+4).toFixed(1));
@@ -767,7 +783,10 @@
     nieuwsgierig: ["dat wat?","ooh mooi","ikke kijken","glimmend ding!"],
     zelfzorg:     ["ikke speel","dit fijn","zelf doen!"],
     slapen:       ["zzz…","*snurk*","mmm… priempje…","zzz… vriendje…"],
-    ziek:         ["botty au","voel raar","niet lekker…"]
+    ziek:         ["botty au","voel raar","niet lekker…"],
+    verveeld:     ["saai…","niks te doen…","gaap…","boooring"],
+    bang:         ["botty bang!","eng!","niet leuk…","help?"],
+    eenzaam:      ["waar iedereen…","botty alleen","wil knuffel","niemand hier…"]
   };
   function zeg(nd, tekst, stemming){
     if(nd.bub && nd.bub.parentNode) nd.bub.parentNode.removeChild(nd.bub);
@@ -788,8 +807,13 @@
     var b = bottys[Math.floor(Math.random()*bottys.length)];
     var nd = nodes[b.naam]; if(!nd || nd.bub) return;
     var soort = b.doel && b.doel.soort;
-    var stemming = b.ziek ? "ziek" : (soort === "slapen" ? "slaap" : "praat");
-    var pot = b.ziek ? BRABBEL.ziek : (BRABBEL[soort] || BRABBEL.nieuwsgierig);
+    // stemming volgt eerst de toestand, dan het humeur, dan het doel
+    var hum = b.humeur;
+    var stemming = b.ziek ? "ziek" : soort === "slapen" ? "slaap"
+      : (hum === "bang" || hum === "eenzaam") ? "ziek" : hum === "blij" ? "blij" : "praat";
+    var pot = b.ziek ? BRABBEL.ziek
+      : (hum && BRABBEL[hum]) ? BRABBEL[hum]
+      : (BRABBEL[soort] || BRABBEL.nieuwsgierig);
     zeg(nd, pot[Math.floor(Math.random()*pot.length)], stemming);
   }, 4200);
 
