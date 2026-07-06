@@ -466,6 +466,7 @@
     return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik,
              render:{ x:sx, y:vloerVan(startNiv) },
              niveau:startNiv, doelNiveau:startNiv, doelX:sx, klim:null, pauze:0, loopFase:0, linksom:false,
+             traagMs:0, wakerX:sx,
              faseNum: nameRnd(b.naam+"br")*6.28, volgendeKnipper:0, knipperTot:0, blijTot:0,
              snelheid: 0.9 + nameRnd(b.naam+"snel")*1.3, b:b };
   }
@@ -475,20 +476,24 @@
   function nieuwDoel(nd, b){
     var soort = b.doel && b.doel.soort;
     var niv = nd.niveau, x = nd.render.x;
+    // stabiele "baan" per Botty (-0.5..0.5): zo gaan ze náást elkaar staan bij een
+    // gedeeld doel i.p.v. op dezelfde plek te blijven hangen.
+    var lane = nameRnd(b.naam+"lane") - 0.5;
     if((soort==="zelfzorg" || soort==="nieuwsgierig") && b.doel){
       var oid = b.doel.obj || b.doel.poi;
       var o = OBJECTEN.filter(function(z){ return z.id===oid; })[0];
-      if(o){ niv = o.niveau; x = o.x + (Math.random()-0.5)*50; }
+      if(o){ niv = o.niveau; x = o.x + lane*95; }
       else { niv = Math.random()<0.5?0:1; x = randX(niv); }
     } else if(soort==="bijkomen" || soort==="herstellen" || soort==="slapen"){
-      niv = RUST.niveau; x = RUST.x + (Math.random()-0.5)*220;
+      niv = RUST.niveau; x = RUST.x + lane*320;
     } else if(soort==="gezelschap"){
       var vriend = (b.doel.naar && nodes[b.doel.naar]) ? nodes[b.doel.naar] : null;
       if(!vriend){
         var kand = bottys.filter(function(o){ return o.naam!==b.naam && nodes[o.naam]; });
         if(kand.length) vriend = nodes[kand[Math.floor(Math.random()*kand.length)].naam];
       }
-      if(vriend){ niv = vriend.niveau; x = vriend.render.x + (Math.random()-0.5)*160; }
+      // ga náást de vriend staan (op afstand), niet er bovenop
+      if(vriend){ niv = vriend.niveau; x = vriend.render.x + (lane<0?-1:1)*(46 + Math.abs(lane)*150); }
       else { niv = nd.niveau; x = randX(niv); }
     } else {
       // priemjacht / voortplanting / overig: soms van niveau wisselen
@@ -547,8 +552,26 @@
         ? vloerVan(nd.klim.van) + (vloerVan(nd.klim.naar)-vloerVan(nd.klim.van))*nd.klim.t
         : vloerVan(nd.niveau);
       var lvNu = NIVEAUS[nd.klim ? nd.klim.van : nd.niveau];
-      r.x = Math.max(lvNu.xlo-20, Math.min(lvNu.xhi+20, r.x));
+      r.x = Math.max(lvNu.xlo, Math.min(lvNu.xhi, r.x));
       r.y = voetY;
+
+      // ── Anti-vastloop: te lang op vrijwel dezelfde plek → nieuw doel ──
+      if(!inSlaap && !nd.klim){
+        if(Math.abs(r.x - nd.wakerX) < 2){ nd.traagMs += 16; }
+        else { nd.traagMs = 0; nd.wakerX = r.x; }
+        if(nd.traagMs > 2800){
+          var lvw = NIVEAUS[nd.niveau];
+          if(b.doel && b.doel.soort === "zelfzorg"){
+            // bij een object mag hij blijven, maar niet bevriezen: klein verpozen
+            nd.doelX = Math.max(lvw.xlo, Math.min(lvw.xhi, r.x + (Math.random()<0.5?-1:1)*(22+Math.random()*34)));
+          } else {
+            // elders echt weglopen naar een verse plek op dit niveau
+            nd.doelNiveau = nd.niveau;
+            nd.doelX = (r.x < (lvw.xlo+lvw.xhi)/2) ? lvw.xhi - Math.random()*280 : lvw.xlo + Math.random()*280;
+          }
+          nd.pauze = 0; nd.traagMs = 0; nd.wakerX = r.x;
+        }
+      }
 
       var beweegt = Math.abs(r.x - was) > 0.3;
       if((r.x - was) < -0.06) nd.linksom = true; else if((r.x - was) > 0.06) nd.linksom = false;
