@@ -285,6 +285,51 @@ h1{
 .uitleg-strip h3{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.04em;color:var(--licht);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem;}
 .uitleg-strip strong{color:var(--licht);font-weight:800;}
 
+/* ── Brein-documentatie + versietijdlijn ─────────────────────────────────── */
+.brein-doc{
+  position:relative;z-index:1;max-width:1240px;width:calc(100% - 2rem);margin:0 auto 1.4rem;
+  background:var(--paneel);border:1px solid var(--paneel-rand);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-radius:18px;padding:1.6rem 1.6rem 1.2rem;box-shadow:var(--schaduw);
+  font-size:.88rem;line-height:1.65;color:var(--zacht);
+}
+.brein-doc h2{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;color:var(--licht);margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem;}
+.brein-doc .versienaam{
+  display:inline-flex;align-items:center;gap:.4rem;margin-left:.4rem;
+  font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  background:linear-gradient(135deg,#c7ced6,#5fd6e0);color:#062018;
+  border-radius:999px;padding:.22rem .7rem;
+}
+.brein-doc .intro{max-width:900px;margin-bottom:1.1rem;}
+.brein-doc strong{color:var(--licht);font-weight:800;}
+.brein-doc a{color:var(--matrix);text-decoration:none;font-weight:700;}
+.brein-doc a:hover{text-decoration:underline;}
+.mechanismen{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:1.4rem;}
+.mech{
+  background:rgba(4,20,13,.45);border:1px solid var(--paneel-rand);border-radius:14px;
+  padding: .9rem 1rem;font-size:.83rem;
+}
+.mech h3{font-family:'Space Grotesk',sans-serif;font-size:.85rem;color:var(--licht);margin-bottom:.35rem;display:flex;align-items:center;gap:.4rem;}
+.mech code{font-family:monospace;font-size:.78rem;color:var(--matrix);background:rgba(57,255,133,.08);border-radius:5px;padding:.05rem .3rem;}
+.data-noot{
+  display:flex;gap:.7rem;align-items:flex-start;
+  background:rgba(57,255,133,.06);border:1px solid var(--paneel-rand-sterk);border-radius:12px;
+  padding:.8rem 1rem;margin-bottom:1.4rem;font-size:.84rem;
+}
+.data-noot .ico{font-size:1.2rem;line-height:1.3;}
+/* tijdlijn */
+.tijdlijn{position:relative;margin:.4rem 0 .6rem;padding-left:1.6rem;}
+.tijdlijn::before{content:"";position:absolute;left:.52rem;top:.4rem;bottom:.4rem;width:2px;
+  background:linear-gradient(180deg,var(--matrix-dim),var(--paars));border-radius:2px;opacity:.6;}
+.tl-item{position:relative;padding:.45rem 0 .55rem;}
+.tl-item::before{content:"";position:absolute;left:-1.42rem;top:.85rem;width:10px;height:10px;border-radius:50%;
+  background:var(--matrix);box-shadow:0 0 8px rgba(57,255,133,.5);}
+.tl-item.huidig::before{background:linear-gradient(135deg,#c7ced6,#5fd6e0);box-shadow:0 0 10px rgba(95,214,224,.7);}
+.tl-item h4{font-family:'Space Grotesk',sans-serif;font-size:.86rem;color:var(--licht);display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem;}
+.tl-item h4 .vlabel{font-size:.68rem;font-weight:800;letter-spacing:.06em;color:var(--matrix);text-transform:uppercase;}
+.tl-item p{font-size:.82rem;margin-top:.15rem;}
+.tl-item.huidig h4 .vlabel{color:#5fd6e0;}
+
 footer{position:relative;z-index:1;text-align:center;padding:.5rem 1rem 1.6rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;}
 footer a{
   display:inline-flex;align-items:center;gap:.35rem;
@@ -321,7 +366,7 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 </div>
 
 <header>
-  <span class="eyebrow"><span class="puls"></span> v3 · Zwaartekracht · Emoties · Generaties</span>
+  <span class="eyebrow"><span class="puls"></span> v7 “Chroom” · Brein · Emoties · Generaties</span>
   <h1>Botty-verse Evolutie</h1>
   <p class="ondertitel">Botty's leven in containers met <strong>zwaartekracht</strong>. Ze voelen <strong>10 emoties</strong> die de AI assistent herkent en verzorgt. Het evaluatief paneel toont hoe ze zich ontwikkelen <strong>over generaties</strong>.</p>
   <div class="kpi-rij">
@@ -388,6 +433,115 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
     <h3>📈 Evaluatief</h3>
     Het paneel rechts toont de genetische ontwikkeling per generatie — hoe datakwaliteit, efficiëntie en geluk groeien naarmate de hive evolueert. Mutaties worden per generatie bijgehouden.
   </section>
+</div>
+
+<!-- ── Documentatie: het Botty-brein ─────────────────────────────────────── -->
+<div class="brein-doc">
+  <h2>🧠 Het Botty-brein <span class="versienaam">⬡ versie “Chroom”</span></h2>
+  <p class="intro">
+    Elke Botty heeft een klein, Creatures-geïnspireerd brein dat volledig in de cloud draait.
+    Het is geen script met vaste regels: gedrag ontstaat uit <strong>drives, biochemie en geleerde
+    overtuigingen</strong> — en verschilt daardoor per Botty. Deze versie heet <strong>“Chroom”</strong>,
+    naar de metallic Botty uit de toekomst die de hive van uitsterven redde en de erfelijke
+    leer-versnelling introduceerde.
+  </p>
+
+  <div class="data-noot">
+    <span class="ico">☁️</span>
+    <div><strong>Eén hive, overal dezelfde Botty's.</strong> Alle pagina's — de hive, de
+    <a href="construct.html">Construct</a>, de stamboom, het genoom, de kaarten en dit
+    evolutie-paneel — lezen exact dezelfde levende data uit één cloud-database
+    (<code>hive_state</code> in Supabase). Wat je hier ziet gebeuren, zie je in de Construct
+    rondlopen: het zijn dezelfde individuen, dezelfde genen, hetzelfde brein.</div>
+  </div>
+
+  <div class="mechanismen">
+    <div class="mech">
+      <h3>🎚️ Drives &amp; behoeften</h3>
+      Vier balken (<strong>energie, data, fit, geluk</strong>) zakken langzaam weg. De laagste balk
+      wordt de sterkste <em>drive</em>: die bepaalt wat de Botty wil. In de
+      <a href="construct.html">Construct</a> zie je hem er zelf naartoe lopen — naar de computer om op te
+      laden, het schoolbord om te leren, de globe om te spelen of de deur voor frisse lucht.
+    </div>
+    <div class="mech">
+      <h3>⚗️ Biochemie</h3>
+      Onder de balken stroomt een scheikunde van acht stoffen — <code>honger</code>,
+      <code>vermoeidheid</code>, <code>stress</code>, <code>endorfine</code>, <code>gif</code>,
+      <code>verveling</code>, <code>angst</code> en <code>eenzaamheid</code> — elk met emitters,
+      receptors en een eigen halveringstijd (genoom-bepaald, dus evolueerbaar). Het dominante gevoel
+      wordt het <strong>humeur</strong>, zichtbaar als gezichtsuitdrukking in de Construct.
+    </div>
+    <div class="mech">
+      <h3>📚 Lerend brein</h3>
+      Per drive houdt een Botty een geloof (0–1) bij per object: <em>“helpt de globe tegen mijn
+      stijfheid?”</em>. Werkt iets écht (de drive daalt) → geloof omhoog; werkt het niet → omlaag,
+      en na drie missers probeert hij iets anders. Groentjes exploreren veel, experts vertrouwen op
+      hun sterkste geloof. Ongebruikte overtuigingen slijten weg (<strong>atrofie</strong>).
+    </div>
+    <div class="mech">
+      <h3>🖐 Chemisch gepoort leren</h3>
+      De leersnelheid wordt geschaald door <strong>endorfine</strong>: de beloningsstof zet het
+      leervenster open (0,6–1,5×). <strong>Aai een Botty in de Construct terwijl hij iets doet</strong>
+      en je bekrachtigt precies dát gedrag — de bezoeker voedt het brein mee op, zoals in Creatures.
+    </div>
+    <div class="mech">
+      <h3>🌙 Slaap &amp; dromen</h3>
+      De hive leeft op de Nederlandse klok: om 22:00 valt de nacht en gaat iedereen slapen. Slapers
+      herstellen, en in hun <strong>dromen</strong> spelen ze herinneringen na terwijl het brein
+      consolideert — het sterkst geleerde verband verankert, ruis slijt naar neutraal.
+    </div>
+    <div class="mech">
+      <h3>🧬 Erfelijkheid</h3>
+      Een kind erft het <strong>gemengde brein</strong> van beide ouders (afgezwakt: de neiging, niet
+      de zekerheid), plus het 16-genen-genoom dat kleur, grootte, verval en herstel stuurt. Sinds
+      “Chroom” is er ook de <strong>erfelijke leer-versnelling</strong>: nakomelingen van de
+      toekomst-Botty leren tot 1,8× sneller, generaties lang.
+    </div>
+    <div class="mech">
+      <h3>🗣️ Taal &amp; geheugen</h3>
+      Botty's munten eigen woorden voor wat ze ontdekken en geven die door — met dialect-drift.
+      Bezoekers kunnen woorden aanleren bij het schoolbord (baby's verbasteren ze). Elke Botty
+      bewaart acht <strong>herinneringen</strong> die zijn gedachten en dromen kleuren.
+    </div>
+    <div class="mech">
+      <h3>🕯️ Sterfelijkheid</h3>
+      Levenskracht daalt met ouderdom en acute nood. Wie sterft laat een <strong>grafschrift</strong>
+      na: piek-IQ, priemvondsten, kinderen, woordenschat en vrienden. Geboorten gaan via een
+      <strong>ei in de broedmachine</strong> — dat een bezoeker in de Construct mag uitbroeden.
+    </div>
+  </div>
+
+  <h2 style="font-size:1rem">🕰️ Tijdlijn van versies</h2>
+  <div class="tijdlijn">
+    <div class="tl-item">
+      <h4><span class="vlabel">v1</span> Tamagotchi</h4>
+      <p>Eén Botty, handmatig verzorgd in de browser. Voeren, bewegen en dilemma's — de oervorm.</p>
+    </div>
+    <div class="tl-item">
+      <h4><span class="vlabel">v2</span> De Hive</h4>
+      <p>Negen Botty's verhuizen naar de cloud (Supabase). De AI verzorgt ze volledig zelf, dag en nacht — ook als niemand kijkt.</p>
+    </div>
+    <div class="tl-item">
+      <h4><span class="vlabel">v3</span> Emoties &amp; generaties</h4>
+      <p>Tien emoties, gerichte AI-emotiezorg en voortplanting over generaties — het evaluatief paneel op deze pagina komt uit dit tijdperk.</p>
+    </div>
+    <div class="tl-item">
+      <h4><span class="vlabel">v4</span> Genoom</h4>
+      <p>Een echt 16-genen-genoom: kruising, mutatie, inteelt-depressie, diversiteits-alarm met immigranten en slimme partnerkeuze.</p>
+    </div>
+    <div class="tl-item">
+      <h4><span class="vlabel">v5</span> De Construct</h4>
+      <p>Een ruimtelijke wereld met objecten. Het lerende brein (beloning/straf), biochemie, emergente taal, relaties, IQ &amp; priemjacht, en sterfelijkheid met grafschriften.</p>
+    </div>
+    <div class="tl-item">
+      <h4><span class="vlabel">v6</span> De Hand</h4>
+      <p>Bezoekers doen mee: aaien, voeren, medicijn geven, woorden roepen en eieren uitbroeden. Plus dag/nacht op de Nederlandse klok, dromen met brein-consolidatie, stemmen en gezichtsuitdrukkingen.</p>
+    </div>
+    <div class="tl-item huidig">
+      <h4><span class="vlabel">v7 · huidig</span> Chroom</h4>
+      <p>Chemisch gepoort leren (endorfine opent het leervenster), atrofie, drie nieuwe gevoelens (verveling, angst, eenzaamheid) — en de toekomst-Botty <strong>Chroom</strong> die met vers DNA de uitsterving keerde en de erfelijke leer-versnelling meebracht.</p>
+    </div>
+  </div>
 </div>
 
 <footer>
