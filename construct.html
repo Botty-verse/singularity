@@ -51,6 +51,28 @@
   @keyframes aai{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(10deg)}}
   .botje{cursor:none;}
   .botje .sprite{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32));}
+
+  /* ── Leven: subtiele idle-beweging van de ledematen (per Botty ge-de-synct) ── */
+  #laag .arm-l,#laag .arm-r,#laag .been,#laag .antenne{animation-delay:var(--fase,0s);}
+  #laag .arm-l{transform-box:fill-box;transform-origin:85% 12%;animation:idleArmL 3.6s ease-in-out infinite;}
+  #laag .arm-r{transform-box:fill-box;transform-origin:15% 12%;animation:idleArmR 3.6s ease-in-out infinite;}
+  #laag .been{transform-box:fill-box;transform-origin:50% 6%;animation:idleBeen 4.2s ease-in-out infinite;}
+  #laag .antenne{transform-box:fill-box;transform-origin:0% 92%;animation:idleAnt 4.9s ease-in-out infinite;}
+  @keyframes idleArmL{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(8deg)}}
+  @keyframes idleArmR{0%,100%{transform:rotate(3deg)}50%{transform:rotate(-8deg)}}
+  @keyframes idleBeen{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(1px) rotate(2deg)}}
+  @keyframes idleAnt{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(3.5deg)}}
+  /* blije Botty zwaait uitbundiger */
+  #laag .botje.blij .arm-l{animation-duration:1s;}
+  #laag .botje.blij .arm-r{animation-duration:1s;}
+  /* slapende Botty ligt stil */
+  #laag .botje.slaap .arm-l,#laag .botje.slaap .arm-r,#laag .botje.slaap .been,#laag .botje.slaap .antenne{animation-play-state:paused;}
+  /* ── Gezichtsuitdrukkingen (overlays, standaard onzichtbaar) ── */
+  #laag .oogdicht,#laag .lach,#laag .blos,#laag .ziekgezicht{opacity:0;transition:opacity .16s ease;}
+  #laag .botje.knipper .oogdicht,#laag .botje.slaap .oogdicht{opacity:1;}
+  #laag .botje.blij .lach{opacity:1;}
+  #laag .botje.blij .blos{opacity:.9;}
+  #laag .botje.ziek .ziekgezicht{opacity:1;}
   .botje.sel .sprite{filter:drop-shadow(0 0 9px #ffe6a8) drop-shadow(0 0 20px rgba(246,199,90,.55));}
   .botje.dim text{opacity:.35;}
   .bubbel{animation:bubbelIn .22s ease-out;pointer-events:none;}
@@ -651,22 +673,37 @@
     var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","botje");
     var schaduw = document.createElementNS(SVGNS,"ellipse"); schaduw.setAttribute("fill","rgba(0,0,0,.3)");
     var inner = document.createElementNS(SVGNS,"g"); inner.setAttribute("class","sprite");
-    inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur || paletten[0])
+    var pal = b.kleur || paletten[0];
+    inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(pal)
       // glans-hooglicht linksboven op de kop → minder plat, meer volume
-      + '<ellipse cx="82" cy="60" rx="26" ry="30" fill="url(#bottyGlans)" pointer-events="none" transform="rotate(-18 82 60)"/>';
+      + '<ellipse cx="82" cy="60" rx="26" ry="30" fill="url(#bottyGlans)" pointer-events="none" transform="rotate(-18 82 60)"/>'
+      // gezichtsoverlays (standaard onzichtbaar; getoond via stemmingsklassen)
+      + '<g class="oogdicht" pointer-events="none">'
+      +   '<rect x="84" y="75" width="12" height="18" rx="4" fill="'+pal.scherm+'"/>'
+      +   '<rect x="104" y="75" width="12" height="18" rx="4" fill="'+pal.scherm+'"/>'
+      +   '<path d="M85,85 q5,3.5 11,0" fill="none" stroke="#14403c" stroke-width="3" stroke-linecap="round"/>'
+      +   '<path d="M104,85 q5,3.5 11,0" fill="none" stroke="#14403c" stroke-width="3" stroke-linecap="round"/></g>'
+      + '<path class="lach" pointer-events="none" d="M87,97 q13,15 26,0" fill="none" stroke="#14403c" stroke-width="4.5" stroke-linecap="round"/>'
+      + '<g class="blos" pointer-events="none"><ellipse cx="79" cy="97" rx="6.5" ry="3.6" fill="#ff9ec9"/><ellipse cx="121" cy="97" rx="6.5" ry="3.6" fill="#ff9ec9"/></g>'
+      + '<g class="ziekgezicht" pointer-events="none"><path d="M84,73 l11,5 M116,73 l-11,5" stroke="#14403c" stroke-width="2.6" stroke-linecap="round"/>'
+      +   '<path d="M92,104 q8,-6 16,0" fill="none" stroke="#14403c" stroke-width="3" stroke-linecap="round"/>'
+      +   '<ellipse cx="126" cy="70" rx="4" ry="6" fill="#8fd6ff" opacity="0.8"/></g>';
     var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam;
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
     var gebruik = document.createElementNS(SVGNS,"text"); gebruik.setAttribute("class","gebruik");
     gebruik.setAttribute("text-anchor","middle"); gebruik.setAttribute("style","font:15px sans-serif");
     gebruik.setAttribute("opacity","0");
     g.appendChild(schaduw); g.appendChild(inner); g.appendChild(ring); g.appendChild(naam); g.appendChild(gebruik);
+    // idle-beweging per Botty de-synchroniseren
+    g.style.setProperty("--fase", (-(nameRnd(b.naam+"fase")*5)).toFixed(2) + "s");
     laag.appendChild(g);
     // gespreide startpositie zodat ze niet gestapeld beginnen
     var idx = Object.keys(nodes).length;
     var sx = ROAM.xlo + (ROAM.xhi-ROAM.xlo) * ((idx+0.5)/9);
     var sy = ROAM.ylo + (ROAM.yhi-ROAM.ylo) * nameRnd(b.naam);
     return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik,
-             render:{ x:sx, y:sy }, tx:sx, ty:sy, pauze:0,
+             render:{ x:sx, y:sy }, tx:sx, ty:sy, pauze:0, faseNum: nameRnd(b.naam+"br")*6.28,
+             volgendeKnipper:0, knipperTot:0, blijTot:0,
              snelheid: 0.5 + nameRnd(b.naam+"snel")*1.1, b:b };
   }
 
@@ -730,10 +767,26 @@
       var hoverY = inSlaap ? 455 : Math.max(150, Math.min(470, r.y));   // slapers zakken naar de vloer
       var bob = Math.sin(ts/(inSlaap?1400:500) + r.x*0.05) * (inSlaap?2:6);   // trage ademhaling
       var x0 = r.x - w/2, y0 = hoverY - h/2 + bob;
+      // ademhaling: zachte squash-&-stretch, pivot rond de voeten
+      var br = Math.sin(ts/(inSlaap?1600:1050) + nd.faseNum) * (inSlaap?0.028:0.018);
+      var syB = schaalBasis*(1+br), sxB = schaalBasis*(1-br*0.6);
+      var yB = y0 + h*(1 - (1+br)); // compenseer zodat de voeten blijven staan
       // transform met facing-flip
-      if(linksom) nd.inner.setAttribute("transform","translate("+(x0+w)+","+y0+") scale("+(-schaalBasis)+","+schaalBasis+")");
-      else        nd.inner.setAttribute("transform","translate("+x0+","+y0+") scale("+schaalBasis+")");
+      if(linksom) nd.inner.setAttribute("transform","translate("+(x0+w)+","+yB+") scale("+(-sxB)+","+syB+")");
+      else        nd.inner.setAttribute("transform","translate("+x0+","+yB+") scale("+sxB+","+syB+")");
       nd.inner.setAttribute("opacity", b.ziek ? "0.7" : "1");
+
+      // ── knipperen + gezichtsuitdrukking ──
+      if(!nd.volgendeKnipper) nd.volgendeKnipper = ts + 1200 + Math.random()*3500;
+      if(!inSlaap && ts > nd.volgendeKnipper){
+        nd.g.classList.add("knipper"); nd.knipperTot = ts + 130;
+        nd.volgendeKnipper = ts + 2200 + Math.random()*4200;
+      }
+      if(nd.knipperTot && ts > nd.knipperTot){ nd.g.classList.remove("knipper"); nd.knipperTot = 0; }
+      var blij = nd.blijTot && Date.now() < nd.blijTot;
+      nd.g.classList.toggle("slaap", !!inSlaap);
+      nd.g.classList.toggle("ziek", !!b.ziek && !inSlaap);
+      nd.g.classList.toggle("blij", !!blij && !b.ziek && !inSlaap);
       // vloer-schaduw: kleiner/lichter naarmate hoger gezweefd
       var feetY = y0 + h, hoogte = Math.max(0, VLOER - feetY);
       var sS = Math.max(0.3, 1 - hoogte/320);
@@ -945,6 +998,7 @@
                 + '<text y="-13">'+esc(tekst)+'</text>';
     fxlaag.appendChild(g);
     nd.bub = g; nd.bubTtl = 2400;
+    if(stemming === "blij") nd.blijTot = Date.now() + 2600;   // blije uitdrukking even vasthouden
     // stemgeluid: elke bubbel van een Botty krijgt zijn eigen gebrabbel
     if(window.BottyAudio && nd.b) BottyAudio.spreek(nd.b, stemming || "praat");
   }
