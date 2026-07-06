@@ -75,7 +75,7 @@ function breinLeer(b: any, drive: string, objId: string, beloond: boolean) {
   b.brein[drive] = b.brein[drive] || {};
   const endorfine = b.chem?.endorfine ?? 0;
   const poort = 0.6 + Math.min(1, endorfine / 60) * 0.9;   // plasticiteits-poort 0.6..1.5×
-  const lr = BREIN_LEER * poort;
+  const lr = BREIN_LEER * poort * (b.leerBonus ?? 1);       // erfelijke leer-versnelling (toekomst-lijn)
   const oud = b.brein[drive][objId] ?? BREIN_NEUTRAAL;
   b.brein[drive][objId] = +Math.max(0, Math.min(1, oud + lr * ((beloond ? 1 : 0) - oud))).toFixed(3);
   // Atrofie: de andere overtuigingen voor deze drive driften langzaam naar neutraal.
@@ -1113,6 +1113,12 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   // Erfelijke gewoontes: het kind erft het gemengde brein van beide ouders.
   const { brein, breinN } = erfBrein(ouderA, ouderB);
 
+  // Erfelijke leer-versnelling (toekomst-lijn van Chroom): het kind erft de bonus
+  // van de ouders, iets afgezwakt zodat hij over generaties vervaagt maar merkbaar
+  // blijft. Kinderen van de toekomst-Botty leren dus sneller.
+  const ouderBonus = ((ouderA.leerBonus ?? 1) + (ouderB.leerBonus ?? 1)) / 2;
+  const leerBonus = +(1 + (ouderBonus - 1) * 0.9).toFixed(3);
+
   return maakBotty(naam, { ...kleur, naam: kleur.naam || "mix" }, gen, {
     datakwaliteit: dk, efficientie: ef, mutaties,
     stemming: kindStemming,
@@ -1120,6 +1126,7 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
     grootte: G.grootte,
     erfenis,
     brein, breinN,
+    ...(leerBonus > 1.01 ? { leerBonus } : {}),
   });
 }
 
