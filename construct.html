@@ -136,6 +136,15 @@
   footer{margin-top:auto;padding:1.4rem;display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;border-top:1px solid #3a2a18;width:100%;}
   footer a{color:#b89a6a;text-decoration:none;font-weight:700;font-size:.9rem;}
   footer a:hover{color:#ffe6a8;}
+
+  /* ── Landschap-modus: op een liggend (mobiel) scherm alleen het speelveld ── */
+  @media (orientation:landscape) and (max-height:600px){
+    html,body{height:100%;overflow:hidden;background:#000;}
+    header,.status,#gereedschap,#kit,footer{display:none !important;}
+    main{padding:0;margin:0;max-width:none;width:100%;height:100%;}
+    .kamer-wrap{position:fixed;inset:0;margin:0;padding:0;border:0;border-radius:0;background:#000;overflow:hidden;}
+    svg.kamer{width:100%;height:100%;border-radius:0;}
+  }
 </style>
 </head>
 <body>
