@@ -150,324 +150,34 @@
 
 <main>
   <div class="kamer-wrap">
-    <svg class="kamer" id="kamer" viewBox="0 0 1000 600" role="img" aria-label="Het klaslokaal met de Botty's">
+    <svg class="kamer" id="kamer" viewBox="0 0 1500 844" role="img" aria-label="De Construct: de tuin boven en de ondergrondse kamer met de Botty's">
       <defs>
-        <linearGradient id="lucht" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#d9a86a"/><stop offset="1" stop-color="#e8c98a"/>
-        </linearGradient>
-        <linearGradient id="muur" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#5a4128"/><stop offset="1" stop-color="#46301c"/>
-        </linearGradient>
-        <linearGradient id="verte" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#bcd0d6"/><stop offset="0.6" stop-color="#cdb98e"/><stop offset="1" stop-color="#d9a86a"/>
-        </linearGradient>
-        <linearGradient id="straal" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#fff3d0" stop-opacity="0.5"/><stop offset="1" stop-color="#fff3d0" stop-opacity="0"/>
-        </linearGradient>
-        <linearGradient id="koper" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#e6a063"/><stop offset="0.5" stop-color="#b87333"/><stop offset="1" stop-color="#7a4a22"/>
-        </linearGradient>
-        <radialGradient id="schermgloed" cx="0.5" cy="0.5" r="0.6">
-          <stop offset="0" stop-color="#39ff85" stop-opacity="0.35"/><stop offset="1" stop-color="#39ff85" stop-opacity="0"/>
-        </radialGradient>
         <radialGradient id="broedgloed" cx="0.5" cy="0.5" r="0.6">
           <stop offset="0" stop-color="#ffe6a8" stop-opacity="0.9"/><stop offset="1" stop-color="#f6c75a" stop-opacity="0"/>
         </radialGradient>
-        <!-- rijkere materialen -->
-        <linearGradient id="vloerGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#6a4526"/><stop offset="1" stop-color="#4a301a"/>
-        </linearGradient>
-        <linearGradient id="hout" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#8a5a30"/><stop offset="0.5" stop-color="#6e4522"/><stop offset="1" stop-color="#573417"/>
-        </linearGradient>
-        <linearGradient id="glasGlans" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#ffffff" stop-opacity="0.30"/>
-          <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.05"/>
-          <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.16"/>
-          <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-        </linearGradient>
-        <linearGradient id="bladGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#5fa03f"/><stop offset="1" stop-color="#3f6b2a"/>
-        </linearGradient>
-        <linearGradient id="kleedGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#b5533a"/><stop offset="1" stop-color="#8a3a28"/>
-        </linearGradient>
         <radialGradient id="bottyGlans" cx="0.4" cy="0.32" r="0.55">
           <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
-        <radialGradient id="wandVignet" cx="0.5" cy="0.42" r="0.75">
-          <stop offset="0.55" stop-color="#000000" stop-opacity="0"/><stop offset="1" stop-color="#000000" stop-opacity="0.32"/>
-        </radialGradient>
-        <!-- fijne pleister-/houtnerf, subtiel zodat de vlakken niet plat ogen -->
-        <filter id="korrel" x="0" y="0" width="100%" height="100%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
-          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0" result="na"/>
-          <feComposite in="na" in2="SourceGraphic" operator="in" result="grain"/>
-          <feBlend in="SourceGraphic" in2="grain" mode="multiply"/>
-        </filter>
-        <filter id="propSchaduw" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#1c120a" flood-opacity="0.42"/>
-        </filter>
       </defs>
-      <!-- muur: basiskleur + fijne pleisterkorrel + lambrisering onderaan -->
-      <rect x="0" y="0" width="1000" height="520" fill="url(#muur)"/>
-      <rect x="0" y="0" width="1000" height="520" fill="#6a4d2e" opacity="0.5" filter="url(#korrel)"/>
-      <!-- lambrisering (wandpanelen op de onderste muurhelft) -->
-      <g>
-        <rect x="0" y="360" width="1000" height="145" fill="#4d3620"/>
-        <rect x="0" y="356" width="1000" height="10" fill="#6b4a2b"/>
-        <g fill="none" stroke="#3a2914" stroke-width="2" opacity="0.7">
-          <rect x="18" y="374" width="150" height="118" rx="4"/><rect x="188" y="374" width="150" height="118" rx="4"/>
-          <rect x="358" y="374" width="150" height="118" rx="4"/><rect x="528" y="374" width="150" height="118" rx="4"/>
-          <rect x="698" y="374" width="150" height="118" rx="4"/><rect x="868" y="374" width="118" height="118" rx="4"/>
-        </g>
-        <g stroke="#7a5836" stroke-width="1.4" opacity="0.5">
-          <line x1="20" y1="376" x2="166" y2="376"/><line x1="190" y1="376" x2="336" y2="376"/><line x1="360" y1="376" x2="506" y2="376"/>
-          <line x1="530" y1="376" x2="676" y2="376"/><line x1="700" y1="376" x2="846" y2="376"/><line x1="870" y1="376" x2="984" y2="376"/>
-        </g>
-      </g>
-      <!-- vloer: gradient, planken met naden én lichte glans -->
-      <rect x="0" y="505" width="1000" height="95" fill="url(#vloerGrad)"/>
-      <g stroke="#3a2512" stroke-width="2.5" opacity="0.7">
-        <line x1="0" y1="540" x2="1000" y2="540"/>
-        <line x1="120" y1="505" x2="90" y2="600"/><line x1="360" y1="505" x2="345" y2="600"/>
-        <line x1="620" y1="505" x2="640" y2="600"/><line x1="860" y1="505" x2="895" y2="600"/>
-      </g>
-      <g stroke="#7a552e" stroke-width="1" opacity="0.4">
-        <line x1="122" y1="507" x2="92" y2="602"/><line x1="362" y1="507" x2="347" y2="602"/>
-        <line x1="622" y1="507" x2="642" y2="602"/><line x1="862" y1="507" x2="897" y2="602"/>
-      </g>
-      <rect x="0" y="505" width="1000" height="6" fill="#8a6636" opacity="0.35"/>
-      <!-- vloerkleed: warmte + diepte onder de Botty's -->
-      <g opacity="0.92">
-        <ellipse cx="520" cy="552" rx="230" ry="42" fill="url(#kleedGrad)"/>
-        <ellipse cx="520" cy="552" rx="230" ry="42" fill="none" stroke="#e8c98a" stroke-width="3" opacity="0.5"/>
-        <ellipse cx="520" cy="552" rx="200" ry="34" fill="none" stroke="#e8c98a" stroke-width="1.5" opacity="0.4"/>
-        <ellipse cx="520" cy="552" rx="150" ry="25" fill="none" stroke="#f3e6cf" stroke-width="1.2" opacity="0.3" stroke-dasharray="6 5"/>
-        <ellipse cx="520" cy="552" rx="60" ry="11" fill="#e8c98a" opacity="0.25"/>
-      </g>
-      <!-- ramen: gelaagde bos-vista (verre haas → middenbos → warm gebladerte) -->
-      <g>
-        <clipPath id="raamL"><rect x="60" y="70" width="200" height="150" rx="6"/></clipPath>
-        <clipPath id="raamR"><rect x="740" y="70" width="200" height="150" rx="6"/></clipPath>
-        <g clip-path="url(#raamL)">
-          <rect x="60" y="70" width="200" height="150" fill="url(#verte)"/>
-          <path d="M60,150 q30,-40 60,-12 q40,-34 70,-6 q30,-22 70,4 V220 H60 Z" fill="#9fb0a0" opacity="0.55"/>
-          <circle cx="120" cy="120" r="26" fill="#7f9a6b" opacity="0.8"/><circle cx="180" cy="116" r="30" fill="#6f8a5e" opacity="0.85"/>
-          <circle cx="110" cy="180" r="34" fill="#7d8c3f"/><circle cx="150" cy="175" r="40" fill="#a06a2c"/><circle cx="205" cy="185" r="30" fill="#c98a2e"/>
-        </g>
-        <g clip-path="url(#raamR)">
-          <rect x="740" y="70" width="200" height="150" fill="url(#verte)"/>
-          <path d="M740,150 q34,-36 66,-10 q38,-30 70,-4 q28,-20 64,2 V220 H740 Z" fill="#9fb0a0" opacity="0.55"/>
-          <circle cx="800" cy="118" r="28" fill="#7f9a6b" opacity="0.8"/><circle cx="870" cy="114" r="26" fill="#6f8a5e" opacity="0.85"/>
-          <circle cx="790" cy="182" r="36" fill="#8a7a30"/><circle cx="845" cy="178" r="32" fill="#b5702a"/><circle cx="900" cy="186" r="30" fill="#7d8c3f"/>
-        </g>
-        <rect x="60" y="70" width="200" height="150" rx="6" fill="none" stroke="#3f2914" stroke-width="8"/>
-        <line x1="160" y1="70" x2="160" y2="220" stroke="#3f2914" stroke-width="6"/><line x1="60" y1="145" x2="260" y2="145" stroke="#3f2914" stroke-width="6"/>
-        <rect x="740" y="70" width="200" height="150" rx="6" fill="none" stroke="#3f2914" stroke-width="8"/>
-        <line x1="840" y1="70" x2="840" y2="220" stroke="#3f2914" stroke-width="6"/><line x1="740" y1="145" x2="940" y2="145" stroke="#3f2914" stroke-width="6"/>
-        <!-- glas-glans: diagonale reflectie over de ruiten -->
-        <g clip-path="url(#raamL)"><polygon points="60,70 130,70 90,220 60,220" fill="url(#glasGlans)"/><polygon points="170,70 205,70 150,220 120,220" fill="url(#glasGlans)" opacity="0.6"/></g>
-        <g clip-path="url(#raamR)"><polygon points="740,70 810,70 770,220 740,220" fill="url(#glasGlans)"/><polygon points="850,70 885,70 830,220 800,220" fill="url(#glasGlans)" opacity="0.6"/></g>
-        <!-- vensterbank + plantje -->
-        <rect x="52" y="218" width="216" height="10" rx="3" fill="url(#hout)" stroke="#3a2914" stroke-width="2"/>
-        <rect x="732" y="218" width="216" height="10" rx="3" fill="url(#hout)" stroke="#3a2914" stroke-width="2"/>
-        <g transform="translate(232,204)"><path d="M0,14 h16 l-2,-14 h-12 Z" fill="#c76a3a" stroke="#8a3f22" stroke-width="1.5"/><path d="M8,0 q-10,-6 -12,-16 q10,2 12,10 q2,-10 12,-14 q0,12 -12,20 Z" fill="url(#bladGrad)"/></g>
-      <!-- god-rays: warme lichtbundels door de ramen -->
-      <g class="rays" style="mix-blend-mode:screen">
-        <polygon points="90,90 230,90 470,520 250,520" fill="url(#straal)" opacity="0.5"/>
-        <polygon points="150,90 250,90 430,520 320,520" fill="url(#straal)" opacity="0.35"/>
-        <polygon points="770,90 910,90 760,520 560,520" fill="url(#straal)" opacity="0.5"/>
-        <polygon points="820,90 920,90 720,520 600,520" fill="url(#straal)" opacity="0.3"/>
-      </g>
-      <!-- schoolbord met priemen -->
-      <g>
-        <rect x="360" y="80" width="300" height="150" rx="6" fill="#23362a" stroke="#6b4a2b" stroke-width="10"/>
-        <text x="378" y="118" font="700 22px Nunito" fill="#cfeede" style="font:700 22px Nunito">priemen tot 1.000.000</text>
-        <text x="378" y="150" fill="#a9d6c2" style="font:400 18px monospace">99991  100003  100019 …</text>
-        <text x="378" y="178" fill="#a9d6c2" style="font:400 18px monospace">p = ?   p±2 ?   2p+1 ?</text>
-        <text x="378" y="208" fill="#e6c06a" style="font:italic 16px Nunito">— wie vindt de volgende?</text>
-        <!-- krijtrand met krijtjes + wisser -->
-        <rect x="378" y="230" width="264" height="10" rx="3" fill="url(#hout)" stroke="#4a3016" stroke-width="1.5"/>
-        <rect x="392" y="232" width="20" height="5" rx="2.5" fill="#f3ecd2"/>
-        <rect x="418" y="232" width="16" height="5" rx="2.5" fill="#f6c75a"/>
-        <rect x="440" y="232" width="14" height="5" rx="2.5" fill="#7fd9ff"/>
-        <rect x="600" y="229" width="34" height="12" rx="2" fill="#3a2a18" stroke="#22160c" stroke-width="1"/><rect x="600" y="229" width="34" height="5" rx="2" fill="#c8b48a"/>
-        <!-- krijtstof-veeg voor sfeer -->
-        <path d="M470,150 q40,-8 70,4" fill="none" stroke="#cfeede" stroke-width="2" opacity="0.18"/>
-      </g>
+      <!-- Nieuwe achtergrond: geschilderde dwarsdoorsnede (tuin boven + ondergrondse kamer) -->
+      <image href="assets/construct-achtergrond.webp" x="0" y="0" width="1500" height="844" preserveAspectRatio="none"/>
 
-      <!-- Wanddecoratie: vlaggenlijn, boekenkast, poster (klaslokaal-detail) -->
-      <g class="wanddeco">
-        <!-- vlaggenlijn langs de bovenrand -->
-        <path d="M20,30 Q250,66 500,44 T980,34" fill="none" stroke="#5b3c20" stroke-width="2"/>
-        <g stroke="#3a2914" stroke-width="0.5">
-          <polygon points="70,38 92,38 81,58" fill="#e0556b"/><polygon points="150,44 172,44 161,64" fill="#f6c75a"/>
-          <polygon points="230,48 252,48 241,68" fill="#5ec6ff"/><polygon points="740,44 762,44 751,64" fill="#5fd0a8"/>
-          <polygon points="820,40 842,40 831,60" fill="#f6a623"/><polygon points="900,37 922,37 911,57" fill="#c89bff"/>
-        </g>
-        <!-- boekenkast tussen bord en rechterraam -->
-        <g filter="url(#propSchaduw)" transform="translate(676,250)">
-          <rect x="0" y="0" width="60" height="120" rx="3" fill="url(#hout)" stroke="#3a2914" stroke-width="2.5"/>
-          <line x1="3" y1="40" x2="57" y2="40" stroke="#3a2914" stroke-width="2"/><line x1="3" y1="80" x2="57" y2="80" stroke="#3a2914" stroke-width="2"/>
-          <g stroke="#2a1c10" stroke-width="0.6">
-            <rect x="7" y="10" width="8" height="28" fill="#c05545"/><rect x="16" y="12" width="7" height="26" fill="#4f8fbf"/><rect x="24" y="9" width="9" height="29" fill="#e0a836"/><rect x="34" y="13" width="7" height="25" fill="#5fa06a"/><rect x="42" y="10" width="9" height="28" fill="#8a6fd0"/>
-            <rect x="8" y="50" width="7" height="28" fill="#5fa06a"/><rect x="16" y="52" width="9" height="26" fill="#c05545"/><rect x="26" y="49" width="7" height="29" fill="#4f8fbf"/><rect x="34" y="53" width="8" height="25" fill="#e0a836"/><rect x="44" y="50" width="7" height="28" fill="#c89bff"/>
-          </g>
-          <!-- globe op de bovenplank... nee, kleine plant -->
-          <g transform="translate(30,88)"><rect x="-6" y="18" width="12" height="10" rx="2" fill="#c76a3a" stroke="#8a3f22" stroke-width="1"/><path d="M0,18 q-12,-4 -14,-18 q12,2 14,12 q2,-12 15,-16 q0,14 -15,22 Z" fill="url(#bladGrad)"/></g>
-        </g>
-        <!-- poster met priem-spiraal boven de boekenkast-zijde -->
-        <g filter="url(#propSchaduw)" transform="translate(280,250)">
-          <rect x="0" y="0" width="70" height="92" rx="2" fill="#f3ecd6" stroke="#c9b489" stroke-width="2"/>
-          <circle cx="35" cy="40" r="26" fill="none" stroke="#b5533a" stroke-width="1.5" opacity="0.8"/>
-          <path d="M35,40 m0,-4 a4,4 0 1 1 -0.1,0 M35,40 m0,-11 a11,11 0 1 1 -0.1,0 M35,40 m0,-19 a19,19 0 1 1 -0.1,0" fill="none" stroke="#2f8f86" stroke-width="1.3"/>
-          <circle cx="35" cy="21" r="2" fill="#e0556b"/><circle cx="52" cy="46" r="2" fill="#e0556b"/><circle cx="22" cy="52" r="2" fill="#e0556b"/>
-          <text x="35" y="82" text-anchor="middle" style="font:700 9px Nunito" fill="#6b4a2b">PRIEMSPIRAAL</text>
-          <circle cx="35" cy="4" r="2.5" fill="#8a6a3a"/>
-        </g>
-      </g>
-      <!-- klok -->
-      <g transform="translate(330,120)"><circle r="22" fill="#f3e6cf" stroke="#3f2914" stroke-width="4"/><line x1="0" y1="0" x2="0" y2="-13" stroke="#2b2b2b" stroke-width="3"/><line x1="0" y1="0" x2="9" y2="4" stroke="#2b2b2b" stroke-width="3"/></g>
-      <!-- open deur: knoestige boom, ruïnemuur & zonnebloemen erachter, licht valt binnen -->
-      <g>
-        <clipPath id="deurgat"><rect x="934" y="298" width="66" height="214" rx="4"/></clipPath>
-        <g clip-path="url(#deurgat)">
-          <rect x="934" y="298" width="66" height="214" fill="url(#verte)"/>
-          <rect x="938" y="436" width="62" height="76" fill="#8f8678"/>
-          <g fill="#6f6a5e" opacity="0.7"><rect x="942" y="442" width="16" height="11"/><rect x="966" y="456" width="16" height="11"/><rect x="948" y="472" width="16" height="11"/><rect x="972" y="486" width="16" height="11"/></g>
-          <path d="M980,512 C976,462 963,442 969,402 C973,374 961,358 967,340" fill="none" stroke="#3a2a1c" stroke-width="10" stroke-linecap="round"/>
-          <path d="M969,402 q-18,-10 -26,-30" fill="none" stroke="#3a2a1c" stroke-width="6" stroke-linecap="round"/>
-          <path d="M967,360 q16,-8 22,-26" fill="none" stroke="#3a2a1c" stroke-width="6" stroke-linecap="round"/>
-          <circle cx="952" cy="332" r="18" fill="#a06a2c" opacity="0.85"/><circle cx="978" cy="346" r="15" fill="#b5702a" opacity="0.85"/><circle cx="972" cy="322" r="13" fill="#c98a2e" opacity="0.8"/>
-          <g stroke="#4a6b2a" stroke-width="3"><line x1="946" y1="512" x2="946" y2="478"/><line x1="964" y1="512" x2="966" y2="488"/></g>
-          <circle cx="946" cy="474" r="9" fill="#f6c343"/><circle cx="946" cy="474" r="4" fill="#7a4a1c"/>
-          <circle cx="966" cy="485" r="7" fill="#f6c343"/><circle cx="966" cy="485" r="3" fill="#7a4a1c"/>
-          <rect x="934" y="298" width="66" height="214" fill="url(#straal)" opacity="0.45"/>
-        </g>
-        <rect x="934" y="294" width="66" height="220" rx="4" fill="none" stroke="#3f2914" stroke-width="7"/>
-      </g>
-      <!-- 'net vertrokken' sporen: omgevallen kruk + bal + papier -->
-      <g transform="translate(250,470) rotate(-22)"><rect x="-16" y="0" width="32" height="10" rx="3" fill="#7a5230"/><line x1="-12" y1="10" x2="-16" y2="34" stroke="#5b3c20" stroke-width="5"/><line x1="12" y1="10" x2="16" y2="34" stroke="#5b3c20" stroke-width="5"/></g>
-      <circle cx="700" cy="500" r="13" fill="#d96b4a" stroke="#7a3320" stroke-width="2"/>
-      <rect x="560" y="498" width="22" height="14" rx="2" fill="#efe2c6" transform="rotate(8 571 505)"/>
-      <!-- dwarrelende bladeren -->
-      <g class="blad" style="animation-duration:9s" transform="translate(820,40)"><path d="M0,0 q6,-7 12,0 q-6,7 -12,0" fill="#c98a2e"/></g>
-      <g class="blad" style="animation-duration:13s;animation-delay:-4s" transform="translate(900,20)"><path d="M0,0 q5,-6 10,0 q-5,6 -10,0" fill="#a06a2c"/></g>
-      <g class="blad" style="animation-duration:11s;animation-delay:-7s" transform="translate(120,30)"><path d="M0,0 q6,-7 12,0 q-6,7 -12,0" fill="#b5702a"/></g>
+      <!-- broedmachine: gloed + eieren bij de koperen apparatuur in de kamer -->
+      <g id="ei-deco"><ellipse cx="360" cy="636" rx="26" ry="13" fill="url(#broedgloed)" class="broed"/></g>
+      <g id="eilaag"></g>
 
-      <!-- het bos dringt binnen: hangende klimop + zonnebloemen -->
-      <g class="bosbinnen">
-        <g fill="none" stroke="#3f6b34" stroke-width="3" opacity="0.9">
-          <path d="M320,0 q12,40 -4,72 q-8,16 4,34"/><path d="M690,0 q-10,46 6,78"/><path d="M905,0 q10,42 -4,70"/>
-        </g>
-        <g fill="#4a7d3a">
-          <ellipse cx="316" cy="34" rx="7" ry="4"/><ellipse cx="312" cy="70" rx="7" ry="4"/><ellipse cx="322" cy="104" rx="7" ry="4"/>
-          <ellipse cx="694" cy="40" rx="7" ry="4"/><ellipse cx="700" cy="80" rx="7" ry="4"/>
-          <ellipse cx="901" cy="38" rx="7" ry="4"/><ellipse cx="897" cy="66" rx="7" ry="4"/>
-        </g>
-        <g transform="translate(632,512)">
-          <line x1="0" y1="0" x2="-3" y2="-118" stroke="#3f6b2a" stroke-width="5"/>
-          <ellipse cx="-22" cy="-78" rx="13" ry="6" fill="#4a7d3a" transform="rotate(-28 -22 -78)"/>
-          <ellipse cx="14" cy="-54" rx="11" ry="5" fill="#4a7d3a" transform="rotate(24 14 -54)"/>
-          <g transform="translate(-4,-126)">
-            <g fill="#f6c343"><ellipse cy="-15" rx="5" ry="12"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(45)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(90)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(135)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(180)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(225)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(270)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(315)"/></g>
-            <circle r="9" fill="#7a4a1c"/>
-          </g>
-        </g>
-        <g transform="translate(688,512)">
-          <line x1="0" y1="0" x2="4" y2="-92" stroke="#3f6b2a" stroke-width="5"/>
-          <ellipse cx="20" cy="-58" rx="11" ry="5" fill="#4a7d3a" transform="rotate(26 20 -58)"/>
-          <g transform="translate(4,-98)">
-            <g fill="#f6c343"><ellipse cy="-12" rx="4" ry="10"/><ellipse cy="-12" rx="4" ry="10" transform="rotate(45)"/><ellipse cy="-12" rx="4" ry="10" transform="rotate(90)"/><ellipse cy="-12" rx="4" ry="10" transform="rotate(135)"/><ellipse cy="-12" rx="4" ry="10" transform="rotate(180)"/><ellipse cy="-12" rx="4" ry="10" transform="rotate(225)"/><ellipse cy="-12" rx="4" ry="10" transform="rotate(270)"/><ellipse cy="-12" rx="4" ry="10" transform="rotate(315)"/></g>
-            <circle r="7" fill="#7a4a1c"/>
-          </g>
-        </g>
-      </g>
-
-      <!-- De apparaat-/incubatorhoek: koperen ketel, pijpen, groen CRT-scherm, broedplek -->
-      <g class="apparaat">
-        <!-- werkbank -->
-        <rect x="18" y="466" width="214" height="50" rx="5" fill="#2e241a" stroke="#1c140c" stroke-width="3"/>
-        <rect x="18" y="462" width="214" height="8" rx="3" fill="#4a3a28"/>
-        <!-- koperen ketel met brander -->
-        <ellipse cx="190" cy="498" rx="22" ry="7" fill="#ff8a3a" opacity="0.5" class="vlam"/>
-        <path d="M70,466 v-10 a28,28 0 1 1 56,0 v10 Z" fill="url(#koper)" stroke="#6b3f1d" stroke-width="2.5" transform="translate(108,-2)"/>
-        <ellipse cx="206" cy="452" rx="28" ry="26" fill="url(#koper)" stroke="#6b3f1d" stroke-width="2.5"/>
-        <ellipse cx="198" cy="444" rx="9" ry="7" fill="#ffd9a8" opacity="0.5"/>
-        <!-- hals + condensor-pijp -->
-        <path d="M206,426 q2,-26 -22,-34 q-30,-10 -34,18" fill="none" stroke="url(#koper)" stroke-width="9" stroke-linecap="round"/>
-        <rect x="142" y="404" width="13" height="64" rx="5" fill="url(#koper)" stroke="#6b3f1d" stroke-width="2"/>
-        <path d="M150,470 q14,8 30,2" fill="none" stroke="#6b3f1d" stroke-width="5" stroke-linecap="round"/>
-        <!-- meters + lampjes -->
-        <circle cx="170" cy="452" r="11" fill="#1c140c" stroke="#c9a227" stroke-width="2.5"/>
-        <line x1="170" y1="452" x2="176" y2="446" stroke="#f6c75a" stroke-width="2"/>
-        <circle cx="120" cy="430" r="3" fill="#39ff85"><animate attributeName="opacity" values="1;0.3;1" dur="2.2s" repeatCount="indefinite"/></circle>
-        <circle cx="132" cy="430" r="3" fill="#f6a623"><animate attributeName="opacity" values="0.4;1;0.4" dur="1.6s" repeatCount="indefinite"/></circle>
-        <!-- groen CRT-scherm -->
-        <rect x="36" y="404" width="74" height="60" rx="6" fill="#241f17" stroke="#11100b" stroke-width="3"/>
-        <rect x="30" y="438" width="86" height="9" rx="3" fill="#3a3226"/>
-        <rect x="62" y="464" width="22" height="6" fill="#2a2419"/>
-        <rect x="44" y="412" width="58" height="44" rx="4" fill="#07210f"/>
-        <rect x="40" y="408" width="66" height="52" rx="5" fill="url(#schermgloed)"/>
-        <g font-family="monospace" fill="#39ff85">
-          <text x="49" y="424" style="font:700 9px monospace">HIVE//tick</text>
-          <text x="49" y="436" style="font:400 9px monospace" fill="#7fffb0">p=10009 ✓</text>
-          <text x="49" y="448" style="font:400 9px monospace" fill="#7fffb0">iq▲ vond+1</text>
-          <rect x="49" y="452" width="50" height="3" fill="#1f7d4d"/><rect x="49" y="452" width="34" height="3" fill="#39ff85"/>
-        </g>
-        <!-- incubator/broedplek met gloeiend ei -->
-        <ellipse cx="92" cy="500" rx="30" ry="22" fill="url(#broedgloed)" class="broed"/>
-        <ellipse cx="92" cy="506" rx="20" ry="6" fill="#3a2c1d"/>
-        <g id="ei-deco"><path d="M92,486 a10,13 0 1 0 0.1,0 Z" fill="#f3e6cf" stroke="#c9a227" stroke-width="1.5"/>
-        <path d="M86,492 q6,4 12,0" fill="none" stroke="#caa15c" stroke-width="1.2"/></g>
-        <!-- echte eieren uit de kweek (gevuld door JS) -->
-        <g id="eilaag"></g>
-        <!-- stoom -->
-        <path class="stoom" d="M206,420 q-6,-12 4,-22 q8,-10 0,-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.18"/>
-        <path class="stoom" style="animation-delay:-3s" d="M150,396 q-6,-12 3,-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.14"/>
-      </g>
-
-      <!-- grote vloerplant bij de deur -->
-      <g filter="url(#propSchaduw)" transform="translate(892,452)">
-        <path d="M-20,58 L-14,20 h28 L20,58 Z" fill="#b5702a" stroke="#7a4a1c" stroke-width="2.5"/>
-        <rect x="-22" y="14" width="44" height="10" rx="3" fill="#c98a2e" stroke="#7a4a1c" stroke-width="2"/>
-        <g fill="url(#bladGrad)" stroke="#2f5a22" stroke-width="1">
-          <path d="M0,16 q-30,-14 -34,-52 q26,6 34,34 Z"/><path d="M0,16 q30,-14 34,-52 q-26,6 -34,34 Z"/>
-          <path d="M0,16 q-14,-30 2,-64 q14,26 2,52 Z"/><path d="M0,16 q-22,-24 -14,-56 q22,14 20,42 Z"/><path d="M0,16 q22,-24 14,-56 q-22,14 -20,42 Z"/>
-        </g>
-      </g>
-
-      <!-- zacht vignet: donkere hoeken voor filmische diepte -->
-      <rect x="0" y="0" width="1000" height="600" fill="url(#wandVignet)" pointer-events="none"/>
-
-      <!-- Affordance-objecten: zachte halo's op de plekken waar Botty's zichzelf
-           kunnen reguleren (gevuld door JS, coördinaten uit OBJECTEN) -->
+      <!-- Affordance-objecten (halo's, gevuld door JS) -->
       <g id="objectlaag"></g>
-
       <!-- Botty-laag (gevuld door JS) -->
       <g id="laag"></g>
       <!-- spraakbubbels + hartjes -->
       <g id="fxlaag"></g>
-      <!-- Nacht: blauwe deken, maan en sterren (opacity via JS, volgt de Nederlandse klok) -->
+      <!-- Nacht: donkerblauwe deken over de hele scene (opacity via JS, Nederlandse klok) -->
       <g id="nachtlaag" style="opacity:0;transition:opacity 5s ease;pointer-events:none">
-        <rect x="0" y="0" width="1000" height="600" fill="#1a2a55" opacity="0.5" style="mix-blend-mode:multiply"/>
-        <rect x="0" y="0" width="1000" height="600" fill="#0b1533" opacity="0.30"/>
-        <g clip-path="url(#raamL)">
-          <rect x="60" y="70" width="200" height="150" fill="#0d1838" opacity="0.72"/>
-          <circle cx="128" cy="112" r="20" fill="#f3ecd2"/>
-          <circle cx="121" cy="106" r="17" fill="#152246"/>
-          <circle cx="88" cy="95" r="1.6" fill="#fff" opacity="0.9"/><circle cx="180" cy="88" r="1.3" fill="#fff" opacity="0.7"/>
-          <circle cx="215" cy="120" r="1.8" fill="#fff" opacity="0.85"/><circle cx="150" cy="170" r="1.2" fill="#fff" opacity="0.6"/>
-          <circle cx="95" cy="185" r="1.5" fill="#fff" opacity="0.75"/>
-        </g>
-        <g clip-path="url(#raamR)">
-          <rect x="740" y="70" width="200" height="150" fill="#0d1838" opacity="0.72"/>
-          <circle cx="778" cy="98" r="1.6" fill="#fff" opacity="0.85"/><circle cx="852" cy="86" r="1.4" fill="#fff" opacity="0.7"/>
-          <circle cx="908" cy="112" r="1.9" fill="#fff" opacity="0.9"/><circle cx="820" cy="150" r="1.2" fill="#fff" opacity="0.6"/>
-          <circle cx="880" cy="180" r="1.5" fill="#fff" opacity="0.75"/>
-        </g>
-        <g clip-path="url(#deurgat)"><rect x="934" y="298" width="66" height="214" fill="#0d1838" opacity="0.6"/></g>
+        <rect x="0" y="0" width="1500" height="844" fill="#0b1533" opacity="0.5" style="mix-blend-mode:multiply"/>
+        <rect x="0" y="0" width="1500" height="420" fill="#0d1838" opacity="0.32"/>
+        <circle cx="1185" cy="92" r="26" fill="#f3ecd2" opacity="0.9"/><circle cx="1175" cy="84" r="21" fill="#152246" opacity="0.6"/>
+        <g fill="#fff"><circle cx="300" cy="70" r="1.6" opacity="0.85"/><circle cx="620" cy="48" r="1.3" opacity="0.7"/><circle cx="900" cy="96" r="1.8" opacity="0.8"/><circle cx="1360" cy="62" r="1.4" opacity="0.75"/><circle cx="150" cy="110" r="1.2" opacity="0.6"/></g>
       </g>
       <!-- De Hand: jouw aanwezigheid in de Construct -->
       <g id="hand" class="hand" opacity="0"><text id="hand-ico" x="-8" y="26" style="font:34px sans-serif">🖐</text></g>
@@ -540,8 +250,23 @@
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   var paletten = BottyRender.paletten;
   var sprites  = BottySprites.set;
-  var WERELD_B = 1000;                 // moet matchen met de edge function
-  var VLOER = 512;                     // y van de vloer in de SVG
+  var WERELD_B = 1500;                 // achtergrond-breedte (viewBox)
+  var WERELD_H = 844;                  // achtergrond-hoogte (viewBox)
+  var WERELD_R = WERELD_H / WERELD_B;  // aspect voor de camera
+  // ── Niveaus (begaanbare vloeren) + trappen ────────────────────────────────
+  // Botty's lopen op de vloer van hun niveau en gebruiken een trap om te wisselen.
+  var NIVEAUS = [
+    { id:0, naam:"tuin",  vloer:405, xlo:70,  xhi:1430 },   // oppervlak / tuin
+    { id:1, naam:"kamer", vloer:662, xlo:110, xhi:1390 }    // ondergrondse kamer
+  ];
+  var TRAPPEN = [
+    { x:565, van:0, naar:1 }   // houten trap in het midden, tuin ⇄ kamer
+  ];
+  function vloerVan(n){ return (NIVEAUS[n]||NIVEAUS[0]).vloer; }
+  function trapTussen(a, c){
+    for(var i=0;i<TRAPPEN.length;i++){ var t=TRAPPEN[i]; if((t.van===a&&t.naar===c)||(t.van===c&&t.naar===a)) return t; }
+    return TRAPPEN[0];
+  }
   var SVGNS = "http://www.w3.org/2000/svg";
   var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff" };
 
@@ -558,20 +283,22 @@
   }
   updateNacht();
   setInterval(updateNacht, 60000);
-  // Affordance-objecten — moeten matchen met OBJECTEN in de edge function
+  // Affordance-objecten — verdeeld over de niveaus (x = plek, niveau = vloer).
+  // Voorlopige posities tot de klaslokaal-assets komen; y volgt uit het niveau.
   var OBJECTEN = [
-    { id:"laadkruk", x:250, y:450, icoon:"⚡" },
-    { id:"bord",     x:510, y:240, icoon:"💾" },
-    { id:"bal",      x:700, y:470, icoon:"🏃" },
-    { id:"deur",     x:920, y:400, icoon:"🌲" }
+    { id:"laadkruk", x:430,  niveau:1, icoon:"⚡" },   // kamer: koperen apparatuur
+    { id:"bord",     x:820,  niveau:1, icoon:"💾" },   // kamer: bij de deur
+    { id:"bal",      x:1150, niveau:0, icoon:"🏃" },   // tuin
+    { id:"deur",     x:1430, niveau:0, icoon:"🌲" }    // tuin: het bos rechts
   ];
+  OBJECTEN.forEach(function(o){ o.y = vloerVan(o.niveau) - 26; });   // halo net boven de vloer
 
   var laag = document.getElementById("laag");
   var fxlaag = document.getElementById("fxlaag");
   var handEl = document.getElementById("hand");
   var kamerEl = document.getElementById("kamer");
   var sel = null;                       // naam van de geselecteerde Botty
-  var cam = { x:0, y:0, w:1000 };       // camera (viewBox), lerp't naar doel
+  var cam = { x:0, y:0, w:1500 };       // camera (viewBox), lerp't naar doel
   // Objectlaag: zachte pulserende halo + icoon per affordance-object
   (function(){
     var ol = document.getElementById("objectlaag");
@@ -587,10 +314,8 @@
     });
   })();
   var bottys = [];               // server-staat
-  var nodes = {};                // naam → { g, render:{x,y}, tx, ty, b }
-  // vrije-wil-zwerfgebied (zweefruimte in de SVG)
-  var ROAM = { xlo:90, xhi:910, ylo:175, yhi:455 };
-  var RUST = { x:500, y:395 };   // rustplek (matcht het apparaat/de stoelhoek niet, midden-onder)
+  var nodes = {};                // naam → node met x, niveau, doelX, doelNiveau, klim…
+  var RUST = { x:1250, niveau:1 };   // rustige hoek in de kamer (rechts)
   function nameRnd(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0)/4294967295; }
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
@@ -619,7 +344,7 @@
     eiDeco.setAttribute("opacity", eieren.length ? "0" : "1");
     eilaag.innerHTML = "";
     eieren.forEach(function(ei, i){
-      var cx = 92 + i*34, cy = 498;
+      var cx = 340 + i*36, cy = 636;
       var rijp = Date.now() >= (ei.rijpOp || 0);
       var g = document.createElementNS(SVGNS,"g");
       g.setAttribute("class","ei-echt" + (rijp ? " rijp" : ""));
@@ -644,7 +369,7 @@
   function zegBijIncubator(tekst){
     var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","bubbel");
     var w = tekst.length*7.6 + 22;
-    g.setAttribute("transform","translate(112,436)");
+    g.setAttribute("transform","translate(360,600)");
     g.innerHTML = '<rect x="'+(-w/2)+'" y="-30" width="'+w+'" height="24" rx="11"/>'
                 + '<path d="M-5,-7 L0,2 L5,-7 Z"/><text y="-13">'+esc(tekst)+'</text>';
     fxlaag.appendChild(g);
@@ -697,36 +422,45 @@
     // idle-beweging per Botty de-synchroniseren
     g.style.setProperty("--fase", (-(nameRnd(b.naam+"fase")*5)).toFixed(2) + "s");
     laag.appendChild(g);
-    // gespreide startpositie zodat ze niet gestapeld beginnen
+    // gespreide startpositie op de kamervloer zodat ze niet gestapeld beginnen
     var idx = Object.keys(nodes).length;
-    var sx = ROAM.xlo + (ROAM.xhi-ROAM.xlo) * ((idx+0.5)/9);
-    var sy = ROAM.ylo + (ROAM.yhi-ROAM.ylo) * nameRnd(b.naam);
+    var startNiv = 1, lv0 = NIVEAUS[startNiv];
+    var sx = lv0.xlo + (lv0.xhi-lv0.xlo) * ((idx+0.5)/9);
     return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik,
-             render:{ x:sx, y:sy }, tx:sx, ty:sy, pauze:0, faseNum: nameRnd(b.naam+"br")*6.28,
-             volgendeKnipper:0, knipperTot:0, blijTot:0,
-             snelheid: 0.5 + nameRnd(b.naam+"snel")*1.1, b:b };
+             render:{ x:sx, y:vloerVan(startNiv) },
+             niveau:startNiv, doelNiveau:startNiv, doelX:sx, klim:null, pauze:0, loopFase:0, linksom:false,
+             faseNum: nameRnd(b.naam+"br")*6.28, volgendeKnipper:0, knipperTot:0, blijTot:0,
+             snelheid: 0.9 + nameRnd(b.naam+"snel")*1.3, b:b };
   }
 
-  // kies een nieuw zwerfdoel — gestuurd door het doel dat de server heeft gezet
+  function randX(niv){ var lv=NIVEAUS[niv]; return lv.xlo + Math.random()*(lv.xhi-lv.xlo); }
+  // kies een nieuw doel (x + niveau) — gestuurd door het serverdoel
   function nieuwDoel(nd, b){
     var soort = b.doel && b.doel.soort;
-    if((soort==="zelfzorg" || soort==="nieuwsgierig") && b.doel && typeof b.doel.px==="number"){
-      // naar het affordance-object / punt van interesse dat de server koos
-      nd.tx = b.doel.px + (Math.random()-0.5)*40; nd.ty = b.doel.py + (Math.random()-0.5)*30;
+    var niv = nd.niveau, x = nd.render.x;
+    if((soort==="zelfzorg" || soort==="nieuwsgierig") && b.doel){
+      var oid = b.doel.obj || b.doel.poi;
+      var o = OBJECTEN.filter(function(z){ return z.id===oid; })[0];
+      if(o){ niv = o.niveau; x = o.x + (Math.random()-0.5)*50; }
+      else { niv = Math.random()<0.5?0:1; x = randX(niv); }
     } else if(soort==="bijkomen" || soort==="herstellen" || soort==="slapen"){
-      nd.tx = RUST.x + (Math.random()-0.5)*240; nd.ty = RUST.y + (Math.random()-0.4)*90;
+      niv = RUST.niveau; x = RUST.x + (Math.random()-0.5)*220;
     } else if(soort==="gezelschap"){
-      var sx=0, sy=0, n=0;
-      bottys.forEach(function(o){ if(o.naam!==b.naam){ var on=nodes[o.naam]; if(on){ sx+=on.render.x; sy+=on.render.y; n++; } } });
-      if(n){ nd.tx = sx/n + (Math.random()-0.5)*170; nd.ty = sy/n + (Math.random()-0.5)*110; }
-      else { nd.tx = ROAM.xlo + Math.random()*(ROAM.xhi-ROAM.xlo); nd.ty = ROAM.ylo + Math.random()*(ROAM.yhi-ROAM.ylo); }
+      var vriend = (b.doel.naar && nodes[b.doel.naar]) ? nodes[b.doel.naar] : null;
+      if(!vriend){
+        var kand = bottys.filter(function(o){ return o.naam!==b.naam && nodes[o.naam]; });
+        if(kand.length) vriend = nodes[kand[Math.floor(Math.random()*kand.length)].naam];
+      }
+      if(vriend){ niv = vriend.niveau; x = vriend.render.x + (Math.random()-0.5)*160; }
+      else { niv = nd.niveau; x = randX(niv); }
     } else {
-      // nieuwsgierig / priemjacht / voortplanting / overig: vrij door de hele ruimte
-      nd.tx = ROAM.xlo + Math.random()*(ROAM.xhi-ROAM.xlo);
-      nd.ty = ROAM.ylo + Math.random()*(ROAM.yhi-ROAM.ylo);
+      // priemjacht / voortplanting / overig: soms van niveau wisselen
+      niv = Math.random()<0.35 ? (nd.niveau===0?1:0) : nd.niveau;
+      x = randX(niv);
     }
-    nd.tx = Math.max(ROAM.xlo, Math.min(ROAM.xhi, nd.tx));
-    nd.ty = Math.max(ROAM.ylo, Math.min(ROAM.yhi, nd.ty));
+    nd.doelNiveau = niv;
+    var lv = NIVEAUS[niv];
+    nd.doelX = Math.max(lv.xlo, Math.min(lv.xhi, x));
   }
 
   function frame(ts){
@@ -737,43 +471,64 @@
       nd.b = b;
       var r = nd.render;
       var was = r.x;
-      // Serverdoel gewisseld? Dan meteen een nieuwe koers (niet wachten op aankomst).
-      var doelKey = b.doel ? (b.doel.soort + ":" + (b.doel.px||"") + ":" + (b.doel.naar||"")) : "";
+      // Serverdoel gewisseld? Dan meteen een nieuwe koers.
+      var doelKey = b.doel ? (b.doel.soort + ":" + (b.doel.obj||b.doel.poi||"") + ":" + (b.doel.naar||"")) : "";
       if(doelKey !== nd.doelKey){ nd.doelKey = doelKey; nieuwDoel(nd, b); nd.pauze = 0; }
-      // VRIJE WIL: dwaal zelfstandig naar een eigen doel; bij aankomst korte rust, dan nieuw doel
-      var dx = nd.tx - r.x, dy = nd.ty - r.y;
-      var dist = Math.sqrt(dx*dx + dy*dy);
-      if(dist < 14){
-        if(nd.pauze <= 0){ nieuwDoel(nd, b); nd.pauze = 700 + Math.random()*2200; }
-        else nd.pauze -= 16;
-      }
-      // scheiding: duw weg van te dichtbije buren zodat ze niet over elkaar tekenen
-      var sepx = 0, sepy = 0;
-      bottys.forEach(function(o){
-        if(o.naam===b.naam) return; var on = nodes[o.naam]; if(!on) return;
-        var ox = on.render.x - r.x, oy = on.render.y - r.y, d2 = ox*ox + oy*oy;
-        if(d2 < 12100 && d2 > 1){ var d = Math.sqrt(d2); sepx -= ox/d*(110-d); sepy -= oy/d*(110-d); }
-      });
-      if(dist > 1){ r.x += dx/dist*nd.snelheid; r.y += dy/dist*nd.snelheid; }
-      r.x += sepx*0.045; r.y += sepy*0.045;
-      r.x = Math.max(ROAM.xlo, Math.min(ROAM.xhi, r.x));
-      r.y = Math.max(ROAM.ylo, Math.min(ROAM.yhi, r.y));
-      var linksom = (r.x - was) < -0.04;                  // bewegingsrichting bepaalt facing
-      // grootte per fase
-      var schaalBasis = (b.stage==="baby"?0.34:b.stage==="tiener"?0.42:0.5) * (b.grootte||1);
-      var w = 200*schaalBasis, h = 250*schaalBasis;
-      // ZWEVEN: wereld-y → zweef-hoogte (center), + zachte constante hover-bob
+
       var inSlaap = b.doel && b.doel.soort === "slapen";
-      var hoverY = inSlaap ? 455 : Math.max(150, Math.min(470, r.y));   // slapers zakken naar de vloer
-      var bob = Math.sin(ts/(inSlaap?1400:500) + r.x*0.05) * (inSlaap?2:6);   // trage ademhaling
-      var x0 = r.x - w/2, y0 = hoverY - h/2 + bob;
-      // ademhaling: zachte squash-&-stretch, pivot rond de voeten
-      var br = Math.sin(ts/(inSlaap?1600:1050) + nd.faseNum) * (inSlaap?0.028:0.018);
+      var speed = nd.snelheid * (inSlaap ? 0.35 : 1);
+
+      if(nd.klim){
+        // op de trap: interpoleer tussen de twee vloeren, hou x op de trap
+        nd.klim.t += 0.014 * (inSlaap ? 0.5 : 1);
+        r.x += (nd.klim.x - r.x) * 0.2;
+        if(nd.klim.t >= 1){ nd.niveau = nd.klim.naar; nd.klim = null; }
+      } else if(nd.niveau !== nd.doelNiveau){
+        // loop naar de verbindende trap
+        var tr = trapTussen(nd.niveau, nd.doelNiveau);
+        var dxT = tr.x - r.x;
+        if(Math.abs(dxT) < 6){ nd.klim = { van:nd.niveau, naar:nd.doelNiveau, t:0, x:tr.x }; }
+        else r.x += (dxT>0?1:-1) * Math.min(speed, Math.abs(dxT));
+      } else {
+        // op het doelniveau: loop naar doelX; bij aankomst korte rust, dan nieuw doel
+        var dxx = nd.doelX - r.x;
+        if(Math.abs(dxx) < 8){
+          if(nd.pauze <= 0){ nieuwDoel(nd, b); nd.pauze = 700 + Math.random()*2600; }
+          else nd.pauze -= 16;
+        } else r.x += (dxx>0?1:-1) * Math.min(speed, Math.abs(dxx));
+        // horizontale scheiding met buren op hetzelfde niveau
+        var sepx = 0;
+        bottys.forEach(function(o){
+          if(o.naam===b.naam) return; var on = nodes[o.naam]; if(!on || on.niveau!==nd.niveau || on.klim) return;
+          var ox = on.render.x - r.x, ad = Math.abs(ox);
+          if(ad < 72 && ad > 0.5) sepx -= (ox/ad) * (72-ad) * 0.03;
+        });
+        r.x += sepx;
+      }
+      // voet-hoogte: vloer van huidig niveau, of geïnterpoleerd op de trap
+      var voetY = nd.klim
+        ? vloerVan(nd.klim.van) + (vloerVan(nd.klim.naar)-vloerVan(nd.klim.van))*nd.klim.t
+        : vloerVan(nd.niveau);
+      var lvNu = NIVEAUS[nd.klim ? nd.klim.van : nd.niveau];
+      r.x = Math.max(lvNu.xlo-20, Math.min(lvNu.xhi+20, r.x));
+      r.y = voetY;
+
+      var beweegt = Math.abs(r.x - was) > 0.3;
+      if((r.x - was) < -0.06) nd.linksom = true; else if((r.x - was) > 0.06) nd.linksom = false;
+      var linksom = nd.linksom;
+
+      // grootte per fase (afgestemd op de nieuwe wereld)
+      var schaalBasis = (b.stage==="baby"?0.38:b.stage==="tiener"?0.46:0.54) * (b.grootte||1);
+      var w = 200*schaalBasis, h = 250*schaalBasis;
+      // loop-huppel + ademhaling (squash-&-stretch, voeten blijven op de vloer)
+      nd.loopFase += beweegt && !inSlaap ? 0.34 : 0;
+      var huppel = (beweegt && !inSlaap) ? Math.abs(Math.sin(nd.loopFase))*-5 : 0;
+      var br = Math.sin(ts/(inSlaap?1600:1050) + nd.faseNum) * (inSlaap?0.03:0.016);
       var syB = schaalBasis*(1+br), sxB = schaalBasis*(1-br*0.6);
-      var yB = y0 + h*(1 - (1+br)); // compenseer zodat de voeten blijven staan
-      // transform met facing-flip
-      if(linksom) nd.inner.setAttribute("transform","translate("+(x0+w)+","+yB+") scale("+(-sxB)+","+syB+")");
-      else        nd.inner.setAttribute("transform","translate("+x0+","+yB+") scale("+sxB+","+syB+")");
+      var y0 = voetY - h*(1+br) + huppel + (inSlaap ? 10 : 0);   // onderkant sprite ~ vloer
+      var xL = r.x - w/2;
+      if(linksom) nd.inner.setAttribute("transform","translate("+(xL+w).toFixed(1)+","+y0.toFixed(1)+") scale("+(-sxB).toFixed(3)+","+syB.toFixed(3)+")");
+      else        nd.inner.setAttribute("transform","translate("+xL.toFixed(1)+","+y0.toFixed(1)+") scale("+sxB.toFixed(3)+","+syB.toFixed(3)+")");
       nd.inner.setAttribute("opacity", b.ziek ? "0.7" : "1");
 
       // ── knipperen + gezichtsuitdrukking ──
@@ -787,18 +542,17 @@
       nd.g.classList.toggle("slaap", !!inSlaap);
       nd.g.classList.toggle("ziek", !!b.ziek && !inSlaap);
       nd.g.classList.toggle("blij", !!blij && !b.ziek && !inSlaap);
-      // vloer-schaduw: kleiner/lichter naarmate hoger gezweefd
-      var feetY = y0 + h, hoogte = Math.max(0, VLOER - feetY);
-      var sS = Math.max(0.3, 1 - hoogte/320);
-      nd.schaduw.setAttribute("cx", r.x); nd.schaduw.setAttribute("cy", VLOER + 8);
-      nd.schaduw.setAttribute("rx", (w*0.34*sS).toFixed(1)); nd.schaduw.setAttribute("ry", (7*sS).toFixed(1));
-      nd.schaduw.setAttribute("opacity", (0.32*sS).toFixed(2));
+
+      // vloer-schaduw onder de voeten
+      nd.schaduw.setAttribute("cx", r.x.toFixed(1)); nd.schaduw.setAttribute("cy", (voetY+4).toFixed(1));
+      nd.schaduw.setAttribute("rx", (w*0.32).toFixed(1)); nd.schaduw.setAttribute("ry", "6");
+      nd.schaduw.setAttribute("opacity", "0.30");
       // naam + doel-ring boven het hoofd
       nd.naam.setAttribute("x", r.x); nd.naam.setAttribute("y", y0 - 8);
       nd.ring.setAttribute("cx", r.x - 38); nd.ring.setAttribute("cy", y0 - 12);
-      // zelfzorg-icoon: zichtbaar zolang de Botty zijn object daadwerkelijk gebruikt
-      var bezig = b.doel && b.doel.soort === "zelfzorg" && typeof b.doel.px === "number"
-        && (Math.abs(r.x - b.doel.px) < 90) && (Math.abs(r.y - Math.max(ROAM.ylo, Math.min(ROAM.yhi, b.doel.py))) < 90);
+      // zelfzorg-icoon zodra de Botty bij zijn object is
+      var bezig = b.doel && b.doel.soort === "zelfzorg" && !nd.klim
+        && nd.niveau===nd.doelNiveau && Math.abs(r.x - nd.doelX) < 60;
       if(inSlaap){
         nd.gebruik.textContent = "💤";
         nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 12);
@@ -822,18 +576,18 @@
       }
       nd.laatstY0 = y0; nd.laatstH = h;
     });
-    // camera: volg de geselecteerde Botty (Creatures-stijl), anders het hele lokaal
+    // camera: volg de geselecteerde Botty (Creatures-stijl), anders de hele wereld
     var doelCam;
     if(sel && nodes[sel]){
-      var sr = nodes[sel].render, cw = 560;
+      var sn = nodes[sel], cw = 760, ch = cw*WERELD_R;
       doelCam = { w:cw,
-        x: Math.max(0, Math.min(1000-cw, sr.x - cw/2)),
-        y: Math.max(0, Math.min(600-cw*0.6, Math.max(150, Math.min(470, sr.y)) - cw*0.32)) };
-    } else doelCam = { x:0, y:0, w:1000 };
+        x: Math.max(0, Math.min(WERELD_B-cw, sn.render.x - cw/2)),
+        y: Math.max(0, Math.min(WERELD_H-ch, vloerVan(sn.niveau) - ch*0.62)) };
+    } else doelCam = { x:0, y:0, w:WERELD_B };
     cam.x += (doelCam.x-cam.x)*0.07; cam.y += (doelCam.y-cam.y)*0.07; cam.w += (doelCam.w-cam.w)*0.07;
-    kamerEl.setAttribute("viewBox", cam.x.toFixed(1)+" "+cam.y.toFixed(1)+" "+cam.w.toFixed(1)+" "+(cam.w*0.6).toFixed(1));
+    kamerEl.setAttribute("viewBox", cam.x.toFixed(1)+" "+cam.y.toFixed(1)+" "+cam.w.toFixed(1)+" "+(cam.w*WERELD_R).toFixed(1));
     // hand meeschalen met de zoom zodat hij altijd even groot oogt
-    if(handPos){ var hs = cam.w/1000; handEl.setAttribute("transform","translate("+handPos.x+","+handPos.y+") scale("+hs.toFixed(3)+")"); }
+    if(handPos){ var hs = cam.w/WERELD_B; handEl.setAttribute("transform","translate("+handPos.x+","+handPos.y+") scale("+hs.toFixed(3)+")"); }
     updateKitLive();
     requestAnimationFrame(frame);
   }
@@ -887,10 +641,11 @@
   // klik: selecteer+volg de dichtstbijzijnde Botty én pas het gekozen gereedschap toe
   kamerEl.addEventListener("click", function(ev){
     var p = svgCoord(ev); if(!p) return;
-    var beste = null, besteD = 75*75;
+    var beste = null, besteD = 90*90;
     bottys.forEach(function(b){
       var nd = nodes[b.naam]; if(!nd) return;
-      var cy = Math.max(150, Math.min(470, nd.render.y));
+      // mik op het lichaamscentrum (voeten staan op de vloer, lijf zit erboven)
+      var cy = (nd.laatstY0!=null ? nd.laatstY0 + (nd.laatstH||120)/2 : nd.render.y);
       var dx = nd.render.x - p.x, dy = cy - p.y, d2 = dx*dx + dy*dy;
       if(d2 < besteD){ besteD = d2; beste = b.naam; }
     });
