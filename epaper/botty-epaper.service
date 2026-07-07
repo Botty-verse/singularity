@@ -1,0 +1,16 @@
+[Unit]
+Description=Botty op e-paper (Waveshare 2.13b V3)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Pas User en paden aan naar jouw installatie:
+User=pi
+WorkingDirectory=/home/pi/botty-epaper
+ExecStart=/usr/bin/python3 /home/pi/botty-epaper/botty_epaper.py
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+# Botty op e-paper — Python-afhankelijkheden voor de Raspberry Pi Zero W
+Pillow>=9.2
+spidev
+# GPIO: op Raspberry Pi OS Bookworm gebruikt de Waveshare-driver gpiozero + lgpio,
+# op oudere (Bullseye) RPi.GPIO. Installeer wat bij jouw OS hoort:
+RPi.GPIO ; platform_machine != "x86_64"
+gpiozero ; platform_machine != "x86_64"
+lgpio ; platform_machine != "x86_64"
