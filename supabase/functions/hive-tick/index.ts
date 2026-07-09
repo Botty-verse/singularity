@@ -1716,6 +1716,28 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Megapriemen die bezoekers in hun browser vonden (via priem-claim) verrekenen:
+  // de ontdekker-Botty krijgt IQ-bonus + een mega-teller. Alleen hier gebeurt de
+  // hive_state-write, dus dit is race-vrij. Markeer verrekend zodat het één keer telt.
+  try {
+    const { data: open } = await supabase
+      .from("mega_priemen").select("id,ontdekker_bid,ontdekker_naam,digits")
+      .eq("verrekend", false).limit(200);
+    if (open && open.length) {
+      for (const v of open) {
+        const b = bottys.find(x => (v.ontdekker_bid && x.bid === v.ontdekker_bid)
+          || x.naam === v.ontdekker_naam);
+        if (b) {
+          b.iq = Math.min(999, (b.iq ?? 100) + 2);            // zware vondst = flinke bonus
+          b.mega = (b.mega ?? 0) + 1;                          // teller voor badges
+          onthoud(b, "megapriem", "een bezoeker hielp me een reuzenpriem van " + v.digits + " cijfers vinden");
+        }
+      }
+      await supabase.from("mega_priemen").update({ verrekend: true })
+        .in("id", open.map((v: any) => v.id));
+    }
+  } catch (_) { /* best-effort: volgende tick opnieuw */ }
+
   await supabase.from("hive_state").upsert({
     id: "main", bottys,
     first_opened: state.first_opened ?? nu,
