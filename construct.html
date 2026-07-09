@@ -319,6 +319,14 @@
     { id:"bal",      x:1150, niveau:0, icoon:"🏃" },   // tuin: globe
     { id:"deur",     x:1408, niveau:0, icoon:"🌲" }    // tuin: groene deur
   ];
+  var POIS = {
+    bord:  { x:820,  niveau:1 },
+    raamL: { x:190,  niveau:0 },
+    raamR: { x:1320, niveau:0 },
+    deur:  { x:1408, niveau:0 },
+    bal:   { x:1150, niveau:0 },
+    kruk:  { x:480,  niveau:1 }
+  };
   OBJECTEN.forEach(function(o){ o.y = vloerVan(o.niveau) - 26; });   // halo net boven de vloer
 
   var laag = document.getElementById("laag");
@@ -479,11 +487,15 @@
     // stabiele "baan" per Botty (-0.5..0.5): zo gaan ze náást elkaar staan bij een
     // gedeeld doel i.p.v. op dezelfde plek te blijven hangen.
     var lane = nameRnd(b.naam+"lane") - 0.5;
-    if((soort==="zelfzorg" || soort==="nieuwsgierig") && b.doel){
+    if(soort==="zelfzorg" && b.doel){
       var oid = b.doel.obj || b.doel.poi;
       var o = OBJECTEN.filter(function(z){ return z.id===oid; })[0];
       if(o){ niv = o.niveau; x = o.x + lane*95; }
-      else { niv = Math.random()<0.5?0:1; x = randX(niv); }
+      else { niv = 1; x = RUST.x + lane*160; }
+    } else if(soort==="nieuwsgierig" && b.doel){
+      var poi = POIS[b.doel.poi];
+      if(poi){ niv = poi.niveau; x = poi.x + lane*95; }
+      else { niv = 1; x = 820 + lane*160; }
     } else if(soort==="bijkomen" || soort==="herstellen" || soort==="slapen"){
       niv = RUST.niveau; x = RUST.x + lane*320;
     } else if(soort==="gezelschap"){
@@ -494,11 +506,18 @@
       }
       // ga náást de vriend staan (op afstand), niet er bovenop
       if(vriend){ niv = vriend.niveau; x = vriend.render.x + (lane<0?-1:1)*(46 + Math.abs(lane)*150); }
-      else { niv = nd.niveau; x = randX(niv); }
+      else { niv = 1; x = 820 + lane*180; }
+    } else if(soort==="voortplanting"){
+      var partner = bottys.filter(function(o){ return o.naam!==b.naam && nodes[o.naam]; })[0];
+      if(partner){
+        var pn = nodes[partner.naam];
+        niv = pn.niveau;
+        x = pn.render.x + (lane<0?-1:1)*(60 + Math.abs(lane)*120);
+      } else { niv = 1; x = 820 + lane*180; }
+    } else if(soort==="priemjacht"){
+      niv = 1; x = 820 + lane*180;
     } else {
-      // priemjacht / voortplanting / overig: soms van niveau wisselen
-      niv = Math.random()<0.35 ? (nd.niveau===0?1:0) : nd.niveau;
-      x = randX(niv);
+      niv = 1; x = 820 + lane*180;
     }
     nd.doelNiveau = niv;
     var lv = NIVEAUS[niv];

@@ -5,9 +5,10 @@ blijft toeschouwer**. Interacties zijn te observeren, niet om te micromanagen.
 
 ## Uitgesteld (afgesproken later te tunen)
 
-- [ ] **Niveaukeuze tunen** — waarom zit een Botty boven (tuin) of onder (kamer)?
-  Nu grotendeels willekeurig/lane-gestuurd. Koppel de keuze aan gedrag
-  (honger → naar eten, slaap → naar rustplek, sociaal → bij anderen, dag/nacht).
+- [x] **Niveaukeuze tunen** — de visualisatie volgt nu het doel: zelfzorg en
+  nieuwsgierigheid gaan naar het passende object, slapen/herstellen naar de
+  rustplek, gezelschap/voortplanting naar andere Botty's en priemjacht naar het
+  schoolbord. Daardoor is de keuze voor tuin of kamer niet langer willekeurig.
 
 ## Creatures-roadmap (voorgesteld, nog niet gestart)
 
