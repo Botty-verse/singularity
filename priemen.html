@@ -81,6 +81,21 @@
     <p class="sub" style="text-align:left;margin:-.2rem 0 .6rem;color:#7fb89a;font-size:.78rem">De grootste priemen die de hive tot nu toe heeft bereikt.</p>
     <div class="grid" id="grid"></div>
   </section>
+
+  <section id="sec-mega">
+    <h2>🛰️ Megapriemen — berekend door bezoekers</h2>
+    <p class="sub" style="text-align:left;margin:-.2rem 0 .8rem;color:#7fb89a;font-size:.82rem">
+      Deze reuzenpriemen (honderden cijfers) worden niet door de hive zelf gevonden, maar door de
+      <strong>browser van bezoekers</strong> — rekenkracht die jij kunt uitlenen met de knop rechtsonder.
+      Elke vondst wordt geverifieerd en toegekend aan een levende Botty.</p>
+    <div class="kpi-rij">
+      <div class="kpi"><div class="label">Gevonden</div><div class="waarde" id="m-aantal">…</div></div>
+      <div class="kpi"><div class="label">Grootste</div><div class="waarde" id="m-grootste" style="font-size:1rem">…</div></div>
+      <div class="kpi"><div class="label">Top-ontdekker</div><div class="waarde" id="m-top" style="font-size:1rem">…</div></div>
+    </div>
+    <ul class="recent" id="mega-recent"></ul>
+    <p class="leeg" id="mega-leeg" style="display:none">🛰️ Nog geen megapriemen. Zet je browser aan het rekenen met de knop rechtsonder!</p>
+  </section>
 </main>
 
 <footer>
@@ -149,21 +164,49 @@
     }).join("");
   }
 
+  // ── Megapriemen (door bezoekers berekend) ──────────────────────────────────
+  function kort(cijfers){
+    var s = String(cijfers);
+    if(s.length <= 22) return s;
+    return s.slice(0,10) + "…" + s.slice(-8);
+  }
+  function renderMega(stats, recent){
+    var totaal = stats && typeof stats.totaal==="number" ? stats.totaal : recent.length;
+    document.getElementById("m-aantal").textContent = (totaal||0).toLocaleString("nl-NL");
+    document.getElementById("m-grootste").textContent = stats && stats.grootste_digits!=null ? (stats.grootste_digits.toLocaleString("nl-NL")+" cijfers") : "–";
+    document.getElementById("m-top").textContent = stats && stats.top_naam ? (stats.top_naam+" ("+stats.top_aantal+")") : "–";
+    var leeg = document.getElementById("mega-leeg");
+    var lijst = document.getElementById("mega-recent");
+    if(!recent.length){ leeg.style.display="block"; lijst.innerHTML=""; return; }
+    leeg.style.display="none";
+    lijst.innerHTML = recent.map(function(r){
+      return '<li><span class="getal" style="min-width:2.4rem">'+r.digits+'c</span>'
+        +'<span class="wie" style="font-variant-numeric:tabular-nums">'+esc(kort(r.cijfers))+' — <b>'+esc(r.ontdekker_naam)+'</b>'+(r.generatie?' (gen '+r.generatie+')':'')+'</span>'
+        +'<span class="tijd">'+geleden(r.ts)+' geleden</span></li>';
+    }).join("");
+  }
+
   function laad(){
     Promise.all([
       supabase.rpc("priem_stats"),
       supabase.from("priemvondsten").select("getal,ontdekker_naam,generatie,ts").order("ts",{ascending:false}).limit(15),
-      supabase.from("priemvondsten").select("getal,ontdekker_naam").order("getal",{ascending:false}).limit(120)
+      supabase.from("priemvondsten").select("getal,ontdekker_naam").order("getal",{ascending:false}).limit(120),
+      supabase.rpc("mega_priem_stats"),
+      supabase.from("mega_priemen").select("cijfers,digits,ontdekker_naam,generatie,ts").order("ts",{ascending:false}).limit(12)
     ]).then(function(res){
       var stats = res[0] && !res[0].error ? res[0].data : null;
       var recent = res[1] && !res[1].error ? (res[1].data||[]) : [];
       var top = res[2] && !res[2].error ? (res[2].data||[]) : [];
       render(stats, recent, top);
+      var mStats = res[3] && !res[3].error ? (Array.isArray(res[3].data)?res[3].data[0]:res[3].data) : null;
+      var mRecent = res[4] && !res[4].error ? (res[4].data||[]) : [];
+      renderMega(mStats, mRecent);
     });
   }
   laad();
   setInterval(function(){ if(!document.hidden) laad(); }, 20000);
 })();
 </script>
+<script src="assets/priem-bijdrage.js"></script>
 </body>
 </html>

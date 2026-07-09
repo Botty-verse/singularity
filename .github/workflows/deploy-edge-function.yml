@@ -53,3 +53,7 @@ jobs:
       - name: hive-tick deployen
         if: steps.guard.outputs.skip != 'true'
         run: supabase functions deploy hive-tick --project-ref "$PROJECT_REF" --no-verify-jwt
+
+      - name: priem-claim deployen
+        if: steps.guard.outputs.skip != 'true'
+        run: supabase functions deploy priem-claim --project-ref "$PROJECT_REF" --no-verify-jwt
