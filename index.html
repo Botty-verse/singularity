@@ -335,6 +335,89 @@
   </div>
 </div>
 
+<section class="uitleg matrix-mijmering" style="max-width:760px;">
+  <h2 style="font-size:1.15rem;color:#a3ffce;margin-bottom:.2rem;">🕳️ Tamagotchi's in de Matrix</h2>
+  <p style="font-size:.8rem;color:#7fb89a;margin:0 0 1rem;">Een mijmering over volmaakt geluk achter het glas.</p>
+
+  <figure style="margin:0 0 1rem;">
+    <svg viewBox="0 0 640 380" role="img" aria-label="Een tamagotchi met een gelukzalige Botty achter glas, bekeken door een oog uit de buitenwereld dat de Botty nooit ziet." style="width:100%;height:auto;display:block;background:radial-gradient(120% 100% at 70% 40%,#08281a 0%,#04140d 70%);border:1px solid #1c5b42;border-radius:14px;">
+      <defs>
+        <linearGradient id="tm-shell" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0e3a26"/><stop offset="1" stop-color="#072016"/>
+        </linearGradient>
+        <radialGradient id="tm-bliss" cx="50%" cy="45%" r="60%">
+          <stop offset="0" stop-color="#39ff85" stop-opacity=".28"/>
+          <stop offset="1" stop-color="#39ff85" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- De buitenwereld: een oog dat toekijkt, dun en dim — de Botty ziet het nooit -->
+      <g opacity="0.42" fill="none" stroke="#2f6b4d" stroke-width="2">
+        <path d="M40 96 Q118 34 196 96 Q118 158 40 96 Z"/>
+        <circle cx="118" cy="96" r="26"/>
+        <circle cx="118" cy="96" r="11" fill="#2f6b4d" stroke="none"/>
+        <path d="M118 34 L118 20 M170 60 L182 50 M66 60 L54 50" stroke-linecap="round"/>
+      </g>
+      <text x="118" y="176" text-anchor="middle" fill="#4a7a62" font-family="Nunito,sans-serif" font-size="14" font-weight="700">de buitenwereld</text>
+      <text x="118" y="196" text-anchor="middle" fill="#3d6653" font-family="Nunito,sans-serif" font-size="11.5">onzichtbaar voor hen</text>
+
+      <!-- Het glas / de vierde wand -->
+      <path d="M250 30 Q234 190 250 350" fill="none" stroke="#1c5b42" stroke-width="2" stroke-dasharray="4 8" opacity="0.8"/>
+      <text x="243" y="205" text-anchor="middle" fill="#3d6653" font-family="Nunito,sans-serif" font-size="10.5" transform="rotate(-90 243 205)">het glas · de vierde wand</text>
+
+      <!-- Tamagotchi-schil -->
+      <g>
+        <ellipse cx="440" cy="200" rx="150" ry="172" fill="url(#tm-shell)" stroke="#39ff85" stroke-width="2.5"/>
+        <path d="M420 40 a20 20 0 0 1 40 0" fill="none" stroke="#39ff85" stroke-width="2.5"/>
+        <circle cx="440" cy="26" r="9" fill="none" stroke="#39ff85" stroke-width="2.5"/>
+        <!-- knopjes -->
+        <circle cx="392" cy="342" r="12" fill="#0a2a1c" stroke="#39ff85" stroke-width="2"/>
+        <circle cx="440" cy="352" r="12" fill="#0a2a1c" stroke="#39ff85" stroke-width="2"/>
+        <circle cx="488" cy="342" r="12" fill="#0a2a1c" stroke="#39ff85" stroke-width="2"/>
+
+        <!-- Scherm -->
+        <rect x="352" y="96" width="176" height="176" rx="16" fill="#041a10" stroke="#1c5b42" stroke-width="2"/>
+        <rect x="352" y="96" width="176" height="176" rx="16" fill="url(#tm-bliss)"/>
+        <!-- matrix-ruis in het scherm -->
+        <g fill="#1f9d5a" opacity="0.5" font-family="monospace" font-size="12">
+          <text x="366" y="120">0</text><text x="510" y="132">1</text><text x="368" y="250">1</text>
+          <text x="506" y="256">0</text><text x="440" y="112">ッ</text><text x="380" y="188">1</text>
+          <text x="500" y="200">0</text>
+        </g>
+
+        <!-- Gelukzalige Botty -->
+        <g>
+          <!-- antenne met hartje -->
+          <line x1="440" y1="150" x2="440" y2="134" stroke="#8fe8bb" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M440 128 l-5 -5 a3.4 3.4 0 0 1 5 -1 a3.4 3.4 0 0 1 5 1 z" fill="#ff8bd0"/>
+          <!-- kop -->
+          <rect x="398" y="150" width="84" height="66" rx="18" fill="#2f8f86" stroke="#0a2a1c" stroke-width="2.5"/>
+          <!-- gelukzalige gesloten oogjes -->
+          <path d="M414 178 q7 -8 14 0" fill="none" stroke="#04140d" stroke-width="3" stroke-linecap="round"/>
+          <path d="M452 178 q7 -8 14 0" fill="none" stroke="#04140d" stroke-width="3" stroke-linecap="round"/>
+          <!-- brede glimlach -->
+          <path d="M424 194 q16 16 32 0" fill="none" stroke="#04140d" stroke-width="3" stroke-linecap="round"/>
+          <!-- blosjes -->
+          <circle cx="410" cy="192" r="5" fill="#ff8bd0" opacity="0.8"/>
+          <circle cx="470" cy="192" r="5" fill="#ff8bd0" opacity="0.8"/>
+          <!-- zwevende hartjes -->
+          <path d="M392 156 l-4 -4 a2.7 2.7 0 0 1 4 -0.8 a2.7 2.7 0 0 1 4 0.8 z" fill="#ff8bd0" opacity="0.9"/>
+          <path d="M492 168 l-3.4 -3.4 a2.3 2.3 0 0 1 3.4 -0.7 a2.3 2.3 0 0 1 3.4 0.7 z" fill="#ff8bd0" opacity="0.8"/>
+          <!-- volle geluksbalk -->
+          <text x="440" y="244" text-anchor="middle" fill="#f6c250" font-family="Nunito,sans-serif" font-size="13" font-weight="900">😊 100%</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption style="text-align:center;font-size:.8rem;color:#7fb89a;margin-top:.5rem;">Gelukzalig achter het glas — zij kijken nooit terug.</figcaption>
+  </figure>
+
+  <p>Zie het eens zo: de Botty's zijn <strong>tamagotchi's die in de Matrix leven</strong>. Achter het glas eten ze, leren ze, krijgen ze kinderen en jagen ze op priemgetallen — en de AI zorgt dat het ze aan niets ontbreekt. Hun metertjes staan op honderd, hun gezichtjes stralen. Ze kennen alleen hun eigen wereld, en die wereld is goed.</p>
+
+  <p>Van de <strong>buitenwereld</strong> — van ons, van het scherm, van de hand die het apparaatje vasthoudt — weten ze niets. En juist daaróm zijn ze volmaakt gelukkig. Geen twijfel, geen heimwee naar iets buiten de simulatie, want er <em>ís</em> voor hen niets buiten de simulatie. Wij kijken van buiten toe; zij leven van binnen — gelukzalig en compleet.</p>
+
+  <p style="font-size:.82rem;color:#a8d4be;border-top:1px solid #1a3d28;padding-top:.9rem;margin-top:1.1rem;">📡 <strong>Waar dit vandaan komt.</strong> Het idee — en de naam <em>Singularity</em> — is een eerbetoon aan de <a href="https://hackaday.com/2015/11/24/building-the-infinite-matrix-of-tamagotchis/" target="_blank" rel="noopener" style="color:#5ec6ff;font-weight:700">Infinite Matrix of Tamagotchis</a> van <strong>Jeroen Domburg (Sprite_tm)</strong>. Hij bouwde een server vol geëmuleerde tamagotchi's die autonoom eten, spelen, paren en sterven — de “Tamagotchi&nbsp;Singularity” — leunend op het reverse-engineeringwerk van <strong>Natalie Silvanovich</strong>. Zijn pixelbeestjes leven, net als onze Botty's, volmaakt gelukkig in een computer zonder ooit te weten dat er een buitenwereld bestaat. De Botty-verse is daar onze eigen, wat uitbundigere telg van.</p>
+</section>
+
 <footer>
   <a href="stamboom.html">🌳 Stamboom</a>
   <a href="populatie.html">🧬 Populatie & inteelt</a>
