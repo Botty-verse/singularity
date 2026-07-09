@@ -3,6 +3,15 @@
 Alles wat nog open staat in de ontwikkeling. Leidend principe: **de gebruiker
 blijft toeschouwer**. Interacties zijn te observeren, niet om te micromanagen.
 
+## Afgerond
+
+- [x] **Bezoekers-rekenkracht → megapriemen** — de browser van bezoekers zoekt
+  reuzenpriemen (honderden cijfers) voor de hive via een Web Worker. Gevonden
+  priemen worden server-side geverifieerd (`priem-claim`) en toegekend aan een
+  levende Botty (+IQ, race-vrij verrekend in hive-tick). Opt-in op priemen.html,
+  en **automatisch aan zodra een bezoeker de Construct opent**. Nieuwe
+  megapriemen-sectie op priemen.html.
+
 ## Uitgesteld (afgesproken later te tunen)
 
 - [x] **Niveaukeuze tunen** — de visualisatie volgt nu het doel: zelfzorg en
