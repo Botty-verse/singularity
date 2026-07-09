@@ -118,10 +118,20 @@
   document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(box);
     verfrisKnop();
-    try { if (localStorage.getItem(SLEUTEL) === "1") start(); } catch (e) {}
+    // Auto-start (bv. op de Construct via window.PRIEM_AUTO), tenzij de bezoeker
+    // het zelf uit heeft gezet.
+    try {
+      var v = localStorage.getItem(SLEUTEL);
+      if (v === "1" || (window.PRIEM_AUTO && v !== "0")) start();
+    } catch (e) { if (window.PRIEM_AUTO) start(); }
   });
   if (document.readyState !== "loading") {
     document.body.appendChild(box); verfrisKnop();
-    try { if (localStorage.getItem(SLEUTEL) === "1") start(); } catch (e) {}
+    // Auto-start (bv. op de Construct via window.PRIEM_AUTO), tenzij de bezoeker
+    // het zelf uit heeft gezet.
+    try {
+      var v = localStorage.getItem(SLEUTEL);
+      if (v === "1" || (window.PRIEM_AUTO && v !== "0")) start();
+    } catch (e) { if (window.PRIEM_AUTO) start(); }
   }
 })();
