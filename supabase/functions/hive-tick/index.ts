@@ -161,7 +161,7 @@ const stressVan = (b: any): number => b.chem?.stress ?? 0;
 const stressFactor = (b: any): number => 1 + stressVan(b) / 100 * 1.5;
 
 function biochemie(b: any, bottys: any[]) {
-  const G = exprGenoom(b.genome, b.stage);
+  const G = exprVan(b);
   const c = b.chem = b.chem || {};
   for (const k of CHEM) if (typeof c[k] !== "number") c[k] = 0;
   const actief = b.doel && b.doel.soort !== "bijkomen" && b.doel.soort !== "herstellen" && b.doel.soort !== "slapen";
@@ -470,30 +470,88 @@ function ontoMult(b: Uint8Array, i: number, stage: string): number {
   return 1 + (mult(b, i) - 1) * ontoFactor(i, stage);
 }
 
-function exprGenoom(g: string | undefined, stage = "volwassen") {
+// ─── §3.4: extra genen (variabel-lang genoom, duplicatie, gen-headers) ───────────
+// Bovenop de 16 kern-genen kan een Botty een variabel aantal EXTRA genen dragen
+// die kunnen dupliceren, muteren en wegvallen. Elk extra gen versterkt/verzwakt
+// een kern-locus (0..MULT_LOCI) en heeft een header die bepaalt welke genetische
+// operaties erop mogen (mut/dup/del), plus een eigen switch-on-fase (ontogenese).
+// Een duplicatie stapelt effect en duwt een trek zo búiten het normale bereik →
+// nieuwe fenotypes en open-einde-evolutie. Backward-compatible: geen extra genen
+// (leeg/afwezig) = precies het gedrag van vandaag.
+const EXTRA_MAX = 12;                 // begrens de genoomlengte (payload + stabiliteit)
+const EXTRA_LOCI = 12;                // extra genen mogen locus 0..11 raken (multiplier-genen)
+function mult2(byte: number): number { return 0.5 + (byte ?? 128) / 255; }
+function clampMult(x: number): number { return Math.max(0.25, Math.min(2.0, x)); }
+function stageIdx(stage: string): number { return stage === "baby" ? 0 : stage === "tiener" ? 1 : 2; }
+// Som van bijdragen van alle actieve extra genen voor één locus (half-kracht, stapelt).
+function extraBij(genen: any[] | undefined, i: number, stage: string): number {
+  if (!genen || !genen.length) return 0;
+  const si = stageIdx(stage);
+  let add = 0;
+  for (const g of genen)
+    if (g && g.locus === i && si >= (g.aan ?? 0)) add += (mult2(g.byte) - 1) * 0.5;
+  return add;
+}
+
+function exprGenoom(g: string | undefined, stage = "volwassen", genen: any[] = []) {
   const b = genoomBytes(g);
+  // effectieve multiplier voor een locus = kern-gen + extra genen, begrensd
+  const eff = (i: number) => clampMult(mult(b, i) + extraBij(genen, i, stage));
+  const effOnto = (i: number) => clampMult(ontoMult(b, i, stage) + extraBij(genen, i, stage));
   return {
     verval: {
-      energie:  mult(b, 0),
-      data:     mult(b, 1),
-      fit:      mult(b, 2),
-      geluk:    mult(b, 3),
-      stemming: mult(b, 4),
+      energie:  eff(0),
+      data:     eff(1),
+      fit:      eff(2),
+      geluk:    eff(3),
+      stemming: eff(4),
     },
     zorg: {
-      energie: mult(b, 5),
-      data:    mult(b, 6),
-      fit:     mult(b, 7),
-      geluk:   mult(b, 8),
+      energie: eff(5),
+      data:    eff(6),
+      fit:     eff(7),
+      geluk:   eff(8),
     },
-    ziekKans:  mult(b,  9),
-    herstel:   mult(b, 10),
-    social:    ontoMult(b, 11, stage),
+    ziekKans:  eff(9),
+    herstel:   eff(10),
+    social:    effOnto(11),
     kleurTint: Math.round((b[12] / 255 - 0.5) * 60),  // -30° tot +30°
     grootte:   0.80 + (b[13] / 255) * 0.40,            // 0.80 tot 1.20
     expressieBias: (b[14] / 255 - 0.5) * 20 * ontoFactor(14, stage),   // -10 tot +10
     agingSpeed: ontoMult(b, 15, stage),
   };
+}
+// Handige wrapper: expressie van een Botty (genoom + leeftijd + extra genen).
+function exprVan(b: any) { return exprGenoom(b?.genome, b?.stage, b?.genen); }
+
+// Een gloednieuw extra gen (kiem voor toekomstige duplicatie/evolutie).
+function nieuwExtraGen(): any {
+  return {
+    locus: Math.floor(Math.random() * EXTRA_LOCI),
+    byte: Math.max(0, Math.min(255, Math.round(128 + (Math.random() - 0.5) * 120))),
+    mutY: true, dupY: Math.random() < 0.8, delY: Math.random() < 0.9,
+    aan: Math.floor(Math.random() * 3),   // switch-on-fase 0..2
+  };
+}
+// Overerving van de extra genen: recombinatie + de genetische operatoren uit het
+// paper (mutatie, duplicatie, deletie), elk gepoort door de gen-header.
+function erfGenen(a: any, b: any): { genen: any[]; dup: number; del: number; nieuw: number } {
+  const uit: any[] = [];
+  let dup = 0, del = 0, nieuw = 0;
+  for (const src of [a?.genen || [], b?.genen || []]) {
+    for (const g of src) {
+      if (!g || Math.random() < 0.5) continue;               // recombinatie: ~50% per gen
+      if (g.delY && Math.random() < 0.05) { del++; continue; } // deletie (header-gepoort)
+      const kopie = { ...g };
+      if (g.mutY && Math.random() < 0.12)                    // mutatie (header-gepoort)
+        kopie.byte = Math.max(0, Math.min(255, kopie.byte + Math.round((Math.random() - 0.5) * 80)));
+      uit.push(kopie);
+      if (g.dupY && Math.random() < 0.05) { uit.push({ ...kopie }); dup++; } // duplicatie → nieuwe structuur
+    }
+  }
+  if (Math.random() < 0.06) { uit.push(nieuwExtraGen()); nieuw++; }  // zeldzaam volslagen nieuw gen
+  while (uit.length > EXTRA_MAX) uit.splice(Math.floor(Math.random() * uit.length), 1);
+  return { genen: uit, dup, del, nieuw };
 }
 
 function genoomKruis(a: string | undefined, b: string | undefined): { genoom: string; vanA: number; vanB: number } {
@@ -556,7 +614,7 @@ function tintPalet(palet: any, deg: number): any {
 
 // ─── Stage & fitness ──────────────────────────────────────────────────────────
 function huidigeStage(b: any) {
-  const G = exprGenoom(b.genome, b.stage);
+  const G = exprVan(b);
   const leeftijd = (Date.now() - b.geboren) / 1000 / G.agingSpeed;
   if (leeftijd < 120) return "baby";
   if (leeftijd < 300) return "tiener";
@@ -602,7 +660,7 @@ function interactieBudget(state: any, nu: number): { tokens: number; laatst: num
 
 const DOEL_POP = 9;           // streefgetal voor de geboortekans
 function senescence(b: any): number {
-  const leeftijd = (Date.now() - (b.geboren ?? Date.now())) / 1000 / exprGenoom(b.genome, b.stage).agingSpeed;
+  const leeftijd = (Date.now() - (b.geboren ?? Date.now())) / 1000 / exprVan(b).agingSpeed;
   return Math.max(0, Math.min(1, (leeftijd - OUDERDOM_START) / (OUDERDOM_DOOD - OUDERDOM_START)));
 }
 function updateLevenskracht(b: any) {
@@ -651,7 +709,7 @@ function kiesDoelen(bottys: any[], n: number) {
 
 // ─── Stemming ─────────────────────────────────────────────────────────────────
 function updateStemming(b: any, bezoekers: number) {
-  const G = exprGenoom(b.genome, b.stage);
+  const G = exprVan(b);
   const stage = huidigeStage(b);
   const genBonus = ((b.datakwaliteit ?? 50) + (b.efficientie ?? 50) - 100) / 20;
   const bezoekersBonus = Math.min(bezoekers, 12) * 0.9 * G.social;
@@ -667,7 +725,7 @@ function updateStemming(b: any, bezoekers: number) {
 
 // ─── Zorg ─────────────────────────────────────────────────────────────────────
 function zorg(b: any) {
-  const G = exprGenoom(b.genome, b.stage);
+  const G = exprVan(b);
   const dataBonus = heeft(b, "wifi") || heeft(b, "antenne2") ? 5 : 0;
 
   // 1) Ziekte eerst — een zieke Botty is altijd het urgentst.
@@ -706,7 +764,7 @@ function vervalEen(b: any) {
   // uitgeputten rusten 's nachts uit op de rustplek — de AI-verzorger slaapt
   // immers ook, dus zonder dit zou een zieke de hele nacht wegkwijnen.
   if (NACHT && (slaapt(b) || b.doel?.soort === "herstellen" || b.doel?.soort === "bijkomen")) { slaap(b); return; }
-  const G = exprGenoom(b.genome, b.stage);
+  const G = exprVan(b);
   b.energie  = klem(b.energie  - 2.4 * G.verval.energie);
   b.data     = klem(b.data     - (heeft(b, "zonnepaneel") ? 0.8 : 1.6) * G.verval.data);
   b.fit      = klem(b.fit      - 1.6 * G.verval.fit);
@@ -734,7 +792,7 @@ function slaapt(b: any): boolean { return b.doel?.soort === "slapen"; }
 
 // Eén slaap-tick: herstel i.p.v. verval (aangeroepen op het verval-ritme)
 function slaap(b: any) {
-  const G = exprGenoom(b.genome, b.stage);
+  const G = exprVan(b);
   b.energie  = klem((b.energie ?? 50) + 2.4 * G.herstel);
   b.fit      = klem((b.fit ?? 50) + 0.6 * G.herstel);
   b.stemming = klem((b.stemming ?? 50) + 0.3);
@@ -895,7 +953,7 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   }
   // Fertiliteit: te veel stress onderdrukt de voortplantingsdrang (Creatures p.16).
   if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
-  if (ontoMult(genoomBytes(b.genome), 11, b.stage) > 1.05 && Math.random() < 0.45) {
+  if (exprVan(b).social > 1.05 && Math.random() < 0.45) {
     const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
     if (an.length) {
       let v: any;
@@ -976,7 +1034,7 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
     if (b.bezigEi || !b.pos || !b.doel || b.doel.soort !== "zelfzorg") continue;
     const obj = OBJECTEN.find(o => o.id === b.doel.obj);
     if (!obj || afstand2(b.pos, obj) > GEBRUIK_AFSTAND * GEBRUIK_AFSTAND) continue;
-    const G = exprGenoom(b.genome, b.stage);
+    const G = exprVan(b);
     const factor = (G.zorg as any)[obj.stat] ?? 1;
     const drive = b.doel.stat as string;
     const voor = b[drive] ?? 50;
@@ -1036,7 +1094,7 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
 // (emotionele besmetting), bouwt vriendschappen op (affiniteit) en troost wie het
 // zwaar heeft. Empathie komt uit gen 11 (sociaal): 0 (afstandelijk) .. 0.5 (warm).
 const ZICHT = 160;                       // perceptie-straal in de arena
-function empathie(b: any): number { return Math.max(0, exprGenoom(b.genome, b.stage).social - 1); }
+function empathie(b: any): number { return Math.max(0, exprVan(b).social - 1); }
 
 function socialeRonde(bottys: any[], events: object[]) {
   const actief = bottys.filter(b => !b.bezigEi && b.pos && !slaapt(b));
@@ -1115,9 +1173,11 @@ function maakBotty(naam: string, palet: any, generatie = 1, extra: any = {}) {
     genome,
     sekse, dimorf: true,
     grootte,
+    genen: Array.isArray(extra.genen) ? extra.genen : [],   // §3.4: variabel-lang genoom
     bid: extra.bid ?? maakId(),
   };
-  return { ...base, ...extra, genome, sekse, dimorf: true, grootte, bid: base.bid };
+  return { ...base, ...extra, genome, sekse, dimorf: true, grootte,
+    genen: Array.isArray(extra.genen) ? extra.genen : [], bid: base.bid };
 }
 
 function maakKind(ouderA: any, ouderB: any, namen: string[]) {
@@ -1129,7 +1189,10 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   const kruis = genoomKruis(ouderA.genome, ouderB.genome);
   const mutatie = genoomMuteer(kruis.genoom);
   const kindGenoom = mutatie.genoom;
-  const erfenis = { vanA: kruis.vanA, vanB: kruis.vanB, mutaties: mutatie.aantalMutaties };
+  // §3.4: extra genen erven (recombinatie + mutatie/duplicatie/deletie)
+  const eg = erfGenen(ouderA, ouderB);
+  const erfenis = { vanA: kruis.vanA, vanB: kruis.vanB, mutaties: mutatie.aantalMutaties,
+    genDup: eg.dup, genNieuw: eg.nieuw, genDel: eg.del, genTotaal: eg.genen.length };
   const G = exprGenoom(kindGenoom);
 
   // Kleur: basis van één ouder, dan genoom-tint → kleuren driften over generaties
@@ -1164,6 +1227,7 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
     stemming: kindStemming,
     genome: kindGenoom,
     grootte: G.grootte,
+    genen: eg.genen,
     erfenis,
     brein, breinN,
     ...(leerBonus > 1.01 ? { leerBonus } : {}),
@@ -1237,10 +1301,11 @@ Deno.serve(async (req) => {
   const baseline = bytesNaarGenoom(new Uint8Array(GENOOM_LEN).fill(128));
   bottys.forEach(b => {
     if (!b.genome || typeof b.genome !== "string") b.genome = baseline;
-    if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome, b.stage).grootte;
+    if (typeof b.grootte !== "number") b.grootte = exprVan(b).grootte;
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
     if (b.sekse !== "m" && b.sekse !== "v") b.sekse = hashSekse(b.bid);   // §3.4: geslacht
-    if (!b.dimorf) { b.grootte = sekseGrootte(exprGenoom(b.genome, b.stage).grootte, b.sekse); b.dimorf = true; }   // dimorfisme één keer toepassen
+    if (!Array.isArray(b.genen)) b.genen = [];   // §3.4: variabel-lang genoom (extra genen)
+    if (!b.dimorf) { b.grootte = sekseGrootte(exprVan(b).grootte, b.sekse); b.dimorf = true; }   // dimorfisme één keer toepassen
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
     if (typeof b.levenskracht !== "number") b.levenskracht = 100;   // sterfelijkheid
     if (!b.groei) b.groei = { piekIQ: b.iq ?? 100, kinderen: 0 };   // levenslange groei-teller
