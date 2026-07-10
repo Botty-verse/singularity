@@ -479,6 +479,14 @@
   var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
   var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
   function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
+  // §3.4: melding bij een genduplicatie / nieuw extra gen bij de geboorte
+  function genExtra(e){
+    if(!e) return "";
+    var s = "";
+    if(e.genDup>0) s += ' · <b style="color:#a3ffce">🧬✨ '+e.genDup+' gen'+(e.genDup!==1?'en':'')+' dupliceerde'+(e.genDup!==1?'n':'')+'</b>';
+    if(e.genNieuw>0) s += ' · <b style="color:#5ec6ff">🧬➕ nieuw gen</b>';
+    return s;
+  }
   // §3.4: geslachtsteken (♂ blauw, ♀ roze) vóór het stage-label
   function sekseTeken(b){
     if(b.sekse!=="m" && b.sekse!=="v") return "";
@@ -544,6 +552,7 @@
          + '<span title="generatie">⭐ G'+g+'</span>'
          + '<span title="grootte-gen (0.80–1.20×)">📏 '+grootte.toFixed(2)+'×</span>'
          + (typeof b.iq==="number" ? '<span title="IQ — priemgetallen uitwerken (+1 goed, −2 fout)">🧠 '+Math.round(b.iq)+'</span>' : '')
+         + ((b.genen&&b.genen.length) ? '<span title="extra genen bovenop de 16 kern-genen (§3.4)" style="color:#a3ffce">🧬+'+b.genen.length+'</span>' : '')
          + (muts ? '<span class="muts" title="mutaties">'+muts+'</span>' : '');
   }
 
@@ -663,7 +672,7 @@
       laatstGetoondeKind = lk.kind;
       var e = lk.erfenis;
       var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+lk.ouderA+', <b>'+e.vanB+'</b> van '+lk.ouderB
-                    + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') : '';
+                    + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') + genExtra(e) : '';
       var grT = (typeof lk.grootte==="number") ? ' · 📏 '+lk.grootte.toFixed(2)+'×' : '';
       document.getElementById("ticker").innerHTML =
         '<span class="knip">▌</span> 🐣 <b>'+lk.kind+'</b> is geboren — generatie '+lk.generatie+erf+grT;
@@ -759,7 +768,7 @@
       setTimeout(function(){
         var e = ev.erfenis;
         var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+ev.ouderA+', <b>'+e.vanB+'</b> van '+ev.ouderB
-                      + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') : '';
+                      + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') + genExtra(e) : '';
         document.getElementById("ticker").innerHTML =
           '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> is geboren — generatie ' + ev.generatie + erf;
         bezigKweek = false;
