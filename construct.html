@@ -458,7 +458,8 @@
       // eenzaam: hangende mond + traan
       + '<g class="expr-eenzaam" pointer-events="none"><path d="M92,105 q8,-6 16,0" fill="none" stroke="#14403c" stroke-width="3" stroke-linecap="round"/>'
       +   '<ellipse cx="90" cy="96" rx="3" ry="4.5" fill="#8fd6ff" opacity="0.85"/></g>';
-    var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam;
+    var sekseSym = b.sekse==="m" ? " ♂" : b.sekse==="v" ? " ♀" : "";
+    var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam + sekseSym;
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
     var gebruik = document.createElementNS(SVGNS,"text"); gebruik.setAttribute("class","gebruik");
     gebruik.setAttribute("text-anchor","middle"); gebruik.setAttribute("style","font:15px sans-serif");
@@ -887,8 +888,9 @@
     var b = bottys.find(function(x){ return x.naam === sel; });
     if(!b){ sel = null; updateKit(); return; }
     var g = (b.energie+b.data+b.fit+b.geluk)/4;
+    var sekseTxt = b.sekse==="m" ? " · ♂" : b.sekse==="v" ? " · ♀" : "";
     document.getElementById("kit-sub").textContent =
-      (kitStageLabel[b.stage]||b.stage) + " · generatie " + (b.generatie||1)
+      (kitStageLabel[b.stage]||b.stage) + sekseTxt + " · generatie " + (b.generatie||1)
       + (b.ziek ? " · 🤒 ziek" : "") + " · doel: " + (b.doel && b.doel.soort || "dwalen");
     document.getElementById("kit-gedachte").textContent = "“" + (b.gedachte || "…") + "”";
     DRIVES.forEach(function(d){
