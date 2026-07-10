@@ -222,6 +222,32 @@ function biochemie(b: any, bottys: any[]) {
 // naar een gedeelde taal — met varianten. Concepten fase 1: de vier objecten.
 const CONCEPTEN: string[] = OBJECTEN.map(o => o.id);
 const CONCEPT_LABEL: Record<string, string> = Object.fromEntries(OBJECTEN.map(o => [o.id, o.kort]));
+// Taal fase A: het concept-universum verbreedt zich van alleen objecten naar ook
+// acties, drives/emoties en de namen van soortgenoten. Concept- id's krijgen een
+// prefix ("act:" / "dr:" / "nm:<bid>"); objecten houden hun kale id.
+const ACTIE_LABEL: Record<string, string> = { aai: "aaien", eet: "eten", jaag: "jagen", slaap: "slapen" };
+const DRIVE_CONCEPT_LABEL: Record<string, string> = { honger: "honger", angst: "angst", blij: "blijheid", eenzaam: "eenzaamheid" };
+// Menselijk label voor een concept (voor events + mijmering). Namen lossen we op
+// uit de populatie.
+function conceptLabel(concept: string, bottys?: any[]): string {
+  if (concept.startsWith("act:")) return ACTIE_LABEL[concept.slice(4)] || concept.slice(4);
+  if (concept.startsWith("dr:"))  return DRIVE_CONCEPT_LABEL[concept.slice(3)] || concept.slice(3);
+  if (concept.startsWith("nm:")) {
+    const bid = concept.slice(3);
+    return (bottys?.find(x => x.bid === bid)?.naam) || "iemand";
+  }
+  return CONCEPT_LABEL[concept] || concept;
+}
+// Munt (indien nog niet aanwezig) een woord voor een concept bij een sterke ervaring.
+function muntConcept(b: any, concept: string, events?: any[], bottys?: any[]): string | null {
+  b.lexicon = b.lexicon || {};
+  if (b.lexicon[concept]) return null;
+  const woord = b.lexicon[concept] = muntWoord();
+  if (events && Math.random() < 0.5)
+    events.push({ soort: "taal", naam: b.naam,
+      tekst: "🗣️ <b>" + b.naam + "</b> munt een woord voor " + conceptLabel(concept, bottys) + ": “" + woord + "”" });
+  return woord;
+}
 const TAAL_MK = "kmtsnrlpvhbdgz".split("");
 const TAAL_KL = "aeiou".split("");
 const taalSyl = (): string => TAAL_MK[Math.floor(Math.random() * TAAL_MK.length)] + TAAL_KL[Math.floor(Math.random() * TAAL_KL.length)];
@@ -239,7 +265,7 @@ function muteerWoord(w: string): string {
 // De spreker geeft zijn woord voor één concept door aan de luisteraar (soms met drift).
 function praat(spreker: any, luisteraar: any): { concept: string; woord: string } | null {
   const lex = spreker.lexicon; if (!lex) return null;
-  const bekend = CONCEPTEN.filter(c => lex[c]);
+  const bekend = Object.keys(lex);   // fase A: alle concepten (objecten, acties, drives, namen)
   if (!bekend.length) return null;
   const concept = bekend[Math.floor(Math.random() * bekend.length)];
   const woord = lex[concept];
@@ -849,6 +875,23 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
   const smk = smaakVan(b).naam;
   const niv = wiskundeNiveau(b.vondsten ?? 0);
 
+  // Taal fase A: bij een sterke ervaring munt een Botty (stil) een woord voor het
+  // concept — niet alleen objecten, maar ook drives/emoties, acties en de naam van
+  // een goede vriend. Ze verspreiden zich daarna vanzelf in de sociale ronde.
+  if (Math.random() < 0.15) {
+    const ch0 = b.chem || {};
+    if ((ch0.honger ?? 0) > 60)            muntConcept(b, "dr:honger");
+    else if ((ch0.angst ?? 0) > 55)        muntConcept(b, "dr:angst");
+    else if ((ch0.eenzaamheid ?? 0) > 60)  muntConcept(b, "dr:eenzaam");
+    else if (b.humeur === "blij")          muntConcept(b, "dr:blij");
+    if (b.doel?.soort === "priemjacht")    muntConcept(b, "act:jaag");
+    if (slaapt(b))                         muntConcept(b, "act:slaap");
+    if (b.relaties && Object.keys(b.relaties).length) {
+      const vriendBid = Object.keys(b.relaties).sort((p, q) => b.relaties[q] - b.relaties[p])[0];
+      if (vriendBid && vriendBid !== b.bid) muntConcept(b, "nm:" + vriendBid);
+    }
+  }
+
   // Prioriteit: nood/lichaam → euforie → tekort → herinnering → sociaal → contemplatie
   if (b.ziek) { b.gedachte = kies(["Er knaagt iets in mijn circuits…", "Ik voel me niet mezelf.", "Alles loopt traag vandaag."]); return; }
 
@@ -918,11 +961,13 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
 
   // Taal: soms mijmert een Botty over zijn eigen woord voor iets.
   if (b.lexicon && Math.random() < 0.2) {
-    const bekend = CONCEPTEN.filter(c => b.lexicon[c]);
+    const bekend = Object.keys(b.lexicon);
     if (bekend.length) {
+      const pop = ctx.anderen.concat(b);
       const c = kies(bekend);
-      b.gedachte = uit(kies(["“" + b.lexicon[c] + "”… zo noem ik " + (CONCEPT_LABEL[c] || c),
-        "In mijn hoofd heet " + (CONCEPT_LABEL[c] || c) + " “" + b.lexicon[c] + "”", "“" + b.lexicon[c] + "”"]));
+      const lab = conceptLabel(c, pop);
+      b.gedachte = uit(kies(["“" + b.lexicon[c] + "”… zo noem ik " + lab,
+        "In mijn hoofd heet " + lab + " “" + b.lexicon[c] + "”", "“" + b.lexicon[c] + "”"]));
       return;
     }
   }
@@ -1117,7 +1162,7 @@ function socialeRonde(bottys: any[], events: object[]) {
         const p = praat(b, c);
         if (p && !praatGedaan && Math.random() < 0.4) {
           events.push({ soort: "taal", naamA: b.naam, naamB: c.naam,
-            tekst: "🗨️ <b>" + b.naam + "</b> zegt “" + p.woord + "” (" + (CONCEPT_LABEL[p.concept] || p.concept) + ") tegen <b>" + c.naam + "</b>" });
+            tekst: "🗨️ <b>" + b.naam + "</b> zegt “" + p.woord + "” (" + conceptLabel(p.concept, bottys) + ") tegen <b>" + c.naam + "</b>" });
           praatGedaan = true;
         }
       }
@@ -1734,6 +1779,7 @@ Deno.serve(async (req) => {
             if (o) leer = " — leert dat " + o.kort + " goed is";
           }
           onthoud(b, "geaaid", "een warme hand aaide me");
+          muntConcept(b, "act:aai", events, bottys);   // taal fase A: woord voor 'aaien'
           iaEvent = { ok: true, soort: "aai", naam: b.naam,
             tekst: "🖐 <b>" + b.naam + "</b> wordt geaaid — voelt zich gezien" + leer };
         }
@@ -1749,6 +1795,7 @@ Deno.serve(async (req) => {
           b.chem = b.chem || {}; b.chem.honger = Math.max(0, (b.chem.honger ?? 0) - 30);
           b.stemming = klem((b.stemming ?? 50) + 6);
           onthoud(b, "gevoerd", "een hand gaf me iets lekkers");
+          muntConcept(b, "act:eet", events, bottys);   // taal fase A: woord voor 'eten'
           iaEvent = { ok: true, soort: "voer", naam: b.naam,
             tekst: "🍎 <b>" + b.naam + "</b> krijgt een hapje — " + DRIVE_LABEL[laagste.s] + " stilt" };
         }
