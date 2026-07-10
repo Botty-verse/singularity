@@ -479,6 +479,12 @@
   var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
   var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
   function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
+  // §3.4: geslachtsteken (♂ blauw, ♀ roze) vóór het stage-label
+  function sekseTeken(b){
+    if(b.sekse!=="m" && b.sekse!=="v") return "";
+    var t = b.sekse==="m" ? "♂" : "♀", kl = b.sekse==="m" ? "#5ec6ff" : "#ff8bd0";
+    return '<span title="'+(b.sekse==="m"?"mannelijk":"vrouwelijk")+'" style="color:'+kl+';font-weight:900;margin-right:.25em">'+t+'</span>';
+  }
 
   // ── Genoom — gedeelde helpers uit assets/genome.js ──────────────────────────
   var GENOOM_LEN  = BottyGenome.GENOOM_LEN;
@@ -551,7 +557,7 @@
     var p = b.kleur || paletten[0];
     kaart.innerHTML =
         '<div class="knaam">'+b.naam+'</div>'
-      + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+(stageLabel[b.stage]||b.stage)+' · '+(b.paletNaam||"kleur")+'</div>'
+      + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+sekseTeken(b)+(stageLabel[b.stage]||b.stage)+' · '+(b.paletNaam||"kleur")+'</div>'
       + '<div class="gedachte">💭 <span class="g-tekst">'+(b.gedachte||"…")+'</span></div>'
       + '<div class="doel">🎯 <span class="d-tekst">'+((b.doel&&b.doel.tekst)||"—")+'</span></div>'
       + '<div class="genen">'+genenHtml(b)+'</div>'

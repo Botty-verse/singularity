@@ -29,6 +29,9 @@ const PARTNER_IQ_GEWICHT = 0.2;
 const PARTNER_WIL_GEWICHT = 30;
 // Fertiliteit: gestreste Bottys zijn minder vruchtbaar → minder aantrekkelijk als ouder.
 const PARTNER_STRESS_GEWICHT = 0.35;
+// §3.4: de AI koppelt bij voorkeur ♂×♀. Een bonus (geen harde eis) zodat een
+// kleine of eenzijdige populatie niet vastloopt.
+const PARTNER_SEKSE_GEWICHT = 45;
 // De Construct: een 2D-arena waarin de Botty's rondlopen (top-down, units).
 const WERELD_B = 1000;          // breedte
 const WERELD_H = 600;           // hoogte
@@ -265,6 +268,21 @@ function heeft(b: any, mut: string) { return (b.mutaties || []).includes(mut); }
 function maakId(): string {
   try { return crypto.randomUUID().slice(0, 8); }
   catch { return Math.random().toString(36).slice(2, 10); }
+}
+
+// ─── Geslacht (§3.4: seksueel dimorfisme) ────────────────────────────────────────
+// Elke Botty is ♂ of ♀. Nieuwe Botty's krijgen willekeurig (≈50/50) een sekse;
+// bestaande Botty's zonder sekse leiden we stabiel af uit hun bid, zodat het niet
+// elke tick wisselt vóór het is opgeslagen. Sekse moduleert de expressie licht
+// (dimorfisme) en stuurt de partnerkeuze (de AI koppelt bij voorkeur ♂×♀).
+function hashSekse(seed: string): "m" | "v" {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return (h & 1) ? "m" : "v";
+}
+// Subtiel dimorfisme op de lichaamsgrootte: ♂ iets groter, ♀ iets kleiner.
+function sekseGrootte(basis: number, sekse: string): number {
+  return +(basis * (sekse === "m" ? 1.06 : 0.95)).toFixed(3);
 }
 
 // ─── IQ: priemgetallen uitwerken ───────────────────────────────────────────────
@@ -1062,6 +1080,8 @@ const MUTATIES = ["zonnepaneel", "wifi", "antenne2", "oog3", "quantum"];
 function maakBotty(naam: string, palet: any, generatie = 1, extra: any = {}) {
   const genome = extra.genome ?? genoomGenereer(25);
   const G = exprGenoom(genome);
+  const sekse = extra.sekse === "m" || extra.sekse === "v" ? extra.sekse : (Math.random() < 0.5 ? "m" : "v");
+  const grootte = sekseGrootte(G.grootte, sekse);   // dimorfisme in de opgeslagen grootte
   const base = {
     naam, kleur: { ...palet }, paletNaam: palet.naam,
     energie: 70 + Math.random() * 20,
@@ -1074,10 +1094,11 @@ function maakBotty(naam: string, palet: any, generatie = 1, extra: any = {}) {
     stage: "baby", geboren: Date.now(),
     generatie, ziek: false, mutaties: [], bezigEi: false,
     genome,
-    grootte: G.grootte,
+    sekse, dimorf: true,
+    grootte,
     bid: extra.bid ?? maakId(),
   };
-  return { ...base, ...extra, genome, grootte: G.grootte, bid: base.bid };
+  return { ...base, ...extra, genome, sekse, dimorf: true, grootte, bid: base.bid };
 }
 
 function maakKind(ouderA: any, ouderB: any, namen: string[]) {
@@ -1199,6 +1220,8 @@ Deno.serve(async (req) => {
     if (!b.genome || typeof b.genome !== "string") b.genome = baseline;
     if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome).grootte;
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
+    if (b.sekse !== "m" && b.sekse !== "v") b.sekse = hashSekse(b.bid);   // §3.4: geslacht
+    if (!b.dimorf) { b.grootte = sekseGrootte(exprGenoom(b.genome).grootte, b.sekse); b.dimorf = true; }   // dimorfisme één keer toepassen
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
     if (typeof b.levenskracht !== "number") b.levenskracht = 100;   // sterfelijkheid
     if (!b.groei) b.groei = { piekIQ: b.iq ?? 100, kinderen: 0 };   // levenslange groei-teller
@@ -1409,6 +1432,7 @@ Deno.serve(async (req) => {
               + PARTNER_DIVERSITEIT_GEWICHT * genoomAfstand(a.genome, b2.genome)
               + PARTNER_IQ_GEWICHT * ((a.iq ?? 100) + (b2.iq ?? 100))
               + PARTNER_WIL_GEWICHT * wil
+              + PARTNER_SEKSE_GEWICHT * (a.sekse && b2.sekse && a.sekse !== b2.sekse ? 1 : 0)   // ♂×♀ voorkeur
               - PARTNER_STRESS_GEWICHT * (stressVan(a) + stressVan(b2));   // stress verlaagt fertiliteit
             if (!beste || score > beste.score) beste = { a, b: b2, score };
           }
