@@ -161,7 +161,7 @@ const stressVan = (b: any): number => b.chem?.stress ?? 0;
 const stressFactor = (b: any): number => 1 + stressVan(b) / 100 * 1.5;
 
 function biochemie(b: any, bottys: any[]) {
-  const G = exprGenoom(b.genome);
+  const G = exprGenoom(b.genome, b.stage);
   const c = b.chem = b.chem || {};
   for (const k of CHEM) if (typeof c[k] !== "number") c[k] = 0;
   const actief = b.doel && b.doel.soort !== "bijkomen" && b.doel.soort !== "herstellen" && b.doel.soort !== "slapen";
@@ -451,7 +451,26 @@ function mult(b: Uint8Array, i: number): number {
   return 0.5 + b[i] / 255;
 }
 
-function exprGenoom(g: string | undefined) {
+// §3.4: ontogenese — sommige genen komen pas met de leeftijd tot expressie
+// ("switch-on time"). Overlevingsgenen (verval/zorg/ziekte) staan vanaf de
+// geboorte vol aan, maar "volwassen" trekken — sociale gevoeligheid, expressie
+// en veroudering — rijpen mee. Zo komt de persoonlijkheid van een Botty pas bij
+// het opgroeien tevoorschijn. Factor 0..1 schaalt de afwijking-van-neutraal.
+const ONTOGENESE: Record<number, Record<string, number>> = {
+  11: { baby: 0.2, tiener: 0.7, volwassen: 1 },   // sociale gevoeligheid
+  14: { baby: 0.2, tiener: 0.7, volwassen: 1 },   // expressie-bias
+  15: { baby: 0.3, tiener: 0.7, volwassen: 1 },   // verouderingssnelheid
+};
+function ontoFactor(i: number, stage: string): number {
+  const t = ONTOGENESE[i];
+  return t ? (t[stage] ?? 1) : 1;
+}
+// Multiplier-gen (rond 1.0) gefaseerd naar neutraal terugbrengen bij jonge leeftijd.
+function ontoMult(b: Uint8Array, i: number, stage: string): number {
+  return 1 + (mult(b, i) - 1) * ontoFactor(i, stage);
+}
+
+function exprGenoom(g: string | undefined, stage = "volwassen") {
   const b = genoomBytes(g);
   return {
     verval: {
@@ -469,11 +488,11 @@ function exprGenoom(g: string | undefined) {
     },
     ziekKans:  mult(b,  9),
     herstel:   mult(b, 10),
-    social:    mult(b, 11),
+    social:    ontoMult(b, 11, stage),
     kleurTint: Math.round((b[12] / 255 - 0.5) * 60),  // -30° tot +30°
     grootte:   0.80 + (b[13] / 255) * 0.40,            // 0.80 tot 1.20
-    expressieBias: (b[14] / 255 - 0.5) * 20,           // -10 tot +10
-    agingSpeed: mult(b, 15),
+    expressieBias: (b[14] / 255 - 0.5) * 20 * ontoFactor(14, stage),   // -10 tot +10
+    agingSpeed: ontoMult(b, 15, stage),
   };
 }
 
@@ -537,7 +556,7 @@ function tintPalet(palet: any, deg: number): any {
 
 // ─── Stage & fitness ──────────────────────────────────────────────────────────
 function huidigeStage(b: any) {
-  const G = exprGenoom(b.genome);
+  const G = exprGenoom(b.genome, b.stage);
   const leeftijd = (Date.now() - b.geboren) / 1000 / G.agingSpeed;
   if (leeftijd < 120) return "baby";
   if (leeftijd < 300) return "tiener";
@@ -583,7 +602,7 @@ function interactieBudget(state: any, nu: number): { tokens: number; laatst: num
 
 const DOEL_POP = 9;           // streefgetal voor de geboortekans
 function senescence(b: any): number {
-  const leeftijd = (Date.now() - (b.geboren ?? Date.now())) / 1000 / exprGenoom(b.genome).agingSpeed;
+  const leeftijd = (Date.now() - (b.geboren ?? Date.now())) / 1000 / exprGenoom(b.genome, b.stage).agingSpeed;
   return Math.max(0, Math.min(1, (leeftijd - OUDERDOM_START) / (OUDERDOM_DOOD - OUDERDOM_START)));
 }
 function updateLevenskracht(b: any) {
@@ -632,7 +651,7 @@ function kiesDoelen(bottys: any[], n: number) {
 
 // ─── Stemming ─────────────────────────────────────────────────────────────────
 function updateStemming(b: any, bezoekers: number) {
-  const G = exprGenoom(b.genome);
+  const G = exprGenoom(b.genome, b.stage);
   const stage = huidigeStage(b);
   const genBonus = ((b.datakwaliteit ?? 50) + (b.efficientie ?? 50) - 100) / 20;
   const bezoekersBonus = Math.min(bezoekers, 12) * 0.9 * G.social;
@@ -648,7 +667,7 @@ function updateStemming(b: any, bezoekers: number) {
 
 // ─── Zorg ─────────────────────────────────────────────────────────────────────
 function zorg(b: any) {
-  const G = exprGenoom(b.genome);
+  const G = exprGenoom(b.genome, b.stage);
   const dataBonus = heeft(b, "wifi") || heeft(b, "antenne2") ? 5 : 0;
 
   // 1) Ziekte eerst — een zieke Botty is altijd het urgentst.
@@ -687,7 +706,7 @@ function vervalEen(b: any) {
   // uitgeputten rusten 's nachts uit op de rustplek — de AI-verzorger slaapt
   // immers ook, dus zonder dit zou een zieke de hele nacht wegkwijnen.
   if (NACHT && (slaapt(b) || b.doel?.soort === "herstellen" || b.doel?.soort === "bijkomen")) { slaap(b); return; }
-  const G = exprGenoom(b.genome);
+  const G = exprGenoom(b.genome, b.stage);
   b.energie  = klem(b.energie  - 2.4 * G.verval.energie);
   b.data     = klem(b.data     - (heeft(b, "zonnepaneel") ? 0.8 : 1.6) * G.verval.data);
   b.fit      = klem(b.fit      - 1.6 * G.verval.fit);
@@ -715,7 +734,7 @@ function slaapt(b: any): boolean { return b.doel?.soort === "slapen"; }
 
 // Eén slaap-tick: herstel i.p.v. verval (aangeroepen op het verval-ritme)
 function slaap(b: any) {
-  const G = exprGenoom(b.genome);
+  const G = exprGenoom(b.genome, b.stage);
   b.energie  = klem((b.energie ?? 50) + 2.4 * G.herstel);
   b.fit      = klem((b.fit ?? 50) + 0.6 * G.herstel);
   b.stemming = klem((b.stemming ?? 50) + 0.3);
@@ -876,7 +895,7 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   }
   // Fertiliteit: te veel stress onderdrukt de voortplantingsdrang (Creatures p.16).
   if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
-  if (mult(genoomBytes(b.genome), 11) > 1.05 && Math.random() < 0.45) {
+  if (ontoMult(genoomBytes(b.genome), 11, b.stage) > 1.05 && Math.random() < 0.45) {
     const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
     if (an.length) {
       let v: any;
@@ -890,7 +909,7 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   }
   // Nieuwsgierigheid (uit gen 14, expressie-bias): af en toe iets gaan onderzoeken
   // i.p.v. jagen — een zwevende Botty zweeft naar een punt van interesse om rond te kijken.
-  if (mult(genoomBytes(b.genome), 14) > 1.0 && Math.random() < 0.3) {
+  if (ontoMult(genoomBytes(b.genome), 14, b.stage) > 1.0 && Math.random() < 0.3) {
     const poi = kies(POIS);
     b.doel = { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst }; return;
   }
@@ -957,7 +976,7 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
     if (b.bezigEi || !b.pos || !b.doel || b.doel.soort !== "zelfzorg") continue;
     const obj = OBJECTEN.find(o => o.id === b.doel.obj);
     if (!obj || afstand2(b.pos, obj) > GEBRUIK_AFSTAND * GEBRUIK_AFSTAND) continue;
-    const G = exprGenoom(b.genome);
+    const G = exprGenoom(b.genome, b.stage);
     const factor = (G.zorg as any)[obj.stat] ?? 1;
     const drive = b.doel.stat as string;
     const voor = b[drive] ?? 50;
@@ -1017,7 +1036,7 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
 // (emotionele besmetting), bouwt vriendschappen op (affiniteit) en troost wie het
 // zwaar heeft. Empathie komt uit gen 11 (sociaal): 0 (afstandelijk) .. 0.5 (warm).
 const ZICHT = 160;                       // perceptie-straal in de arena
-function empathie(b: any): number { return Math.max(0, mult(genoomBytes(b.genome), 11) - 1); }
+function empathie(b: any): number { return Math.max(0, exprGenoom(b.genome, b.stage).social - 1); }
 
 function socialeRonde(bottys: any[], events: object[]) {
   const actief = bottys.filter(b => !b.bezigEi && b.pos && !slaapt(b));
@@ -1218,10 +1237,10 @@ Deno.serve(async (req) => {
   const baseline = bytesNaarGenoom(new Uint8Array(GENOOM_LEN).fill(128));
   bottys.forEach(b => {
     if (!b.genome || typeof b.genome !== "string") b.genome = baseline;
-    if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome).grootte;
+    if (typeof b.grootte !== "number") b.grootte = exprGenoom(b.genome, b.stage).grootte;
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
     if (b.sekse !== "m" && b.sekse !== "v") b.sekse = hashSekse(b.bid);   // §3.4: geslacht
-    if (!b.dimorf) { b.grootte = sekseGrootte(exprGenoom(b.genome).grootte, b.sekse); b.dimorf = true; }   // dimorfisme één keer toepassen
+    if (!b.dimorf) { b.grootte = sekseGrootte(exprGenoom(b.genome, b.stage).grootte, b.sekse); b.dimorf = true; }   // dimorfisme één keer toepassen
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
     if (typeof b.levenskracht !== "number") b.levenskracht = 100;   // sterfelijkheid
     if (!b.groei) b.groei = { piekIQ: b.iq ?? 100, kinderen: 0 };   // levenslange groei-teller
