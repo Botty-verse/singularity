@@ -5,6 +5,14 @@ blijft toeschouwer**. Interacties zijn te observeren, niet om te micromanagen.
 
 ## Afgerond
 
+- [x] **§3.4 Genetica (Grand & Cliff 1997) — de grootste groei** — in drie fases:
+  - *Geslachten* — ♂/♀ met subtiel dimorfisme en ♂×♀-partnervoorkeur; tekens op
+    de kaarten, de Construct en het verzorgerskit-paneel.
+  - *Ontogenese* — genen komen mét de leeftijd tot expressie (switch-on-tijd):
+    overlevingsgenen vanaf de geboorte, "volwassen" trekken rijpen mee.
+  - *Variabel-lang genoom* — extra genen bovenop de 16 kern-genen met gen-headers
+    (mut/dup/del) en eigen switch-on-fase; duplicatie stapelt effect → open-einde-
+    evolutie. Zichtbaar via `🧬+N`-badge + geboorte-melding bij duplicatie.
 - [x] **Bezoekers-rekenkracht → megapriemen** — de browser van bezoekers zoekt
   reuzenpriemen (honderden cijfers) voor de hive via een Web Worker. Gevonden
   priemen worden server-side geverifieerd (`priem-claim`) en toegekend aan een
@@ -21,8 +29,9 @@ blijft toeschouwer**. Interacties zijn te observeren, niet om te micromanagen.
 
 ## Creatures-roadmap (voorgesteld, nog niet gestart)
 
-- [ ] **Besmettelijke ziekte** — ziekte die zich verspreidt bij nabijheid; toeschouwer
-  ziet uitbraken ontstaan en uitdoven.
+- [ ] **Besmettelijke ziekte + co-evolutie** — het paper-model (§3.3.5): muterende
+  bacteriën met antigenen, genetische vatbaarheid/resistentie en co-evolutie.
+  Toeschouwer ziet uitbraken ontstaan, uitdoven én resistentie zich verspreiden.
 - [ ] **Meer levensfases** — nu baby/tiener/volwassen; toevoegen: pup/kind en
   bejaard, met eigen gedrag en uiterlijk.
 - [ ] **Biochemie zichtbaar** in de verzorgerskit / construct (drives & stofjes tonen).
@@ -30,11 +39,30 @@ blijft toeschouwer**. Interacties zijn te observeren, niet om te micromanagen.
 - [ ] **Adrenaline** — kortstondige stress-boost met gedragsgevolg (vluchten/bevriezen).
 - [ ] **Hormonale voortplantingscyclus** — vruchtbaarheid als ritme i.p.v. simpele kans.
 - [ ] **Benoemde mutaties** — mutaties een naam/label geven i.p.v. anonieme byte-flips.
-- [ ] **Eetbare objecten** — objecten in de construct die een Botty kan opeten (effect op drives).
+- [ ] **Eetbare objecten + gifstoffen** — objecten in de construct die een Botty kan
+  opeten (effect op drives); planten/objecten met inslikbare gifstoffen (het `gif`-
+  drive bestaat al, de bron nog niet).
 - [ ] **Geurgradiënten** — Botty's ruiken eten/soortgenoten en bewegen langs de gradiënt.
 - [ ] **Temperament-genen** — erfelijke persoonlijkheid (verlegen/nieuwsgierig/agressief).
 - [ ] **Levensverhaal-lezer** — per Botty een terug-te-lezen biografie (geboorte, leren, kinderen, dood).
 - [ ] **Hall of Fame** — eregalerij van bijzondere Botty's (oudste, slimste, meeste nakomelingen).
+
+## Uit het Creatures-paper (Grand & Cliff 1997) — nog open
+
+Mechanismen uit het paper die we nog niet hebben (§ verwijst naar het paper):
+
+- [ ] **Focus-of-attention** (§3.2) — verb-object: één object tegelijk in de aandacht,
+  met laterale inhibitie die objecten laat wedijveren om de blik.
+- [ ] **Twee-tijdschalen leren: STW vs LTW** (§3.2) — een korte-termijngewicht dat fel
+  reageert op één ervaring, en een lange-termijngewicht = voortschrijdend gemiddelde.
+- [ ] **Dendrietmigratie** (§3.2) — synapsen verzwakken, koppelen los en zoeken nieuwe
+  bronnen; de breintopologie verandert tijdens het leven.
+- [ ] **Susceptibility-venster** (§3.2) — een dendriet blijft even gevoelig na een actie,
+  zodat uitgestelde beloning/straf aan de juiste beslissing wordt toegekend.
+- [ ] **Gen-koppeling (linkage ∝ afstand)** (§3.4) — trekjes die samen overerven; sluit
+  aan op *temperament-genen*. (Single-point crossover geeft dit deels al.)
+- [ ] **Zicht op zichtlijn + geluidsdemping** (§3.1) — semi-symbolische waarneming: alleen
+  zien wat in de kijkrichting ligt, geluid dat dooft achter objecten. (Geur staat al los.)
 
 ## Brein-roadmap (volgende stappen)
 
