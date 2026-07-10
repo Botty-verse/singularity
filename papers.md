@@ -1,9 +1,9 @@
 # Botty-verse — Papers & inzichten
 
 Onderzoeksbasis voor de Botty-verse. Hier staan (1) de bronnen die we al hebben
-gebruikt met de inzichten eruit, (2) welke inzichten al **geïmplementeerd** zijn,
-en (3) een leeslijst met papers voor verder onderzoek — vooral gemijnd uit de
-bibliografie van het Creatures-paper, dé kernbron onder dit project.
+gebruikt met de inzichten eruit en hun **geïmplementeerd**-status, (2) een leeslijst
+met de *intellectuele voorouders* van Creatures (gemijnd uit de paper-bibliografie),
+en (3) onderzoek óver de game zélf — als onderwerp, platform of broncode.
 
 **Legenda**
 `✅ gebruikt` — inzicht is in code omgezet · `📋 op de todo` — gepland (zie `todo.md`)
@@ -13,9 +13,10 @@ bibliografie van het Creatures-paper, dé kernbron onder dit project.
 
 ## 1. Bronnen die we al gebruikt hebben
 
-### Grand, S. & Cliff, D. (1997) — *Creatures: Entertainment Software Agents with Artificial Life*
-*Autonomous Agents and Multi-Agent Systems 1(1):39–57.* — **de kernbron.**
+### Grand, S. & Cliff, D. (1997/1998) — *Creatures: Entertainment Software Agents with Artificial Life*
+*Autonomous Agents and Multi-Agent Systems 1(1):39–57.* DOI 10.1023/A:1010042522104. — **de kernbron.**
 Volledig gelezen (`Creatures_Entertainment_Software_Agents_with_Artif.pdf`).
+(Vaak als 1997 geciteerd; het tijdschriftnummer verscheen in 1998.)
 
 Inzichten en hun status:
 
@@ -100,8 +101,9 @@ bronnen. Per stuk: waarom relevant en welk open todo-punt het kan voeden.
 - **Koza, J.R. (1992)** — *Genetic Programming*. → GP-fundament.
 - **Ray, T.S. (1994, 1996)** — *Tierra* / *A Proposal to Create Two Biodiversity Reserves*
   (NetTierra). → digitale evolutie & "global digital ecosystem" — verwant aan de hive.
-- **Cliff, D. & Grand, S. (1998)** — *The 'Creatures' Global Digital Ecosystem*. → vervolg
-  van de kernbron; cultuur/dialect-verspreiding over machines.
+- **Cliff, D. & Grand, S. (1999)** — *The Creatures Global Digital Ecosystem*, Artificial Life
+  5(1):77–93, MIT Press (PubMed 10421678). → vervolg van de kernbron; verspreiding van norns,
+  genen en "digital naturalism" over machines. Direct relevant voor het hive-idee.
 
 ### Groepsgedrag & belichaming
 - **Reynolds, C. (1987)** — *Flocks, Herds and Schools: A Distributed Behavioral Model*,
@@ -117,20 +119,73 @@ bronnen. Per stuk: waarom relevant en welk open todo-punt het kan voeden.
   Botty's echt?" — voedt de Matrix-mijmering.
 - **Levy, S. (1993)** — *Artificial Life: The Quest for a New Creation*. → populair overzicht.
 
-### Buiten de paper-bibliografie (modern / hardware)
-- ⭐ **Grand, S. (2000)** — *Creation: Life and How to Make It*. → Grands eigen boek over de
-  filosofie achter Creatures; de rijkste vervolgbron op de kernpaper.
+### Steve Grand — boeken & vervolgprojecten
+- ⭐ **Grand, S. (2000)** — *Creation: Life and How to Make It*, Weidenfeld & Nicolson (Harvard
+  UP, 2001). → Grands eigen boek over de filosofie achter Creatures; de rijkste vervolgbron.
+  Waarom bottom-up i.p.v. regelgebaseerd.
+- **Grand, S. (2003)** — *Growing Up with Lucy: How to Build an Android in Twenty Easy Steps*,
+  Weidenfeld & Nicolson. → Lucy (2001–2006), een robot-baby-orang-oetan; dezelfde leer-/
+  ontwikkelideeën, nu belichaamd in hardware.
+- **Grand, S. (2011)** — *Grandroids* (crowdfunded). → aangekondigd als opvolger van Creatures;
+  interessant voor wat Grand aan het oorspronkelijke ontwerp zou veranderen.
+- **Grand, S.** — *Sim-biosis / Simergy* (SourceForge). → latere sim waarin complete wezens uit
+  functionele bouwblokken worden opgebouwd; verwant aan de modulaire norn-opzet.
 - **Silvanovich, N.** — reverse-engineering van de Tamagotchi-ROM (basis onder Domburgs
   Infinite Matrix). → hardware-emulatie-hoek.
+
+---
+
+## 3. Onderzoek óver Creatures zelf (de game als onderwerp of platform)
+
+Waar §2 de *intellectuele voorouders* van Creatures verzamelt (gemijnd uit de paper-
+bibliografie), gaat dit deel over werk dat de game zélf onderzoekt of als platform gebruikt.
+
+### De game als onderwerp / platform
+- ⭐ **Bunt, B. & Gouws, G. (2020)** — *Using an artificial life simulation to enhance reflective
+  critical thinking among student teachers*, Smart Learning Environments 7:16 (DOI
+  10.1186/s40561-020-00119-6). → zet Creatures in als serious game in de lerarenopleiding
+  (norns voeden/onderwijzen → reflecteren op leren). Zeer relevant voor de **onderwijskant**:
+  koppelt de game aan leertheorie (constructivisme, game-based learning, metacognitie).
+- **Taylor, T., Dorin, A. & Korb, K. (2014)** — *Artificial Life and the Web: WebAL Comes of
+  Age*, arXiv:1407.5719. → plaatst Creatures (norns die via Docking Station tussen online
+  werelden reizen) in de geschiedenis van web-based alife. Kader voor het **gedistribueerde
+  cloud-hive-concept**.
+- **"The forgotten AI critters of the 1990s…"** (2026), pickles.news. → essay dat Creatures
+  naast Tierra/Avida legt en betoogt dat de alife-periode agents als *wezens* zag (intrinsieke
+  drives, individuele verschillen, drift, emergente faalmodi) i.p.v. als modelconfiguraties.
+  Direct relevant voor hoe je Botty's positioneert. (Niet peer-reviewed.)
+
+### Broncode & aangrenzende platformen
+- ⭐ **openc2e** — open-source Creatures-engine (C++, SDL/Qt, LGPL). openc2e.github.io ·
+  github.com/openc2e/openc2e. → draait de originele Creatures 1/2/3 + Docking Station; bevat
+  CAOS-parser/runtime, genoom-/creature-code en de biochemie-simulatie. **Dé plek om het
+  mechanisme op codeniveau te lezen** i.p.v. alleen te beschrijven. (Engine, geen spel — content
+  nodig om te draaien.)
+- **Lenski, R.E., Ofria, C., Pennock, R.T. & Adami, C. (2003)** — *The Evolutionary Origin of
+  Complex Features*, Nature 423(6936):139–144 (DOI 10.1038/nature01568). → over **Avida** (buur-
+  platform): complexe functies ontstaan door voort te bouwen op eenvoudiger functies, mits
+  tussenstappen niet worden bestraft — soms zijn nadelige mutaties opstapjes. Relevant voor de
+  **ziekte-co-evolutie** en het human-in-the-loop reward-mechanisme (niet-bestraffen van
+  tussenstappen ≈ curriculum learning).
+- **"Forgotten Future: Creatures' Radical AI NPCs of 1996"** — playxix.com. → documentaire-
+  achtige achtergrond over de geschiedenis en ambitie van de game.
 - **Creatures Wiki / Norn-brein-documentatie** (community) — praktische naslag over de
   lobe-indeling van het Norn-brein; handig naast §3.2 van de paper.
 
 ---
 
-## 3. Hoe deze lijst te gebruiken
+## 4. Hoe deze lijst te gebruiken
 
 Elke ⭐-bron is een goed startpunt om **verder te snowballen**: pak de
 referentielijst van die paper en herhaal. Voor de eerstvolgende open todo-punten:
-- *Besmettelijke ziekte + co-evolutie* → begin bij **Cliff & Miller (1995)**.
+- *Besmettelijke ziekte + co-evolutie* → begin bij **Cliff & Miller (1995)** en **Lenski et al. (2003, Avida)**.
 - *STW/LTW & concept-lobe* → begin bij **Beer (1995a)** + **Blumberg (1996)**.
 - *Focus-of-attention* → **Blumberg (1996)**.
+- *Mechanisme op codeniveau lezen* → **openc2e** (broncode).
+- *Onderwijshoek* → **Bunt & Gouws (2020)** en z'n referentielijst.
+
+**Verder snowballen:**
+- Referentielijst van **Bunt & Gouws (2020)** voor onderwijs-/leertheorie.
+- Google Scholar "cited by" op **Grand & Cliff (1998)** voor nieuwere toepassingen/analyses.
+- Zoektermen: "Creatures norn neural network", "digital naturalism Creatures",
+  "Cyberlife biochemistry artificial life", "Docking Station online evolution".
