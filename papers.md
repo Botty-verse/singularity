@@ -105,6 +105,18 @@ bronnen. Per stuk: waarom relevant en welk open todo-punt het kan voeden.
   5(1):77–93, MIT Press (PubMed 10421678). → vervolg van de kernbron; verspreiding van norns,
   genen en "digital naturalism" over machines. Direct relevant voor het hive-idee.
 
+### Taal & communicatie (emergente taal tussen agents)
+Zie ook het aparte ontwerpdoc `taal.md`.
+- ⭐ **Steels, L. — Naming Games / Talking Heads (language games)**, o.a. *The Talking
+  Heads Experiment* (1999/2015) en *Language Games for Autonomous Robots* (IEEE Intelligent
+  Systems, 2001). → agents met joint attention + feedback convergeren zonder centrale sturing
+  naar een gedeeld lexicon. **Dé theorie onder onze naming game** (taal fase B).
+- ⭐ **Kirby, S. — Iterated Learning** (o.a. Kirby, Cornish & Smith, *Cumulative cultural
+  evolution in the lab*, PNAS 2008). → compositie/grammatica ontstaat vanzelf uit een
+  transmissie-bottleneck. Route naar productieve taal (taal fase C).
+- **Steels, L. (2011)** — *Modeling the cultural evolution of language*, Physics of Life
+  Reviews 8(4):339–356. → overzicht van taalspel-modellen.
+
 ### Groepsgedrag & belichaming
 - **Reynolds, C. (1987)** — *Flocks, Herds and Schools: A Distributed Behavioral Model*,
   Computer Graphics 21(4):25–34. → **boids**; emergent groepsgedrag, nuttig voor
