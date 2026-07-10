@@ -889,9 +889,10 @@
     if(!b){ sel = null; updateKit(); return; }
     var g = (b.energie+b.data+b.fit+b.geluk)/4;
     var sekseTxt = b.sekse==="m" ? " · ♂" : b.sekse==="v" ? " · ♀" : "";
+    var rijpTxt = (b.stage==="baby"||b.stage==="tiener") ? " · 🌱 trekken rijpen nog" : "";
     document.getElementById("kit-sub").textContent =
       (kitStageLabel[b.stage]||b.stage) + sekseTxt + " · generatie " + (b.generatie||1)
-      + (b.ziek ? " · 🤒 ziek" : "") + " · doel: " + (b.doel && b.doel.soort || "dwalen");
+      + (b.ziek ? " · 🤒 ziek" : "") + rijpTxt + " · doel: " + (b.doel && b.doel.soort || "dwalen");
     document.getElementById("kit-gedachte").textContent = "“" + (b.gedachte || "…") + "”";
     DRIVES.forEach(function(d){
       var v = Math.max(0, Math.min(100, 100 - (b[d.bron]||0)));
