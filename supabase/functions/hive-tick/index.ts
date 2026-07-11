@@ -41,11 +41,21 @@ const RUSTPLEK = { x: 500, y: 430 }; // rustige hoek bij de vloer (voor zieke Bo
 // Affordance-objecten (Creatures-stijl): elk object in het lokaal verhelpt één
 // drive. Een Botty met een tekort zweeft er zelf naartoe en reguleert zichzelf —
 // de AI-zorgronde blijft alleen als vangnet. Coördinaten matchen construct.html.
+// Losse object-agents (Creatures-stijl OBs): elk heeft een "script" — een effect op
+// een drive als een Botty het gebruikt. Gekoppeld aan de klas-assets via id (de
+// Construct plaatst het plaatje en laat de Botty ernaartoe lopen). Meer objecten =
+// rijkere zelfzorg-keuze én meer woorden om te munten (taal).
 const OBJECTEN = [
-  { id: "laadkruk", stat: "energie", kort: "de laadkruk",   x: 250, y: 450, icoon: "⚡", doe: "opladen bij de laadkruk",     actie: "laadt zichzelf op bij de omgevallen kruk", leer: "de omgevallen kruk me kan opladen" },
-  { id: "bord",     stat: "data",    kort: "het schoolbord", x: 510, y: 240, icoon: "💾", doe: "leren van het schoolbord",    actie: "leert van de sommen op het bord",          leer: "de sommen op het bord me slimmer maken" },
-  { id: "bal",      stat: "fit",     kort: "de bal",         x: 700, y: 470, icoon: "🏃", doe: "spelen met de bal",           actie: "speelt met de bal",                        leer: "spelen met de bal me fit houdt" },
-  { id: "deur",     stat: "geluk",   kort: "de open deur",   x: 920, y: 400, icoon: "🌲", doe: "het bos ruiken bij de deur",  actie: "snuift de bosgeur bij de open deur",       leer: "de bosgeur bij de deur me blij maakt" },
+  { id: "laadkruk",  stat: "energie", kort: "de laadcomputer", x: 250, y: 450, icoon: "⚡", doe: "opladen bij de laadcomputer", actie: "laadt zichzelf op bij de steampunk-computer", leer: "de computer me kan opladen" },
+  { id: "bord",      stat: "data",    kort: "het schoolbord",  x: 510, y: 240, icoon: "💾", doe: "leren van het schoolbord",    actie: "leert van de sommen op het bord",             leer: "de sommen op het bord me slimmer maken" },
+  { id: "bal",       stat: "fit",     kort: "de wereldbol",    x: 700, y: 470, icoon: "🏃", doe: "de wereldbol ronddraaien",    actie: "laat de wereldbol tollen",                    leer: "de wereldbol me fit en nieuwsgierig houdt" },
+  { id: "deur",      stat: "geluk",   kort: "de open deur",    x: 920, y: 400, icoon: "🌲", doe: "het bos ruiken bij de deur",  actie: "snuift de bosgeur bij de open deur",          leer: "de bosgeur bij de deur me blij maakt" },
+  { id: "boekenkast", stat: "data",   kort: "de boekenkast",   x: 340, y: 240, icoon: "📚", doe: "bladeren in de boekenkast",   actie: "bladert door de boeken in de kast",           leer: "de boeken me kennis geven" },
+  { id: "lessenaar",  stat: "data",   kort: "de lessenaar",    x: 610, y: 250, icoon: "✒️", doe: "schrijven aan de lessenaar",  actie: "krast aantekeningen op de lessenaar",         leer: "schrijven mijn gedachten ordent" },
+  { id: "kastje",     stat: "energie", kort: "het kastje",     x: 200, y: 455, icoon: "🗄️", doe: "iets pakken uit het kastje",  actie: "rommelt wat in het kastje",                   leer: "het kastje me nieuwe energie geeft" },
+  { id: "kruk",       stat: "fit",    kort: "de kruk",         x: 780, y: 460, icoon: "🪑", doe: "rekken bij de kruk",          actie: "rekt zich uit bij de kruk",                   leer: "even rekken me soepel houdt" },
+  { id: "bloempot",   stat: "energie", kort: "de bloempot",    x: 300, y: 250, icoon: "🌼", doe: "knabbelen aan de plant",      actie: "knabbelt aan een blaadje van de plant",       leer: "de plant eetbaar en voedzaam is" },
+  { id: "stolp",      stat: "geluk",  kort: "de stolp",        x: 1000, y: 250, icoon: "🔬", doe: "turen naar het wezen in de stolp", actie: "tuurt gefascineerd naar het wezen onder de stolp", leer: "het wezen onder de stolp me boeit" },
 ];
 const DRIVE_STATS: string[] = ["energie", "data", "fit", "geluk"];
 const DRIVE_LABEL: Record<string, string> = { energie: "een leeg gevoel", data: "leerhonger", fit: "een slap lijf", geluk: "somberheid" };

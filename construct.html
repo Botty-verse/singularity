@@ -42,6 +42,13 @@
   .obj-halo{animation:objectPuls 3.6s ease-in-out infinite;}
   @keyframes objectPuls{0%,100%{opacity:.16}50%{opacity:.42}}
   .gebruik{animation:broed 1.6s ease-in-out infinite;}
+  /* Losse object-agents: eigen sfeer-animatie (Creatures-stijl leven) */
+  .amb-glow{animation:ambGlow 3.2s ease-in-out infinite;}
+  @keyframes ambGlow{0%,100%{filter:drop-shadow(0 0 2px rgba(125,255,176,.5))}50%{filter:drop-shadow(0 0 13px rgba(125,255,176,.95))}}
+  .amb-sway{transform-box:fill-box;transform-origin:50% 100%;animation:ambSway 4.6s ease-in-out infinite;}
+  @keyframes ambSway{0%,100%{transform:rotate(-2.3deg)}50%{transform:rotate(2.3deg)}}
+  .amb-critter{transform-box:fill-box;transform-origin:50% 100%;animation:ambCritter 2.8s ease-in-out infinite;}
+  @keyframes ambCritter{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 
   /* ── Creatures-laag: de Hand, spraakbubbels, selectie, verzorgerskit ── */
   svg.kamer{cursor:none;}
@@ -174,21 +181,16 @@
       <!-- Nieuwe achtergrond: geschilderde dwarsdoorsnede (tuin boven + ondergrondse kamer) -->
       <image href="assets/construct-achtergrond.webp" x="0" y="0" width="1500" height="844" preserveAspectRatio="none"/>
 
-      <!-- Klaslokaal-objecten: 4 affordances + broedmachine + accent (achter de Botty's) -->
+      <!-- Klaslokaal: vaste decors (kleed + broedmachine). De losse object-agents
+           worden hieronder door JS uit OBJDEF geplaatst, achter de Botty's. -->
       <g id="klaslaag">
         <!-- accent: kleed op de kamervloer -->
         <image href="assets/klas/obj_20.png" x="585" y="574" width="230" height="97"/>
-        <!-- 💾 data: schoolbord "Creature Studies" aan de kamermuur -->
-        <image href="assets/klas/obj_00.png" x="725" y="438" width="196" height="129"/>
-        <!-- ⚡ energie: steampunk-computer in de kamer -->
-        <image href="assets/klas/obj_09.png" x="430" y="583" width="100" height="79"/>
         <!-- 🐣 broedmachine: koperen ketel met groene gloed (eieren komen hierin) -->
         <image href="assets/klas/obj_12.png" x="312" y="565" width="95" height="97"/>
-        <!-- 🏃 fit: globe in de tuin -->
-        <image href="assets/klas/obj_06.png" x="1115" y="290" width="70" height="115"/>
-        <!-- 🌲 geluk: groene deur in de tuin -->
-        <image href="assets/klas/obj_11.png" x="1360" y="265" width="95" height="140"/>
       </g>
+      <!-- losse object-agents (JS vult dit uit OBJDEF) -->
+      <g id="objagents"></g>
 
       <!-- broedmachine: gloed + eieren bij de koperen apparatuur in de kamer -->
       <g id="ei-deco"><ellipse cx="360" cy="636" rx="26" ry="13" fill="url(#broedgloed)" class="broed"/></g>
@@ -311,14 +313,41 @@
   }
   updateNacht();
   setInterval(updateNacht, 60000);
-  // Affordance-objecten — verdeeld over de niveaus (x = plek, niveau = vloer).
-  // Voorlopige posities tot de klaslokaal-assets komen; y volgt uit het niveau.
-  var OBJECTEN = [
-    { id:"laadkruk", x:480,  niveau:1, icoon:"⚡" },   // kamer: steampunk-computer
-    { id:"bord",     x:820,  niveau:1, icoon:"💾" },   // kamer: schoolbord
-    { id:"bal",      x:1150, niveau:0, icoon:"🏃" },   // tuin: globe
-    { id:"deur",     x:1408, niveau:0, icoon:"🌲" }    // tuin: groene deur
+  // Losse object-agents — elk een uitgesneden klas-asset op z'n plek in de wereld.
+  // De Botty loopt naar de basis van het object (x = midden), en gebruikt het via
+  // z'n zelfzorg-doel (b.doel.obj === id). ambient = eigen sfeer-animatie.
+  // Vloeren: tuin=405, kamer=662. Elk object staat mét z'n basis op de vloer
+  // (y = vloer - h) en is horizontaal gespreid; weg van de geschilderde deuropening
+  // (midden-kamer) en de put (links-tuin). Vaste decors: kleed (585) + broedmachine (312).
+  var OBJDEF = [
+    // kamer (niveau 1, vloer 662)
+    { id:"boekenkast",img:"obj_05", x:118,  y:503, w:126, h:159, niveau:1, icoon:"📚" },
+    { id:"laadkruk",  img:"obj_09", x:456,  y:585, w:96,  h:77,  niveau:1, icoon:"⚡", ambient:"glow" },
+    { id:"bord",      img:"obj_00", x:690,  y:546, w:174, h:116, niveau:1, icoon:"💾" },
+    { id:"kruk",      img:"obj_21", x:900,  y:578, w:78,  h:84,  niveau:1, icoon:"🪑" },
+    { id:"lessenaar", img:"obj_02", x:1010, y:548, w:142, h:114, niveau:1, icoon:"✒️" },
+    { id:"stolp",     img:"obj_13", x:1180, y:568, w:94,  h:94,  niveau:1, icoon:"🔬", ambient:"critter" },
+    { id:"kastje",    img:"obj_15", x:1310, y:562, w:108, h:100, niveau:1, icoon:"🗄️" },
+    // tuin (niveau 0, vloer 405)
+    { id:"bloempot",  img:"obj_16", x:470,  y:303, w:64,  h:102, niveau:0, icoon:"🌼", ambient:"sway" },
+    { id:"bal",       img:"obj_06", x:1010, y:294, w:68,  h:111, niveau:0, icoon:"🏃", ambient:"sway" },
+    { id:"deur",      img:"obj_11", x:1352, y:267, w:94,  h:138, niveau:0, icoon:"🌲" }
   ];
+  var objImg = {};   // id → <image> (voor de "in gebruik"-pulse)
+  (function(){
+    var g = document.getElementById("objagents");
+    OBJDEF.forEach(function(o){
+      var im = document.createElementNS("http://www.w3.org/2000/svg","image");
+      im.setAttributeNS("http://www.w3.org/1999/xlink","href","assets/klas/"+o.img+".png");
+      im.setAttribute("href","assets/klas/"+o.img+".png");
+      im.setAttribute("x",o.x); im.setAttribute("y",o.y);
+      im.setAttribute("width",o.w); im.setAttribute("height",o.h);
+      im.setAttribute("class","objagent" + (o.ambient ? " amb-"+o.ambient : ""));
+      g.appendChild(im); objImg[o.id] = im;
+    });
+  })();
+  // Bewegingsdoelen: de Botty staat aan de basis (midden-onder) van het object.
+  var OBJECTEN = OBJDEF.map(function(o){ return { id:o.id, x:Math.round(o.x + o.w/2), niveau:o.niveau, icoon:o.icoon }; });
   var POIS = {
     bord:  { x:820,  niveau:1 },
     raamL: { x:190,  niveau:0 },
