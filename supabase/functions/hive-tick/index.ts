@@ -706,7 +706,8 @@ function huidigeStage(b: any) {
   const leeftijd = (Date.now() - b.geboren) / 1000 / G.agingSpeed;
   if (leeftijd < 120) return "baby";
   if (leeftijd < 300) return "tiener";
-  return "volwassen";
+  if (leeftijd < 3000) return "volwassen";
+  return "elder";   // vijfde fase: de wijze oudere / bewaker van de Hive
 }
 
 function rijp(b: any) {
