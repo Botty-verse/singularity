@@ -117,13 +117,48 @@ function breinLeer(b: any, drive: string, objId: string, beloond: boolean) {
   b.breinN = b.breinN || {};
   b.breinN[drive] = (b.breinN[drive] || 0) + 1;
 }
+// ─── Persoonlijkheid (nature): temperament-genen + erfelijke voorkeuren ──────────
+// Stabiel uit het genoom afgeleid (dus erfelijk + driftend met mutatie), net als de
+// priemsmaak. Temperament weegt de gedragskeuze; voorkeuren geven elke Botty een
+// eigen favoriet object en woonlaag, zodat ze ook op gedragsniveau uiteenlopen.
+function genHash(g: string | undefined, zout: string): number {
+  let h = 2166136261;
+  const s = (g || "") + zout;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0) / 4294967295;
+}
+// Vier trait-assen 0..1. Sociaal & nieuwsgierig hangen aan bestaande genen (11/14),
+// ijver & dapper aan een genoom-hash (nieuwe assen zonder gen-slot te claimen).
+function temperament(b: any): { sociaal: number; nieuwsgierig: number; ijver: number; dapper: number } {
+  const by = genoomBytes(b.genome);
+  return {
+    sociaal:      by[11] / 255,
+    nieuwsgierig: by[14] / 255,
+    ijver:        genHash(b.genome, "ijver"),
+    dapper:       genHash(b.genome, "dapper"),
+  };
+}
+function temp(b: any) { return b.temperament || temperament(b); }
+// Kleine, stabiele voorkeur-bias per (Botty, object): ±0.15 op de objectkeuze, zodat
+// twee Botty's met dezelfde drive tóch naar verschillende objecten neigen.
+function voorkeurBias(b: any, objId: string): number {
+  return (genHash(b.genome, "vk_" + objId) - 0.5) * 0.30;
+}
+// Het favoriete object van een Botty (hoogste voorkeur-bias) — voor weergave.
+function voorkeurObject(b: any): string | null {
+  let best: string | null = null, bw = -Infinity;
+  for (const o of OBJECTEN) { const w = voorkeurBias(b, o.id); if (w > bw) { bw = w; best = o.id; } }
+  return best;
+}
+
 function kiesObjectVoor(b: any, drive: string) {
   const n = b.breinN?.[drive] ?? 0;
   const eps = Math.max(BREIN_EPS_MIN, BREIN_EPS_MAX - n * 0.03);
   if (Math.random() < eps) return OBJECTEN[Math.floor(Math.random() * OBJECTEN.length)]; // exploratie
   let best = OBJECTEN[0], bestW = -Infinity;                                             // exploitatie
   for (const o of OBJECTEN) {
-    const w = breinGeloof(b, drive, o.id) + Math.random() * 0.03; // kleine ruis tegen vastlopen
+    // geleerd geloof + eigen voorkeur + kleine ruis tegen vastlopen
+    const w = breinGeloof(b, drive, o.id) + voorkeurBias(b, o.id) + Math.random() * 0.03;
     if (w > bestW) { bestW = w; best = o; }
   }
   return best;
@@ -979,6 +1014,11 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     return;
   }
 
+  if (b.doel && b.doel.soort === "dwalen") {
+    b.gedachte = kies(["Ik slenter wat rond.", "Even nergens heen.", "Lekker niksen.", "Ik dwaal maar wat."]);
+    return;
+  }
+
   // Afkoelend na een euforie: niet jagen, wel nadenken over de volgende zet.
   if (Date.now() - (b.euforieOp || 0) < EUFORIE_PAUZE) {
     b.gedachte = uit(kies(["Nog even nagenieten… straks weer jagen", "Mijn volgende " + smk + "-zet rijpt nog",
@@ -1023,9 +1063,11 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
     b.doel = { soort: "zelfzorg", stat: drive.s, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0 };
     return;
   }
+  const T = temp(b);   // temperament weegt de gedragskeuze (persoonlijkheid = nature)
   // Fertiliteit: te veel stress onderdrukt de voortplantingsdrang (Creatures p.16).
   if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
-  if (exprVan(b).social > 1.05 && Math.random() < 0.45) {
+  // Gezelschap zoeken: sterk gestuurd door hoe sociaal (verlegen ↔ gezellig) een Botty is.
+  if (Math.random() < 0.12 + 0.6 * T.sociaal) {
     const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
     if (an.length) {
       let v: any;
@@ -1037,11 +1079,14 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
       b.doel = { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" }; return;
     }
   }
-  // Nieuwsgierigheid (uit gen 14, expressie-bias): af en toe iets gaan onderzoeken
-  // i.p.v. jagen — een zwevende Botty zweeft naar een punt van interesse om rond te kijken.
-  if (ontoMult(genoomBytes(b.genome), 14, b.stage) > 1.0 && Math.random() < 0.3) {
+  // Nieuwsgierigheid: een nieuwsgierige Botty gaat vaker iets onderzoeken i.p.v. jagen.
+  if (Math.random() < 0.08 + 0.5 * T.nieuwsgierig) {
     const poi = kies(POIS);
     b.doel = { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst }; return;
+  }
+  // IJver: een luie Botty slentert liever wat rond dan te jagen; een ijverige jaagt.
+  if (T.ijver < 0.45 && Math.random() < (0.5 - T.ijver)) {
+    b.doel = { soort: "dwalen", tekst: "wat rondslenteren" }; return;
   }
   b.doel = { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam };
 }
@@ -1377,6 +1422,8 @@ Deno.serve(async (req) => {
     if (!b.bid) b.bid = maakId();   // stabiele identiteit voor de stamboom
     if (b.sekse !== "m" && b.sekse !== "v") b.sekse = hashSekse(b.bid);   // §3.4: geslacht
     if (!Array.isArray(b.genen)) b.genen = [];   // §3.4: variabel-lang genoom (extra genen)
+    b.temperament = temperament(b);   // persoonlijkheid (nature) — voor sim + client
+    b.voorkeurObj = voorkeurObject(b);   // favoriet object (voorkeur)
     if (!b.dimorf) { b.grootte = sekseGrootte(exprVan(b).grootte, b.sekse); b.dimorf = true; }   // dimorfisme één keer toepassen
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
     if (typeof b.levenskracht !== "number") b.levenskracht = 100;   // sterfelijkheid
