@@ -42,10 +42,10 @@ const RUSTPLEK = { x: 500, y: 430 }; // rustige hoek bij de vloer (voor zieke Bo
 // drive. Een Botty met een tekort zweeft er zelf naartoe en reguleert zichzelf —
 // de AI-zorgronde blijft alleen als vangnet. Coördinaten matchen construct.html.
 // Losse object-agents (Creatures-stijl OBs): elk heeft een "script" — een effect op
-// een drive als een Botty het gebruikt. Gekoppeld aan de klas-assets via id (de
-// Construct plaatst het plaatje en laat de Botty ernaartoe lopen). Meer objecten =
-// rijkere zelfzorg-keuze én meer woorden om te munten (taal).
-const OBJECTEN = [
+// een drive als een Botty het gebruikt. De CENTRALE agent-laag staat in /agents.json
+// (één bron voor server + Construct). Bij het opstarten laadt de tick die catalogus;
+// lukt dat niet, dan valt hij terug op deze ingebouwde kopie zodat de sim nooit breekt.
+const OBJECTEN_FALLBACK = [
   { id: "laadkruk",  stat: "energie", kort: "de laadcomputer", x: 250, y: 450, icoon: "⚡", doe: "opladen bij de laadcomputer", actie: "laadt zichzelf op bij de steampunk-computer", leer: "de computer me kan opladen" },
   { id: "bord",      stat: "data",    kort: "het schoolbord",  x: 510, y: 240, icoon: "💾", doe: "leren van het schoolbord",    actie: "leert van de sommen op het bord",             leer: "de sommen op het bord me slimmer maken" },
   { id: "bal",       stat: "fit",     kort: "de wereldbol",    x: 700, y: 470, icoon: "🏃", doe: "de wereldbol ronddraaien",    actie: "laat de wereldbol tollen",                    leer: "de wereldbol me fit en nieuwsgierig houdt" },
@@ -57,6 +57,23 @@ const OBJECTEN = [
   { id: "bloempot",   stat: "energie", kort: "de bloempot",    x: 300, y: 250, icoon: "🌼", doe: "knabbelen aan de plant",      actie: "knabbelt aan een blaadje van de plant",       leer: "de plant eetbaar en voedzaam is" },
   { id: "stolp",      stat: "geluk",  kort: "de stolp",        x: 1000, y: 250, icoon: "🔬", doe: "turen naar het wezen in de stolp", actie: "tuurt gefascineerd naar het wezen onder de stolp", leer: "het wezen onder de stolp me boeit" },
 ];
+let OBJECTEN: any[] = OBJECTEN_FALLBACK;
+
+// Centrale agent-laag laden (één keer per cold start). agents.json → sim-vorm.
+const AGENTS_URL = "https://hive.ramonmoorlag.nl/agents.json";
+try {
+  const r = await fetch(AGENTS_URL, { signal: AbortSignal.timeout(4000) });
+  if (r.ok) {
+    const cat = await r.json();
+    const geladen = (cat.agents || [])
+      .filter((a: any) => a && a.id && a.stat && a.sim)
+      .map((a: any) => ({ id: a.id, stat: a.stat, kort: a.kort, icoon: a.icoon,
+        doe: a.doe, actie: a.actie, leer: a.leer, klasse: a.klasse,
+        x: a.sim.x, y: a.sim.y }));
+    if (geladen.length >= 4) OBJECTEN = geladen;   // sanity: nooit een lege wereld
+  }
+} catch (_) { /* fallback blijft staan */ }
+
 const DRIVE_STATS: string[] = ["energie", "data", "fit", "geluk"];
 const DRIVE_LABEL: Record<string, string> = { energie: "een leeg gevoel", data: "leerhonger", fit: "een slap lijf", geluk: "somberheid" };
 const ZELFZORG_START = 55;   // laagste bar hieronder → zelf naar een object
