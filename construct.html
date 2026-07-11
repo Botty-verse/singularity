@@ -925,7 +925,7 @@
     rij.innerHTML = '<span class="dlabel">'+d.label+'</span><span class="dbar"><span style="width:0%"></span></span>';
     kitDrives.appendChild(rij);
   });
-  var kitStageLabel = { baby:"Baby", tiener:"Tiener", volwassen:"Volwassen" };
+  var kitStageLabel = { baby:"Baby", tiener:"Tiener", volwassen:"Volwassen", elder:"Oudere" };
   function updateKit(){
     var leeg = document.getElementById("kit-leeg"), body = document.getElementById("kit-body");
     var b = sel && bottys.find(function(x){ return x.naam === sel; });

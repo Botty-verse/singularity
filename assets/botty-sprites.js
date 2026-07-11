@@ -70,10 +70,22 @@
     +   '<line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/>'
     +   '<path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>'; }
 
+  // Elder — de vijfde levensfase (naar het designvel): wijze bewaker van de Hive,
+  // met witte baard, mos op de kop en een wandelstaf. Bouwt voort op de volwassene.
+  function spriteElder(p){ return spriteVolwassen(p)
+    + '<path d="M85,111 Q100,117 115,111 Q121,150 108,174 Q100,182 92,174 Q79,150 85,111 Z" fill="#eef0ea" stroke="#c9ccc4" stroke-width="2"/>'
+    + '<path d="M92,150 q8,6 16,0" fill="none" stroke="#c9ccc4" stroke-width="1.5"/>'
+    + '<line x1="169" y1="120" x2="172" y2="245" stroke="#7a5a34" stroke-width="5" stroke-linecap="round"/>'
+    + '<circle cx="168" cy="117" r="7" fill="#8c9196" stroke="#5a4526" stroke-width="2"/>'
+    + '<path class="ster" d="M168,108 l1.2,4 4,1.2 -4,1.2 -1.2,4 -1.2,-4 -4,-1.2 4,-1.2 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.5"/>'
+    + '<circle cx="80" cy="50" r="4" fill="#6fae5a" opacity="0.85"/><circle cx="120" cy="52" r="3.5" fill="#6fae5a" opacity="0.8"/><circle cx="70" cy="66" r="3" fill="#6fae5a" opacity="0.7"/>'
+    ; }
+
   global.BottySprites = {
     volwassen: spriteVolwassen,
     baby: spriteBaby,
     tiener: spriteTiener,
-    set: { baby: spriteBaby, tiener: spriteTiener, volwassen: spriteVolwassen }
+    elder: spriteElder,
+    set: { baby: spriteBaby, tiener: spriteTiener, volwassen: spriteVolwassen, elder: spriteElder }
   };
 })(window);

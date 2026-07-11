@@ -475,8 +475,8 @@
   var paletten = BottyRender.paletten;
   function gem(b){ return (b.energie+b.data+b.fit+b.geluk)/4; }
   var spierSchaal = BottyRender.spierSchaal;
-  var groei = { baby:0.66, tiener:0.92, volwassen:1.0 };
-  var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
+  var groei = { baby:0.66, tiener:0.92, volwassen:1.0, elder:0.98 };
+  var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen", elder:"oudere" };
   var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
   function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
   // §3.4: melding bij een genduplicatie / nieuw extra gen bij de geboorte
