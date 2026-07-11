@@ -487,6 +487,16 @@
     if(e.genNieuw>0) s += ' · <b style="color:#5ec6ff">🧬➕ nieuw gen</b>';
     return s;
   }
+  // Persoonlijkheid: kort karakter-label uit het temperament (nature)
+  function karakter(b){
+    var t = b.temperament; if(!t) return "";
+    var w = [];
+    if(t.sociaal>0.62) w.push("gezellig"); else if(t.sociaal<0.35) w.push("verlegen");
+    if(t.ijver>0.62) w.push("ijverig"); else if(t.ijver<0.38) w.push("lui");
+    if(t.nieuwsgierig>0.62) w.push("nieuwsgierig"); else if(t.nieuwsgierig<0.35) w.push("behoudend");
+    if(t.dapper>0.62) w.push("dapper"); else if(t.dapper<0.38) w.push("schuchter");
+    return w.slice(0,2).join(" · ");
+  }
   // §3.4: geslachtsteken (♂ blauw, ♀ roze) vóór het stage-label
   function sekseTeken(b){
     if(b.sekse!=="m" && b.sekse!=="v") return "";
@@ -567,6 +577,7 @@
     kaart.innerHTML =
         '<div class="knaam">'+b.naam+'</div>'
       + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+sekseTeken(b)+(stageLabel[b.stage]||b.stage)+' · '+(b.paletNaam||"kleur")+'</div>'
+      + (karakter(b) ? '<div class="kstage" style="color:#a3ffce">'+karakter(b)+'</div>' : '')
       + '<div class="gedachte">💭 <span class="g-tekst">'+(b.gedachte||"…")+'</span></div>'
       + '<div class="doel">🎯 <span class="d-tekst">'+((b.doel&&b.doel.tekst)||"—")+'</span></div>'
       + '<div class="genen">'+genenHtml(b)+'</div>'

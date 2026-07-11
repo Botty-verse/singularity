@@ -298,7 +298,7 @@
     return TRAPPEN[0];
   }
   var SVGNS = "http://www.w3.org/2000/svg";
-  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff" };
+  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff", dwalen:"#c9b98a" };
 
   // ── Dag & nacht op Nederlandse kloktijd (zelfde regel als de edge function) ──
   function isNacht(){
@@ -514,9 +514,22 @@
   // volle vloerbreedte (stabiel per naam). Zo staan Botty's met hetzelfde gedrag
   // (jagen, dwalen) tóch verspreid i.p.v. op één punt te clusteren.
   function thuis(b){
-    var nv = nameRnd(b.naam+"niv") < 0.5 ? 0 : 1;
+    // woonlaag volgt de dapperheid: dappere Botty's wonen boven in de tuin,
+    // schuchtere onder in de kamer (persoonlijkheid → ruimtelijke keuze).
+    var d = (b.temperament && typeof b.temperament.dapper==="number") ? b.temperament.dapper : 0.5;
+    var nv = nameRnd(b.naam+"niv") < d ? 0 : 1;
     var lv = NIVEAUS[nv];
     return { niveau:nv, x: lv.xlo + 55 + nameRnd(b.naam+"thuis")*(lv.xhi - lv.xlo - 110) };
+  }
+  // Kort karakter-label uit het temperament (voor de verzorgerskit).
+  function karakter(b){
+    var t = b.temperament; if(!t) return "";
+    var w = [];
+    if(t.sociaal>0.62) w.push("gezellig"); else if(t.sociaal<0.35) w.push("verlegen");
+    if(t.ijver>0.62) w.push("ijverig"); else if(t.ijver<0.38) w.push("lui");
+    if(t.nieuwsgierig>0.62) w.push("nieuwsgierig"); else if(t.nieuwsgierig<0.35) w.push("behoudend");
+    if(t.dapper>0.62) w.push("dapper"); else if(t.dapper<0.38) w.push("schuchter");
+    return w.slice(0,2).join(" · ");
   }
   // kies een nieuw doel (x + niveau) — gestuurd door het serverdoel
   function nieuwDoel(nd, b){
@@ -929,8 +942,10 @@
     var g = (b.energie+b.data+b.fit+b.geluk)/4;
     var sekseTxt = b.sekse==="m" ? " · ♂" : b.sekse==="v" ? " · ♀" : "";
     var rijpTxt = (b.stage==="baby"||b.stage==="tiener") ? " · 🌱 trekken rijpen nog" : "";
+    var kar = karakter(b);
     document.getElementById("kit-sub").textContent =
       (kitStageLabel[b.stage]||b.stage) + sekseTxt + " · generatie " + (b.generatie||1)
+      + (kar ? " · " + kar : "")
       + (b.ziek ? " · 🤒 ziek" : "") + rijpTxt + " · doel: " + (b.doel && b.doel.soort || "dwalen");
     document.getElementById("kit-gedachte").textContent = "“" + (b.gedachte || "…") + "”";
     DRIVES.forEach(function(d){
