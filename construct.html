@@ -316,19 +316,22 @@
   // Losse object-agents — elk een uitgesneden klas-asset op z'n plek in de wereld.
   // De Botty loopt naar de basis van het object (x = midden), en gebruikt het via
   // z'n zelfzorg-doel (b.doel.obj === id). ambient = eigen sfeer-animatie.
+  // Vloeren: tuin=405, kamer=662. Elk object staat mét z'n basis op de vloer
+  // (y = vloer - h) en is horizontaal gespreid; weg van de geschilderde deuropening
+  // (midden-kamer) en de put (links-tuin). Vaste decors: kleed (585) + broedmachine (312).
   var OBJDEF = [
     // kamer (niveau 1, vloer 662)
-    { id:"laadkruk",  img:"obj_09", x:430,  y:583, w:100, h:79,  niveau:1, icoon:"⚡", ambient:"glow" },
-    { id:"bord",      img:"obj_00", x:725,  y:438, w:196, h:129, niveau:1, icoon:"💾" },
-    { id:"boekenkast",img:"obj_05", x:150,  y:505, w:132, h:157, niveau:1, icoon:"📚" },
-    { id:"lessenaar", img:"obj_02", x:980,  y:545, w:150, h:118, niveau:1, icoon:"✒️" },
-    { id:"kastje",    img:"obj_15", x:1218, y:560, w:112, h:102, niveau:1, icoon:"🗄️" },
-    { id:"kruk",      img:"obj_21", x:872,  y:577, w:80,  h:86,  niveau:1, icoon:"🪑" },
-    { id:"stolp",     img:"obj_13", x:1102, y:566, w:96,  h:96,  niveau:1, icoon:"🔬", ambient:"critter" },
+    { id:"boekenkast",img:"obj_05", x:118,  y:503, w:126, h:159, niveau:1, icoon:"📚" },
+    { id:"laadkruk",  img:"obj_09", x:456,  y:585, w:96,  h:77,  niveau:1, icoon:"⚡", ambient:"glow" },
+    { id:"bord",      img:"obj_00", x:690,  y:546, w:174, h:116, niveau:1, icoon:"💾" },
+    { id:"kruk",      img:"obj_21", x:900,  y:578, w:78,  h:84,  niveau:1, icoon:"🪑" },
+    { id:"lessenaar", img:"obj_02", x:1010, y:548, w:142, h:114, niveau:1, icoon:"✒️" },
+    { id:"stolp",     img:"obj_13", x:1180, y:568, w:94,  h:94,  niveau:1, icoon:"🔬", ambient:"critter" },
+    { id:"kastje",    img:"obj_15", x:1310, y:562, w:108, h:100, niveau:1, icoon:"🗄️" },
     // tuin (niveau 0, vloer 405)
-    { id:"bal",       img:"obj_06", x:1088, y:292, w:70,  h:113, niveau:0, icoon:"🏃", ambient:"sway" },
-    { id:"deur",      img:"obj_11", x:1352, y:266, w:95,  h:139, niveau:0, icoon:"🌲" },
-    { id:"bloempot",  img:"obj_16", x:252,  y:300, w:68,  h:105, niveau:0, icoon:"🌼", ambient:"sway" }
+    { id:"bloempot",  img:"obj_16", x:470,  y:303, w:64,  h:102, niveau:0, icoon:"🌼", ambient:"sway" },
+    { id:"bal",       img:"obj_06", x:1010, y:294, w:68,  h:111, niveau:0, icoon:"🏃", ambient:"sway" },
+    { id:"deur",      img:"obj_11", x:1352, y:267, w:94,  h:138, niveau:0, icoon:"🌲" }
   ];
   var objImg = {};   // id → <image> (voor de "in gebruik"-pulse)
   (function(){
