@@ -510,6 +510,14 @@
   }
 
   function randX(niv){ var lv=NIVEAUS[niv]; return lv.xlo + Math.random()*(lv.xhi-lv.xlo); }
+  // Elke Botty heeft een stabiele 'thuisplek' — verdeeld over beide niveaus en de
+  // volle vloerbreedte (stabiel per naam). Zo staan Botty's met hetzelfde gedrag
+  // (jagen, dwalen) tóch verspreid i.p.v. op één punt te clusteren.
+  function thuis(b){
+    var nv = nameRnd(b.naam+"niv") < 0.5 ? 0 : 1;
+    var lv = NIVEAUS[nv];
+    return { niveau:nv, x: lv.xlo + 55 + nameRnd(b.naam+"thuis")*(lv.xhi - lv.xlo - 110) };
+  }
   // kies een nieuw doel (x + niveau) — gestuurd door het serverdoel
   function nieuwDoel(nd, b){
     var soort = b.doel && b.doel.soort;
@@ -520,12 +528,12 @@
     if(soort==="zelfzorg" && b.doel){
       var oid = b.doel.obj || b.doel.poi;
       var o = OBJECTEN.filter(function(z){ return z.id===oid; })[0];
-      if(o){ niv = o.niveau; x = o.x + lane*95; }
+      if(o){ niv = o.niveau; x = o.x + lane*130; }
       else { niv = 1; x = RUST.x + lane*160; }
     } else if(soort==="nieuwsgierig" && b.doel){
       var poi = POIS[b.doel.poi];
       if(poi){ niv = poi.niveau; x = poi.x + lane*95; }
-      else { niv = 1; x = 820 + lane*160; }
+      else { var tn = thuis(b); niv = tn.niveau; x = tn.x + lane*160; }
     } else if(soort==="bijkomen" || soort==="herstellen" || soort==="slapen"){
       niv = RUST.niveau; x = RUST.x + lane*320;
     } else if(soort==="gezelschap"){
@@ -536,18 +544,20 @@
       }
       // ga náást de vriend staan (op afstand), niet er bovenop
       if(vriend){ niv = vriend.niveau; x = vriend.render.x + (lane<0?-1:1)*(46 + Math.abs(lane)*150); }
-      else { niv = 1; x = 820 + lane*180; }
+      else { var tg = thuis(b); niv = tg.niveau; x = tg.x + lane*180; }
     } else if(soort==="voortplanting"){
       var partner = bottys.filter(function(o){ return o.naam!==b.naam && nodes[o.naam]; })[0];
       if(partner){
         var pn = nodes[partner.naam];
         niv = pn.niveau;
         x = pn.render.x + (lane<0?-1:1)*(60 + Math.abs(lane)*120);
-      } else { niv = 1; x = 820 + lane*180; }
+      } else { var tv = thuis(b); niv = tv.niveau; x = tv.x + lane*160; }
     } else if(soort==="priemjacht"){
-      niv = 1; x = 820 + lane*180;
+      // jagen doe je in je eentje: elk naar z'n eigen thuisplek + wat rondzwerven
+      var tj = thuis(b); niv = tj.niveau; x = tj.x + (Math.random()-0.5)*280;
     } else {
-      niv = 1; x = 820 + lane*180;
+      // dwalen: rond de eigen thuisplek, verspreid over de wereld
+      var td = thuis(b); niv = td.niveau; x = td.x + (Math.random()-0.5)*240;
     }
     nd.doelNiveau = niv;
     var lv = NIVEAUS[niv];
