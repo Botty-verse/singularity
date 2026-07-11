@@ -313,14 +313,11 @@
   }
   updateNacht();
   setInterval(updateNacht, 60000);
-  // Losse object-agents — elk een uitgesneden klas-asset op z'n plek in de wereld.
-  // De Botty loopt naar de basis van het object (x = midden), en gebruikt het via
-  // z'n zelfzorg-doel (b.doel.obj === id). ambient = eigen sfeer-animatie.
-  // Vloeren: tuin=405, kamer=662. Elk object staat mét z'n basis op de vloer
-  // (y = vloer - h) en is horizontaal gespreid; weg van de geschilderde deuropening
-  // (midden-kamer) en de put (links-tuin). Vaste decors: kleed (585) + broedmachine (312).
-  var OBJDEF = [
-    // kamer (niveau 1, vloer 662)
+  // Losse object-agents — de CENTRALE agent-laag staat in /agents.json (één bron
+  // voor simulatie + Construct). We laden die catalogus; lukt dat niet, dan valt de
+  // pagina terug op deze ingebouwde kopie zodat de wereld nooit leeg is.
+  // wereld{x,y,w,h,niveau}: vloeren tuin=405, kamer=662; basis op de vloer.
+  var OBJDEF_FALLBACK = [
     { id:"boekenkast",img:"obj_05", x:118,  y:503, w:126, h:159, niveau:1, icoon:"📚" },
     { id:"laadkruk",  img:"obj_09", x:456,  y:585, w:96,  h:77,  niveau:1, icoon:"⚡", ambient:"glow" },
     { id:"bord",      img:"obj_00", x:690,  y:546, w:174, h:116, niveau:1, icoon:"💾" },
@@ -328,26 +325,44 @@
     { id:"lessenaar", img:"obj_02", x:1010, y:548, w:142, h:114, niveau:1, icoon:"✒️" },
     { id:"stolp",     img:"obj_13", x:1180, y:568, w:94,  h:94,  niveau:1, icoon:"🔬", ambient:"critter" },
     { id:"kastje",    img:"obj_15", x:1310, y:562, w:108, h:100, niveau:1, icoon:"🗄️" },
-    // tuin (niveau 0, vloer 405)
     { id:"bloempot",  img:"obj_16", x:470,  y:303, w:64,  h:102, niveau:0, icoon:"🌼", ambient:"sway" },
     { id:"bal",       img:"obj_06", x:1010, y:294, w:68,  h:111, niveau:0, icoon:"🏃", ambient:"sway" },
     { id:"deur",      img:"obj_11", x:1352, y:267, w:94,  h:138, niveau:0, icoon:"🌲" }
   ];
-  var objImg = {};   // id → <image> (voor de "in gebruik"-pulse)
-  (function(){
+  var objImg = {};      // id → <image> (voor de "in gebruik"-pulse)
+  var OBJECTEN = [];    // bewegingsdoelen; in-place gevuld zodat closures ze zien
+  function bouwObjecten(def){
     var g = document.getElementById("objagents");
-    OBJDEF.forEach(function(o){
-      var im = document.createElementNS("http://www.w3.org/2000/svg","image");
+    var ol = document.getElementById("objectlaag");
+    def.forEach(function(o){
+      var im = document.createElementNS(SVGNS,"image");
       im.setAttributeNS("http://www.w3.org/1999/xlink","href","assets/klas/"+o.img+".png");
       im.setAttribute("href","assets/klas/"+o.img+".png");
       im.setAttribute("x",o.x); im.setAttribute("y",o.y);
       im.setAttribute("width",o.w); im.setAttribute("height",o.h);
       im.setAttribute("class","objagent" + (o.ambient ? " amb-"+o.ambient : ""));
       g.appendChild(im); objImg[o.id] = im;
+      // bewegingsdoel: de Botty staat aan de basis (midden-onder) van het object
+      var doel = { id:o.id, x:Math.round(o.x + o.w/2), niveau:o.niveau, icoon:o.icoon };
+      doel.y = vloerVan(o.niveau) - 26;   // halo net boven de vloer
+      OBJECTEN.push(doel);
+      // zachte pulserende halo + icoon
+      var halo = document.createElementNS(SVGNS,"circle");
+      halo.setAttribute("cx",doel.x); halo.setAttribute("cy",doel.y); halo.setAttribute("r","34");
+      halo.setAttribute("fill","#ffe6a8"); halo.setAttribute("class","obj-halo");
+      var ic = document.createElementNS(SVGNS,"text");
+      ic.setAttribute("x",doel.x); ic.setAttribute("y",doel.y-40); ic.setAttribute("text-anchor","middle");
+      ic.setAttribute("style","font:16px sans-serif"); ic.setAttribute("opacity",".55");
+      ic.textContent = o.icoon;
+      ol.appendChild(halo); ol.appendChild(ic);
     });
-  })();
-  // Bewegingsdoelen: de Botty staat aan de basis (midden-onder) van het object.
-  var OBJECTEN = OBJDEF.map(function(o){ return { id:o.id, x:Math.round(o.x + o.w/2), niveau:o.niveau, icoon:o.icoon }; });
+  }
+  fetch("agents.json").then(function(r){ return r.json(); }).then(function(cat){
+    var def = (cat.agents||[]).filter(function(a){ return a && a.id && a.wereld && a.sprite; })
+      .map(function(a){ return { id:a.id, img:a.sprite, x:a.wereld.x, y:a.wereld.y,
+        w:a.wereld.w, h:a.wereld.h, niveau:a.wereld.niveau, icoon:a.icoon, ambient:a.ambient }; });
+    bouwObjecten(def.length >= 4 ? def : OBJDEF_FALLBACK);
+  }).catch(function(){ bouwObjecten(OBJDEF_FALLBACK); });
   var POIS = {
     bord:  { x:820,  niveau:1 },
     raamL: { x:190,  niveau:0 },
@@ -356,7 +371,6 @@
     bal:   { x:1150, niveau:0 },
     kruk:  { x:480,  niveau:1 }
   };
-  OBJECTEN.forEach(function(o){ o.y = vloerVan(o.niveau) - 26; });   // halo net boven de vloer
 
   var laag = document.getElementById("laag");
   var fxlaag = document.getElementById("fxlaag");
@@ -364,20 +378,6 @@
   var kamerEl = document.getElementById("kamer");
   var sel = null;                       // naam van de geselecteerde Botty
   var cam = { x:0, y:0, w:1500 };       // camera (viewBox), lerp't naar doel
-  // Objectlaag: zachte pulserende halo + icoon per affordance-object
-  (function(){
-    var ol = document.getElementById("objectlaag");
-    OBJECTEN.forEach(function(o){
-      var halo = document.createElementNS("http://www.w3.org/2000/svg","circle");
-      halo.setAttribute("cx",o.x); halo.setAttribute("cy",o.y); halo.setAttribute("r","34");
-      halo.setAttribute("fill","#ffe6a8"); halo.setAttribute("class","obj-halo");
-      var ic = document.createElementNS("http://www.w3.org/2000/svg","text");
-      ic.setAttribute("x",o.x); ic.setAttribute("y",o.y-40); ic.setAttribute("text-anchor","middle");
-      ic.setAttribute("style","font:16px sans-serif"); ic.setAttribute("opacity",".55");
-      ic.textContent = o.icoon;
-      ol.appendChild(halo); ol.appendChild(ic);
-    });
-  })();
   var bottys = [];               // server-staat
   var nodes = {};                // naam → node met x, niveau, doelX, doelNiveau, klim…
   var RUST = { x:1250, niveau:1 };   // rustige hoek in de kamer (rechts)
