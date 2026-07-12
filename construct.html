@@ -459,12 +459,16 @@
   }
   function tickEnLaad(){ if(document.hidden) return; fetch(TICK_URL,{method:"POST"}).catch(function(){}).then(function(){ laad(); }); }
 
-  function maakNode(b){
-    var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","botje");
-    var schaduw = document.createElementNS(SVGNS,"ellipse"); schaduw.setAttribute("fill","rgba(0,0,0,.3)");
-    var inner = document.createElementNS(SVGNS,"g"); inner.setAttribute("class","sprite");
+  // Jonge Botty's (tiener) worden getekend met de uitgesneden pixel-art walk-cycle
+  // (assets/sprites/young). De overige fases blijven de procedurele SVG-sprite.
+  var PIX_STAGE = "tiener";
+  function pixelInnerHTML(){
+    return '<image class="pixframe" x="-50" y="0" width="300" height="250" preserveAspectRatio="xMidYMax meet"'
+      + ' href="assets/sprites/young/young_idle_0.png"/>';
+  }
+  function svgSpriteInner(b){
     var pal = b.kleur || paletten[0];
-    inner.innerHTML = (sprites[b.stage]||sprites.volwassen)(pal)
+    return (sprites[b.stage]||sprites.volwassen)(pal)
       // glans-hooglicht linksboven op de kop → minder plat, meer volume
       + '<ellipse cx="82" cy="60" rx="26" ry="30" fill="url(#bottyGlans)" pointer-events="none" transform="rotate(-18 82 60)"/>'
       // gezichtsoverlays (standaard onzichtbaar; getoond via stemmingsklassen)
@@ -487,6 +491,23 @@
       // eenzaam: hangende mond + traan
       + '<g class="expr-eenzaam" pointer-events="none"><path d="M92,105 q8,-6 16,0" fill="none" stroke="#14403c" stroke-width="3" stroke-linecap="round"/>'
       +   '<ellipse cx="90" cy="96" rx="3" ry="4.5" fill="#8fd6ff" opacity="0.85"/></g>';
+  }
+  // Zet de juiste sprite (pixel voor jong, SVG voor de rest) en onthoud de fase,
+  // zodat een Botty bij het opgroeien vanzelf van sprite wisselt.
+  function zetInner(nd, b){
+    if(b.stage === PIX_STAGE){
+      nd.inner.innerHTML = pixelInnerHTML();
+      nd.pixel = true; nd.pimg = nd.inner.querySelector(".pixframe"); nd.pimgUrl = "";
+    } else {
+      nd.inner.innerHTML = svgSpriteInner(b);
+      nd.pixel = false; nd.pimg = null;
+    }
+    nd.spriteStage = b.stage;
+  }
+  function maakNode(b){
+    var g = document.createElementNS(SVGNS,"g"); g.setAttribute("class","botje");
+    var schaduw = document.createElementNS(SVGNS,"ellipse"); schaduw.setAttribute("fill","rgba(0,0,0,.3)");
+    var inner = document.createElementNS(SVGNS,"g"); inner.setAttribute("class","sprite");
     var sekseSym = b.sekse==="m" ? " ♂" : b.sekse==="v" ? " ♀" : "";
     var naam = document.createElementNS(SVGNS,"text"); naam.textContent = b.naam + sekseSym;
     var ring = document.createElementNS(SVGNS,"circle"); ring.setAttribute("r","5"); ring.setAttribute("cy","-4");
@@ -501,12 +522,14 @@
     var idx = Object.keys(nodes).length;
     var startNiv = 1, lv0 = NIVEAUS[startNiv];
     var sx = lv0.xlo + (lv0.xhi-lv0.xlo) * ((idx+0.5)/9);
-    return { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik,
+    var nd = { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik,
              render:{ x:sx, y:vloerVan(startNiv) },
              niveau:startNiv, doelNiveau:startNiv, doelX:sx, klim:null, pauze:0, loopFase:0, linksom:false,
              traagMs:0, wakerX:sx,
              faseNum: nameRnd(b.naam+"br")*6.28, volgendeKnipper:0, knipperTot:0, blijTot:0,
              snelheid: 0.9 + nameRnd(b.naam+"snel")*1.3, b:b };
+    zetInner(nd, b);   // eerste sprite (pixel of SVG) plaatsen
+    return nd;
   }
 
   function randX(niv){ var lv=NIVEAUS[niv]; return lv.xlo + Math.random()*(lv.xhi-lv.xlo); }
@@ -648,6 +671,22 @@
       var beweegt = Math.abs(r.x - was) > 0.3;
       if((r.x - was) < -0.06) nd.linksom = true; else if((r.x - was) > 0.06) nd.linksom = false;
       var linksom = nd.linksom;
+
+      // Van sprite wisselen als de Botty een andere levensfase in groeide.
+      if(nd.spriteStage !== b.stage) zetInner(nd, b);
+      // Pixel-Botty (jong): kies de juiste frame (idle/walk/run) op basis van tempo;
+      // de rechter-frames worden voor linksom via de bestaande scaleX-flip gespiegeld.
+      if(nd.pixel && nd.pimg){
+        var mv = Math.abs(r.x - was);
+        var st = inSlaap ? "idle" : (mv > 1.8 ? "runR" : (mv > 0.35 ? "walkR" : "idle"));
+        var af = Math.floor(ts/170) % 2;
+        var url = "assets/sprites/young/young_" + st + "_" + af + ".png";
+        if(nd.pimgUrl !== url){
+          nd.pimg.setAttribute("href", url);
+          nd.pimg.setAttributeNS("http://www.w3.org/1999/xlink","href",url);
+          nd.pimgUrl = url;
+        }
+      }
 
       // grootte per fase (afgestemd op de nieuwe wereld)
       var schaalBasis = (b.stage==="baby"?0.38:b.stage==="tiener"?0.46:0.54) * (b.grootte||1);
