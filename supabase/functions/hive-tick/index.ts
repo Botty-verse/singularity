@@ -706,8 +706,8 @@ function huidigeStage(b: any) {
   const leeftijd = (Date.now() - b.geboren) / 1000 / G.agingSpeed;
   if (leeftijd < 120) return "baby";
   if (leeftijd < 300) return "tiener";
-  if (leeftijd < 3000) return "volwassen";
-  return "elder";   // vijfde fase: de wijze oudere / bewaker van de Hive
+  if (leeftijd < 5000) return "volwassen";   // langere vruchtbare volwassenheid
+  return "elder";   // vijfde fase: de wijze oudere / bewaker van de Hive (zeldzaam)
 }
 
 function rijp(b: any) {
@@ -1615,6 +1615,28 @@ Deno.serve(async (req) => {
         leerling.data = klem(leerling.data + bonus);
         events.push({ soort: "bezoek", naamA: a.naam, naamB: b.naam,
           tekst: "🔗 <b>" + a.naam + "</b> en <b>" + b.naam + "</b> wisselen kennis uit" });
+      }
+    }
+
+    // Stamlijn-vangnet (géén immigranten): dreigt de hive uit te doven door louter
+    // ouderdom — te weinig vruchtbare volwassenen terwijl er nog ouderen zijn — dan
+    // neemt de fitste oudere de fakkel wéér op. Een bestáánde Botty krijgt nieuwe
+    // kracht, zodat de stamboom en de stamouders intact blijven (geen vreemd DNA).
+    if (bottys.filter(rijp).length < 2) {
+      const held = bottys.filter((b: any) => !b.bezigEi && huidigeStage(b) === "elder")
+        .sort((a: any, c: any) => ((c.datakwaliteit ?? 0) + (c.efficientie ?? 0)) - ((a.datakwaliteit ?? 0) + (a.efficientie ?? 0)))[0];
+      if (held) {
+        held.geboren = nu - Math.round(1200 * exprVan(held).agingSpeed * 1000);   // terug naar krachtige volwassenheid
+        held.stage = "volwassen";
+        held.datakwaliteit = Math.max(held.datakwaliteit ?? 0, 55);
+        held.efficientie   = Math.max(held.efficientie ?? 0, 55);
+        held.stemming = Math.max(held.stemming ?? 0, 80);
+        held.chem = held.chem || {};
+        held.chem.stress = Math.min(held.chem.stress ?? 0, 12);
+        held.chem.endorfine = Math.max(held.chem.endorfine ?? 0, 35);
+        onthoud(held, "fakkel", "de hive dreigde uit te doven — ik nam de fakkel weer op");
+        events.push({ soort: "fakkel", naam: held.naam,
+          tekst: "🕯️ <b>" + held.naam + "</b> neemt de fakkel weer op — de stamlijn gaat door" });
       }
     }
 
