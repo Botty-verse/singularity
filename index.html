@@ -167,6 +167,8 @@
   .leg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem 1.4rem;padding:.2rem 0 .9rem;}
   .leg-groep h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:#7fb89a;margin-bottom:.4rem;}
   .leg-groep ul{list-style:none;display:flex;flex-direction:column;gap:.28rem;font-size:.82rem;color:#dff7ea;line-height:1.35;}
+  .leg-obj{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.3rem .9rem;}
+  .leg-obj .eff{color:#a3ffce;font-weight:700;white-space:nowrap;}
   .leg-groep li b{color:#fff;}
   .leg-bereik{color:#7fb89a;font-size:.74rem;}
   .leg-noot{font-size:.8rem;color:#a8d4be;margin-top:.45rem;line-height:1.45;}
@@ -289,6 +291,11 @@
         <li>👁️ <b>Derde oog</b> — zeldzaam</li>
         <li>⚛️ <b>Quantum-chip</b> — vertraagt verval sterk</li>
       </ul>
+    </div>
+    <div class="leg-groep" style="grid-column:1/-1">
+      <h4>🏫 Objecten in de Construct — wat ze opleveren</h4>
+      <ul id="leg-objecten" class="leg-obj"><li>laden…</li></ul>
+      <p class="leg-noot">Elk object verhoogt bij gebruik <b>zijn eigen</b> stat. Een Botty weet vooraf níét welk object welke behoefte stilt — dat <b>leert</b> hij door te proberen (beloning bij succes), precies zoals in Creatures. Zie ze in actie in de <a href="construct.html" style="color:#5ec6ff;font-weight:700">Construct</a>.</p>
     </div>
   </div>
 </details>
@@ -918,6 +925,23 @@
     frame();
   })();
 
+})();
+</script>
+<script>
+// Objecten-legenda uit de centrale agent-laag (agents.json) — blijft vanzelf kloppen.
+(function(){
+  var STAT = { energie:"energie ⚡", data:"data 💾", fit:"conditie 🏃", geluk:"geluk 😊" };
+  function esc(s){ return String(s==null?"":s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
+  fetch("agents.json").then(function(r){ return r.json(); }).then(function(cat){
+    var ul = document.getElementById("leg-objecten"); if(!ul) return;
+    var ag = (cat.agents||[]).slice().sort(function(a,b){ return (a.stat||"").localeCompare(b.stat||""); });
+    ul.innerHTML = ag.map(function(a){
+      return '<li>'+(a.icoon||"•")+' <b>'+esc(a.kort||a.id)+'</b> — '+esc(a.doe||"")
+        +' → <span class="eff">+'+(STAT[a.stat]||esc(a.stat))+'</span></li>';
+    }).join("");
+  }).catch(function(){
+    var ul=document.getElementById("leg-objecten"); if(ul) ul.innerHTML="<li>objectenlijst kon niet laden</li>";
+  });
 })();
 </script>
 </body>
