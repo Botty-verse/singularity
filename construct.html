@@ -113,6 +113,14 @@
   .kit-gedachte{margin-top:.45rem;font-size:.82rem;color:#e6d2a8;font-style:italic;line-height:1.4;
                 background:#14100a;border:1px solid #4a3a28;border-radius:10px;padding:.4rem .6rem;}
   .kit-drives{flex:1 1 220px;min-width:200px;display:flex;flex-direction:column;gap:.35rem;}
+  .kit-brein{flex:1 1 100%;margin-top:.2rem;border-top:1px solid #14403c;padding-top:.5rem;}
+  .kit-brein-kop{font-weight:700;color:#a3ffce;font-size:.86rem;margin-bottom:.15rem;}
+  .kit-brein-kop span{color:#7fb89a;font-weight:400;font-size:.76rem;}
+  #kit-brein-svg{width:100%;height:206px;display:block;}
+  .kit-brein-noot{font-size:.72rem;color:#7fb89a;line-height:1.35;margin-top:.25rem;}
+  .brein-edge{transition:stroke-width .3s;}
+  @keyframes breinPuls{0%{stroke:#eaffbf;stroke-width:6;opacity:1}100%{}}
+  .brein-edge.puls{animation:breinPuls .9s ease-out;}
   .drive{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:#cbb189;}
   .drive .dlabel{width:88px;flex-shrink:0;text-align:right;}
   .drive .dbar{flex:1;height:9px;background:#14100a;border:1px solid #4a3a28;border-radius:99px;overflow:hidden;}
@@ -250,6 +258,11 @@
           <svg viewBox="0 0 150 44" preserveAspectRatio="none" style="width:50%;height:100%"><path d="M0,24 h40 l8,-13 8,24 8,-18 5,7 h81" fill="none" stroke="#39ff85" stroke-width="2.5"/></svg>
         </div></div>
         <div class="kit-bpm" id="kit-bpm">— klop/min</div>
+      </div>
+      <div class="kit-brein" id="kit-brein">
+        <div class="kit-brein-kop">🧠 Brein — geleerde verbanden <span id="kit-brein-n"></span></div>
+        <svg id="kit-brein-svg" viewBox="0 0 300 210" preserveAspectRatio="xMidYMid meet" aria-label="brein-graaf"></svg>
+        <div class="kit-brein-noot">Drift ↔ object. Dikker &amp; groener = sterker geleerd dat dít object die behoefte stilt; dof/rood = geleerd dat het níét helpt. Een oplichtende lijn is zojuist versterkt door de omgeving.</div>
       </div>
     </div>
   </div>
@@ -972,6 +985,47 @@
     kitDrives.appendChild(rij);
   });
   var kitStageLabel = { born:"Baby", young:"Jong", teen:"Tiener", adult:"Volwassen", elder:"Oudere", sage:"Wijze" };
+  // ── Brein-graaf: leert-ie welk object welke behoefte stilt? ──────────────────
+  // Bipartiete graaf: links de vier driften, rechts de objecten. De lijn-dikte en
+  // -kleur tonen het geleerde geloof b.brein[drift][object] (0..1). Groen = "helpt",
+  // rood = "helpt niet", dof = neutraal/onbekend. Versterkt een verband sinds de
+  // vorige verversing, dan licht de lijn kort op — leren wordt live zichtbaar.
+  var DRIFT_KNOOP = [["energie","⚡"],["data","💾"],["fit","🏃"],["geluk","😊"]];
+  var breinPrev = {};
+  function renderBrein(b){
+    var svg = document.getElementById("kit-brein-svg"); if(!svg) return;
+    var objs = OBJECTEN.map(function(o){ return { id:o.id, icoon:o.icoon }; });
+    var W=300,H=210, lx=32, rx=268, mx=150;
+    var dy = DRIFT_KNOOP.map(function(_,i){ return 34 + i*(H-68)/(DRIFT_KNOOP.length-1); });
+    var oy = objs.map(function(_,i){ return objs.length>1 ? 15 + i*(H-30)/(objs.length-1) : H/2; });
+    var brein = b.brein||{}, prev = breinPrev[b.naam]||{}, p=[];
+    DRIFT_KNOOP.forEach(function(d,di){
+      var row = brein[d[0]]||{};
+      objs.forEach(function(o,oi){
+        var w = row[o.id]; if(w==null) return;
+        var dev = w-0.5; if(Math.abs(dev)<0.045) return;      // neutraal → niet tekenen
+        var col = dev>0 ? "#39ff85" : "#e0556b";
+        var op = Math.min(1, Math.abs(dev)*2.2).toFixed(2);
+        var sw = (0.4 + Math.abs(dev)*4.2).toFixed(2);
+        var pw = (prev[d[0]]||{})[o.id];
+        var puls = (pw!=null && w-pw>0.012) ? " puls" : "";
+        p.push('<path class="brein-edge'+puls+'" d="M'+lx+','+dy[di].toFixed(1)+' C'+mx+','+dy[di].toFixed(1)+' '+mx+','+oy[oi].toFixed(1)+' '+rx+','+oy[oi].toFixed(1)+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'" opacity="'+op+'" stroke-linecap="round"/>');
+      });
+    });
+    DRIFT_KNOOP.forEach(function(d,di){
+      p.push('<circle cx="'+lx+'" cy="'+dy[di].toFixed(1)+'" r="12" fill="#0e2f1e" stroke="#2f8f86" stroke-width="1.6"/>');
+      p.push('<text x="'+lx+'" y="'+(dy[di]+4).toFixed(1)+'" text-anchor="middle" font-size="13">'+d[1]+'</text>');
+    });
+    objs.forEach(function(o,oi){
+      p.push('<circle cx="'+rx+'" cy="'+oy[oi].toFixed(1)+'" r="9" fill="#0e2f1e" stroke="#1c5b42" stroke-width="1.2"/>');
+      p.push('<text x="'+rx+'" y="'+(oy[oi]+3.5).toFixed(1)+'" text-anchor="middle" font-size="10">'+(o.icoon||"•")+'</text>');
+    });
+    svg.innerHTML = p.join("");
+    breinPrev[b.naam] = JSON.parse(JSON.stringify(brein));
+    var tot = b.breinN ? Object.keys(b.breinN).reduce(function(s,k){ return s+(b.breinN[k]||0); },0) : 0;
+    var nEl = document.getElementById("kit-brein-n"); if(nEl) nEl.textContent = tot ? "· "+tot+" leerervaringen" : "";
+  }
+
   function updateKit(){
     var leeg = document.getElementById("kit-leeg"), body = document.getElementById("kit-body");
     var b = sel && bottys.find(function(x){ return x.naam === sel; });
@@ -979,6 +1033,8 @@
     leeg.hidden = true; body.hidden = false;
     document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
     document.getElementById("kit-naam").textContent = b.naam;
+    delete breinPrev[b.naam];   // verse selectie → geen valse puls
+    renderBrein(b);
   }
   var kitPuls = 0;
   function updateKitLive(){
@@ -987,7 +1043,7 @@
     if(!b){ sel = null; updateKit(); return; }
     var g = (b.energie+b.data+b.fit+b.geluk)/4;
     var sekseTxt = b.sekse==="m" ? " · ♂" : b.sekse==="v" ? " · ♀" : "";
-    var rijpTxt = (b.stage==="baby"||b.stage==="tiener") ? " · 🌱 trekken rijpen nog" : "";
+    var rijpTxt = (b.stage==="born"||b.stage==="young"||b.stage==="teen") ? " · 🌱 trekken rijpen nog" : "";
     var kar = karakter(b);
     document.getElementById("kit-sub").textContent =
       (kitStageLabel[b.stage]||b.stage) + sekseTxt + " · generatie " + (b.generatie||1)
@@ -1000,6 +1056,7 @@
       rij.querySelector(".dbar > span").style.width = v + "%";
       rij.classList.toggle("hoog", v > 65);
     });
+    renderBrein(b);   // live brein-graaf: geleerde verbanden + versterking
     var bpm = Math.round(55 + (100-g)*1.1 + (b.ziek?25:0));
     document.getElementById("ecg-band").style.setProperty("--dur", (60/bpm*2).toFixed(2)+"s");
     document.getElementById("kit-bpm").textContent = "♥ " + bpm + " klop/min";
