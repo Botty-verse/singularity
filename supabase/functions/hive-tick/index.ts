@@ -545,9 +545,9 @@ function mult(b: Uint8Array, i: number): number {
 // en veroudering — rijpen mee. Zo komt de persoonlijkheid van een Botty pas bij
 // het opgroeien tevoorschijn. Factor 0..1 schaalt de afwijking-van-neutraal.
 const ONTOGENESE: Record<number, Record<string, number>> = {
-  11: { baby: 0.2, tiener: 0.7, volwassen: 1 },   // sociale gevoeligheid
-  14: { baby: 0.2, tiener: 0.7, volwassen: 1 },   // expressie-bias
-  15: { baby: 0.3, tiener: 0.7, volwassen: 1 },   // verouderingssnelheid
+  11: { born: 0.15, young: 0.4, teen: 0.7, adult: 1, elder: 1, sage: 1 },   // sociale gevoeligheid
+  14: { born: 0.15, young: 0.4, teen: 0.7, adult: 1, elder: 1, sage: 1 },   // expressie-bias
+  15: { born: 0.25, young: 0.5, teen: 0.75, adult: 1, elder: 1, sage: 1 },  // verouderingssnelheid
 };
 function ontoFactor(i: number, stage: string): number {
   const t = ONTOGENESE[i];
@@ -570,7 +570,8 @@ const EXTRA_MAX = 12;                 // begrens de genoomlengte (payload + stab
 const EXTRA_LOCI = 12;                // extra genen mogen locus 0..11 raken (multiplier-genen)
 function mult2(byte: number): number { return 0.5 + (byte ?? 128) / 255; }
 function clampMult(x: number): number { return Math.max(0.25, Math.min(2.0, x)); }
-function stageIdx(stage: string): number { return stage === "baby" ? 0 : stage === "tiener" ? 1 : 2; }
+const STAGE_ORDE = ["born", "young", "teen", "adult", "elder", "sage"];   // 6 levensfases
+function stageIdx(stage: string): number { const i = STAGE_ORDE.indexOf(stage); return i < 0 ? 3 : i; }
 // Som van bijdragen van alle actieve extra genen voor één locus (half-kracht, stapelt).
 function extraBij(genen: any[] | undefined, i: number, stage: string): number {
   if (!genen || !genen.length) return 0;
@@ -581,7 +582,7 @@ function extraBij(genen: any[] | undefined, i: number, stage: string): number {
   return add;
 }
 
-function exprGenoom(g: string | undefined, stage = "volwassen", genen: any[] = []) {
+function exprGenoom(g: string | undefined, stage = "adult", genen: any[] = []) {
   const b = genoomBytes(g);
   // effectieve multiplier voor een locus = kern-gen + extra genen, begrensd
   const eff = (i: number) => clampMult(mult(b, i) + extraBij(genen, i, stage));
@@ -704,14 +705,16 @@ function tintPalet(palet: any, deg: number): any {
 function huidigeStage(b: any) {
   const G = exprVan(b);
   const leeftijd = (Date.now() - b.geboren) / 1000 / G.agingSpeed;
-  if (leeftijd < 120) return "baby";
-  if (leeftijd < 300) return "tiener";
-  if (leeftijd < 5000) return "volwassen";   // langere vruchtbare volwassenheid
-  return "elder";   // vijfde fase: de wijze oudere / bewaker van de Hive (zeldzaam)
+  if (leeftijd < 100) return "born";     // pasgeboren
+  if (leeftijd < 350) return "young";    // jong, verkent de wereld
+  if (leeftijd < 800) return "teen";     // puber
+  if (leeftijd < 5000) return "adult";   // volwassen — de lange vruchtbare fase
+  if (leeftijd < 7200) return "elder";   // oudere met mantel en staf
+  return "sage";                          // wijze (zeldzaam) — mos-bedekt, 1y+
 }
 
 function rijp(b: any) {
-  return huidigeStage(b) === "volwassen"
+  return huidigeStage(b) === "adult"
     && (b.datakwaliteit ?? 50) + (b.efficientie ?? 50) >= 80
     && !b.bezigEi;
 }
@@ -802,8 +805,8 @@ function updateStemming(b: any, bezoekers: number) {
   const stage = huidigeStage(b);
   const genBonus = ((b.datakwaliteit ?? 50) + (b.efficientie ?? 50) - 100) / 20;
   const bezoekersBonus = Math.min(bezoekers, 12) * 0.9 * G.social;
-  const stageEffect = stage === "baby" ? (Math.random() * 8 - 4)
-    : stage === "tiener" ? (Math.random() * 4 - 1.5) : 0.4;
+  const stageEffect = stage === "born" ? (Math.random() * 8 - 4)
+    : (stage === "young" || stage === "teen") ? (Math.random() * 4 - 1.5) : 0.4;
   const wifiBonus = heeft(b, "wifi") || heeft(b, "antenne2") ? 1.5 : 0;
   const ziekPenalty = b.ziek ? -5 : 0;
   const vervalDecay = -1.1 * G.verval.stemming;
@@ -1286,7 +1289,7 @@ function maakBotty(naam: string, palet: any, generatie = 1, extra: any = {}) {
     datakwaliteit: 40 + Math.random() * 30,
     efficientie:   40 + Math.random() * 30,
     stemming: 40 + Math.random() * 25,
-    stage: "baby", geboren: Date.now(),
+    stage: "born", geboren: Date.now(),
     generatie, ziek: false, mutaties: [], bezigEi: false,
     genome,
     sekse, dimorf: true,
@@ -1623,11 +1626,11 @@ Deno.serve(async (req) => {
     // neemt de fitste oudere de fakkel wéér op. Een bestáánde Botty krijgt nieuwe
     // kracht, zodat de stamboom en de stamouders intact blijven (geen vreemd DNA).
     if (bottys.filter(rijp).length < 2) {
-      const held = bottys.filter((b: any) => !b.bezigEi && huidigeStage(b) === "elder")
+      const held = bottys.filter((b: any) => { const s = huidigeStage(b); return !b.bezigEi && (s === "elder" || s === "sage"); })
         .sort((a: any, c: any) => ((c.datakwaliteit ?? 0) + (c.efficientie ?? 0)) - ((a.datakwaliteit ?? 0) + (a.efficientie ?? 0)))[0];
       if (held) {
         held.geboren = nu - Math.round(1200 * exprVan(held).agingSpeed * 1000);   // terug naar krachtige volwassenheid
-        held.stage = "volwassen";
+        held.stage = "adult";
         held.datakwaliteit = Math.max(held.datakwaliteit ?? 0, 55);
         held.efficientie   = Math.max(held.efficientie ?? 0, 55);
         held.stemming = Math.max(held.stemming ?? 0, 80);
@@ -1934,8 +1937,8 @@ Deno.serve(async (req) => {
           for (const b of doelgroep) {
             b.lexicon = b.lexicon || {};
             const concept = "mens:" + woord.toLowerCase();
-            const baby = huidigeStage(b) === "baby";
-            b.lexicon[concept] = baby && Math.random() < 0.6 ? muteerWoord(woord) : woord;
+            const jong = huidigeStage(b) === "born" || huidigeStage(b) === "young";
+            b.lexicon[concept] = jong && Math.random() < 0.6 ? muteerWoord(woord) : woord;
             b.geluk = klem((b.geluk ?? 50) + 4);
             boostEndorfine(b, 6);
             if (!b.herinneringen?.some((h: any) => h.soort === "woord-geleerd" && h.tekst.includes(woord)))
