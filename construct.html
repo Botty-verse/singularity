@@ -461,10 +461,11 @@
 
   // Jonge Botty's (tiener) worden getekend met de uitgesneden pixel-art walk-cycle
   // (assets/sprites/young). De overige fases blijven de procedurele SVG-sprite.
-  var PIX_STAGE = "tiener";
-  function pixelInnerHTML(){
+  // Alle fases behalve 'born' (baby) worden met pixel-art getekend; born blijft SVG.
+  var PIX_STAGES = { young:true, teen:true, adult:true, elder:true, sage:true };
+  function pixelInnerHTML(stage){
     return '<image class="pixframe" x="-50" y="0" width="300" height="250" preserveAspectRatio="xMidYMax meet"'
-      + ' href="assets/sprites/young/young_idle_0.png"/>';
+      + ' href="assets/sprites/'+stage+'/'+stage+'_idle_0.png"/>';
   }
   function svgSpriteInner(b){
     var pal = b.kleur || paletten[0];
@@ -495,8 +496,8 @@
   // Zet de juiste sprite (pixel voor jong, SVG voor de rest) en onthoud de fase,
   // zodat een Botty bij het opgroeien vanzelf van sprite wisselt.
   function zetInner(nd, b){
-    if(b.stage === PIX_STAGE){
-      nd.inner.innerHTML = pixelInnerHTML();
+    if(PIX_STAGES[b.stage]){
+      nd.inner.innerHTML = pixelInnerHTML(b.stage);
       nd.pixel = true; nd.pimg = nd.inner.querySelector(".pixframe"); nd.pimgUrl = "";
     } else {
       nd.inner.innerHTML = svgSpriteInner(b);
@@ -678,9 +679,15 @@
       // de rechter-frames worden voor linksom via de bestaande scaleX-flip gespiegeld.
       if(nd.pixel && nd.pimg){
         var mv = Math.abs(r.x - was);
-        var st = inSlaap ? "idle" : (mv > 1.8 ? "runR" : (mv > 0.35 ? "walkR" : "idle"));
-        var af = Math.floor(ts/170) % 2;
-        var url = "assets/sprites/young/young_" + st + "_" + af + ".png";
+        var moving = !inSlaap && mv > 0.35;
+        var dir = nd.spriteStage, st, af = 0;
+        if(dir === "young"){   // young heeft 2 loopframes + aparte run
+          st = inSlaap ? "idle" : (mv > 1.8 ? "runR" : (moving ? "walkR" : "idle"));
+          af = Math.floor(ts/170) % 2;
+        } else {               // teen/adult/elder/sage: idle + walk (1 frame)
+          st = moving ? "walkR" : "idle";
+        }
+        var url = "assets/sprites/" + dir + "/" + dir + "_" + st + "_" + af + ".png";
         if(nd.pimgUrl !== url){
           nd.pimg.setAttribute("href", url);
           nd.pimg.setAttributeNS("http://www.w3.org/1999/xlink","href",url);
@@ -689,7 +696,7 @@
       }
 
       // grootte per fase (afgestemd op de nieuwe wereld)
-      var schaalBasis = (b.stage==="baby"?0.38:b.stage==="tiener"?0.46:0.54) * (b.grootte||1);
+      var schaalBasis = ({born:0.38,young:0.46,teen:0.50,adult:0.56,elder:0.58,sage:0.64}[b.stage] || 0.54) * (b.grootte||1);
       var w = 200*schaalBasis, h = 250*schaalBasis;
       // loop-huppel + ademhaling (squash-&-stretch, voeten blijven op de vloer)
       nd.loopFase += beweegt && !inSlaap ? 0.34 : 0;
@@ -964,7 +971,7 @@
     rij.innerHTML = '<span class="dlabel">'+d.label+'</span><span class="dbar"><span style="width:0%"></span></span>';
     kitDrives.appendChild(rij);
   });
-  var kitStageLabel = { baby:"Baby", tiener:"Tiener", volwassen:"Volwassen", elder:"Oudere" };
+  var kitStageLabel = { born:"Baby", young:"Jong", teen:"Tiener", adult:"Volwassen", elder:"Oudere", sage:"Wijze" };
   function updateKit(){
     var leeg = document.getElementById("kit-leeg"), body = document.getElementById("kit-body");
     var b = sel && bottys.find(function(x){ return x.naam === sel; });

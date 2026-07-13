@@ -475,8 +475,14 @@
   var paletten = BottyRender.paletten;
   function gem(b){ return (b.energie+b.data+b.fit+b.geluk)/4; }
   var spierSchaal = BottyRender.spierSchaal;
-  var groei = { baby:0.66, tiener:0.92, volwassen:1.0, elder:0.98 };
-  var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen", elder:"oudere" };
+  var groei = { born:0.62, young:0.78, teen:0.9, adult:1.0, elder:0.98, sage:1.02,
+                baby:0.66, tiener:0.92, volwassen:1.0 };
+  var stageLabel = { born:"baby", young:"jong", teen:"tiener", adult:"volwassen", elder:"oudere", sage:"wijze",
+                     baby:"baby", tiener:"tiener", volwassen:"volwassen" };
+  // De hive-kaarten tekenen SVG; nieuwe fasenamen op een bestaande SVG-sprite mappen.
+  var svgStage = { born:"baby", young:"tiener", teen:"tiener", adult:"volwassen", elder:"elder", sage:"elder",
+                   baby:"baby", tiener:"tiener", volwassen:"volwassen", elder2:"elder" };
+  function stageSprite(b){ return sprites[svgStage[b.stage]] || sprites[b.stage] || spriteVolwassen; }
   var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
   function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
   // §3.4: melding bij een genduplicatie / nieuw extra gen bij de geboorte
@@ -584,7 +590,7 @@
       + dnaStripHtml(b)
       + '<div class="scene"><div class="bw bw-'+b.stage+' vitaal" style="--groei:'+((groei[b.stage]||1)*grootteUit(b)).toFixed(3)+';--spier:'+spierSchaal(b.efficientie)+'">'
       +   '<div class="ziek-bubbel">🤒</div>'
-      +   '<svg viewBox="0 0 200 250" aria-label="Botty '+b.naam+'">'+(sprites[b.stage]||spriteVolwassen)(p)+mutatiesSvg(b.mutaties)+'</svg>'
+      +   '<svg viewBox="0 0 200 250" aria-label="Botty '+b.naam+'">'+stageSprite(b)(p)+mutatiesSvg(b.mutaties)+'</svg>'
       +   '<div class="floaters"></div></div></div>'
       + '<div class="bars">'
       +   barRij("⚡","b-energie","energie")
