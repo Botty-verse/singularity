@@ -116,6 +116,23 @@
   .kit-brein{flex:1 1 100%;margin-top:.2rem;border-top:1px solid #14403c;padding-top:.5rem;}
   .kit-brein-kop{font-weight:700;color:#a3ffce;font-size:.86rem;margin-bottom:.15rem;}
   .kit-brein-kop span{color:#7fb89a;font-weight:400;font-size:.76rem;}
+  .kit-anat{position:relative;width:100%;border-radius:8px;overflow:hidden;margin:.15rem 0 .35rem;border:1px solid #14403c;background:#060f0d;}
+  .kit-anat-img{display:block;width:100%;height:auto;}
+  /* Elke kamer krijgt een radiaal-glow overlay die oplicht naar mate de kamer actief is.
+     Positie = midden van de betreffende plaat in brein.png (in %). */
+  .kit-anat-glow{position:absolute;width:15%;height:19%;transform:translate(-50%,-50%);border-radius:22%;
+    mix-blend-mode:screen;pointer-events:none;opacity:0;transition:opacity .5s ease;
+    background:radial-gradient(ellipse at center, currentColor 0%, transparent 70%);}
+  .kit-anat-glow[data-kamer="waarneming"] {left:37.6%;top:23.4%;color:#7bff9a;}
+  .kit-anat-glow[data-kamer="conceptlaag"]{left:54.5%;top:23.4%;color:#ffe066;}
+  .kit-anat-glow[data-kamer="beslislaag"] {left:70.0%;top:23.4%;color:#c79bff;}
+  .kit-anat-glow[data-kamer="beloning"]   {left:38.9%;top:43.0%;color:#66c8ff;}
+  .kit-anat-glow[data-kamer="biochemie"]  {left:54.4%;top:43.0%;color:#ff6b7a;}
+  .kit-anat-glow[data-kamer="geheugen"]   {left:70.0%;top:43.0%;color:#57e0c8;}
+  .kit-anat-glow[data-kamer="taal"]       {left:41.4%;top:63.7%;color:#ffa64d;}
+  .kit-anat-glow[data-kamer="temperament"]{left:62.2%;top:63.7%;color:#6bb6ff;}
+  .kit-anat-glow.puls{animation:anatPuls 1.1s ease-out;}
+  @keyframes anatPuls{0%{filter:brightness(2.4)}100%{filter:brightness(1)}}
   #kit-brein-svg{width:100%;height:206px;display:block;}
   .kit-brein-noot{font-size:.72rem;color:#7fb89a;line-height:1.35;margin-top:.25rem;}
   .brein-edge{transition:stroke-width .3s;}
@@ -261,6 +278,17 @@
       </div>
       <div class="kit-brein" id="kit-brein">
         <div class="kit-brein-kop">🧠 Brein — geleerde verbanden <span id="kit-brein-n"></span></div>
+        <div class="kit-anat" id="kit-anat" aria-label="brein-anatomie">
+          <img class="kit-anat-img" src="assets/brein.png" alt="Botty brein — 8 kamers" loading="lazy">
+          <div class="kit-anat-glow" data-kamer="waarneming"     title="Waarneming — ziet objecten in de buurt"></div>
+          <div class="kit-anat-glow" data-kamer="conceptlaag"    title="Conceptlaag — legt verbanden tussen drift en object"></div>
+          <div class="kit-anat-glow" data-kamer="beslislaag"     title="Beslislaag — kiest wat te doen"></div>
+          <div class="kit-anat-glow" data-kamer="beloning"       title="Beloningssysteem — endorfine bij aaien/eten"></div>
+          <div class="kit-anat-glow" data-kamer="biochemie"      title="Biochemie — driften &amp; stofwisseling"></div>
+          <div class="kit-anat-glow" data-kamer="geheugen"       title="Geheugen — opgeslagen leerervaringen"></div>
+          <div class="kit-anat-glow" data-kamer="taal"           title="Taal-lobe — woordenschat"></div>
+          <div class="kit-anat-glow" data-kamer="temperament"    title="Temperament — aard &amp; humeur"></div>
+        </div>
         <svg id="kit-brein-svg" viewBox="0 0 300 210" preserveAspectRatio="xMidYMid meet" aria-label="brein-graaf"></svg>
         <div class="kit-brein-noot">Drift ↔ object. Dikker &amp; groener = sterker geleerd dat dít object die behoefte stilt; dof/rood = geleerd dat het níét helpt. Een oplichtende lijn is zojuist versterkt door de omgeving.</div>
       </div>
@@ -1026,6 +1054,40 @@
     var nEl = document.getElementById("kit-brein-n"); if(nEl) nEl.textContent = tot ? "· "+tot+" leerervaringen" : "";
   }
 
+  // De 8 breinkamers uit brein.png lichten live op naar mate ze actief zijn: de
+  // anatomische plaat wordt zo een dashboard van wat er ín Botty's hoofd gebeurt.
+  var anatPrev = {};
+  function clamp01(x){ return x<0?0:(x>1?1:x); }
+  function renderBreinAnat(b){
+    var anat = document.getElementById("kit-anat"); if(!anat) return;
+    var brein = b.brein||{}, chem = b.chem||{};
+    // aantal gelegde verbanden (niet-neutrale overtuigingen)
+    var links=0; for(var d in brein){ var r=brein[d]; for(var o in r){ if(Math.abs(r[o]-0.5)>=0.045) links++; } }
+    var leer = b.breinN ? Object.keys(b.breinN).reduce(function(s,k){ return s+(b.breinN[k]||0); },0) : 0;
+    var lex  = b.lexicon ? Object.keys(b.lexicon).length : 0;
+    var act = {
+      waarneming : b.doel ? 0.8 : 0.28,
+      conceptlaag: clamp01(0.18 + links/12),
+      beslislaag : b.doel ? 0.7 : 0.3,
+      beloning   : clamp01((chem.endorfine||0)/60),
+      biochemie  : clamp01(0.22 + ((chem.stress||0)+(chem.honger||0)+(chem.gif||0))/150),
+      geheugen   : clamp01(0.15 + leer/40),
+      taal       : clamp01(lex/8),
+      temperament: 0.45
+    };
+    var prev = anatPrev[b.naam] || {};
+    var geleerd = (prev.leer!=null && leer>prev.leer);   // net iets bijgeleerd?
+    anat.querySelectorAll(".kit-anat-glow").forEach(function(el){
+      var k = el.getAttribute("data-kamer");
+      el.style.opacity = (0.12 + 0.88*(act[k]||0)).toFixed(2);
+      // laat leer-gerelateerde kamers kort oppulsen wanneer er iets versterkt is
+      if(geleerd && (k==="beloning"||k==="geheugen"||k==="conceptlaag")){
+        el.classList.remove("puls"); void el.offsetWidth; el.classList.add("puls");
+      }
+    });
+    anatPrev[b.naam] = { leer: leer };
+  }
+
   function updateKit(){
     var leeg = document.getElementById("kit-leeg"), body = document.getElementById("kit-body");
     var b = sel && bottys.find(function(x){ return x.naam === sel; });
@@ -1034,7 +1096,7 @@
     document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
     document.getElementById("kit-naam").textContent = b.naam;
     delete breinPrev[b.naam];   // verse selectie → geen valse puls
-    renderBrein(b);
+    renderBrein(b); renderBreinAnat(b);
   }
   var kitPuls = 0;
   function updateKitLive(){
@@ -1056,7 +1118,7 @@
       rij.querySelector(".dbar > span").style.width = v + "%";
       rij.classList.toggle("hoog", v > 65);
     });
-    renderBrein(b);   // live brein-graaf: geleerde verbanden + versterking
+    renderBrein(b); renderBreinAnat(b);   // live brein-graaf + anatomie: geleerde verbanden + versterking
     var bpm = Math.round(55 + (100-g)*1.1 + (b.ziek?25:0));
     document.getElementById("ecg-band").style.setProperty("--dur", (60/bpm*2).toFixed(2)+"s");
     document.getElementById("kit-bpm").textContent = "♥ " + bpm + " klop/min";
