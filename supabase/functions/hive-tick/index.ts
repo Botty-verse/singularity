@@ -1420,12 +1420,15 @@ function maakNieuweHive() {
 }
 
 // ─── Broadcast ────────────────────────────────────────────────────────────────
+// LET OP: de REST-broadcast-API verwacht de KALE kanaalnaam ("hive-live"), niet de
+// "realtime:"-geprefixte interne topic. Met prefix antwoordt de API wél 202 maar
+// bereikt het bericht geen enkele abonnee.
 async function broadcast(payload: object) {
   try {
     await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
-      body: JSON.stringify({ messages: [{ topic: "realtime:hive-events", event: "actie", payload }] }),
+      body: JSON.stringify({ messages: [{ topic: "hive-events", event: "actie", payload }] }),
     });
   } catch (_) { /* best-effort */ }
 }
@@ -1445,7 +1448,7 @@ async function broadcastState(bottys: any[], eieren: any[], acties: number, firs
     await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
-      body: JSON.stringify({ messages: [{ topic: "realtime:hive-live", event: "state", payload }] }),
+      body: JSON.stringify({ messages: [{ topic: "hive-live", event: "state", payload }] }),
     });
   } catch (_) { /* best-effort */ }
 }
