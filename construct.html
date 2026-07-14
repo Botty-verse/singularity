@@ -426,18 +426,24 @@
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
 
+  // De hele bottys-blob is groot; hem elke tick opnieuw downloaden (én bovenop de
+  // realtime-push) verdubbelt de egress. Daarom halen we hem alleen bij het openen
+  // op en verwerken we live-updates verder via de realtime-subscription (zie onder).
+  function toonState(nieuweBottys, nieuweEieren){
+    if(nieuweBottys) bottys = nieuweBottys.filter(function(b){ return b && b.naam; });
+    if(nieuweEieren){ eieren = nieuweEieren; }
+    renderEieren();
+    document.getElementById("st-links").textContent = (nacht ? "🌙 De hive slaapt · " : "🏫 ")
+      + bottys.length + " Botty's in het klaslokaal"
+      + (eieren.length ? " · 🥚 " + eieren.length + " in de broedmachine" : "");
+    var z = bottys.filter(function(b){ return b.ziek; }).length;
+    document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"");
+  }
   function laad(){
     return supabase.from("hive_state").select("bottys,eieren").eq("id","main").single()
       .then(function(res){
         if(res.error || !res.data) return;
-        bottys = (res.data.bottys || []).filter(function(b){ return b && b.naam; });
-        eieren = res.data.eieren || [];
-        renderEieren();
-        document.getElementById("st-links").textContent = (nacht ? "🌙 De hive slaapt · " : "🏫 ")
-          + bottys.length + " Botty's in het klaslokaal"
-          + (eieren.length ? " · 🥚 " + eieren.length + " in de broedmachine" : "");
-        var z = bottys.filter(function(b){ return b.ziek; }).length;
-        document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"");
+        toonState(res.data.bottys || [], res.data.eieren || []);
       });
   }
 
@@ -498,7 +504,9 @@
       })
       .catch(function(){ broedBezig = false; zegBijIncubator("⚠️ dat lukte niet…"); });
   }
-  function tickEnLaad(){ if(document.hidden) return; fetch(TICK_URL,{method:"POST"}).catch(function(){}).then(function(){ laad(); }); }
+  // Alleen de tick aanstoten; de nieuwe staat komt via de realtime-subscription
+  // binnen (geen dubbele download meer). Scheelt fors in egress.
+  function tick(){ if(document.hidden) return; fetch(TICK_URL,{method:"POST"}).catch(function(){}); }
 
   // Jonge Botty's (tiener) worden getekend met de uitgesneden pixel-art walk-cycle
   // (assets/sprites/young). De overige fases blijven de procedurele SVG-sprite.
@@ -1126,11 +1134,10 @@
 
   laad();
   requestAnimationFrame(frame);
-  setInterval(tickEnLaad, 3000);
+  setInterval(tick, 6000);   // rustiger cadans → minder writes/realtime-pushes; sim haalt in via catch-up
   supabase.channel("klaslokaal")
     .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
-        function(p){ if(p.new && p.new.bottys){ bottys = p.new.bottys.filter(function(b){return b&&b.naam;});
-          if(p.new.eieren){ eieren = p.new.eieren; renderEieren(); } } })
+        function(p){ if(p.new && p.new.bottys){ toonState(p.new.bottys, p.new.eieren); } })
     .subscribe();
 })();
 </script>
