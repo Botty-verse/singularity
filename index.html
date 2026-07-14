@@ -889,7 +889,8 @@
   // client-side — index gebruikt ze toch niet.
   document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> De hive verbindt met de cloud…';
   function laadStaat(){
-    return supabase.from("hive_state").select("bottys,acties,first_opened,last_kweek").eq("id","main").single()
+    // Slank snapshot via RPC (~13KB) i.p.v. de volle rij (~31KB): scheelt egress per bezoek.
+    return supabase.rpc("hive_slim")
       .then(function(res){ if(!res.error && res.data){ setVerbonden(true); renderState(res.data); } });
   }
   laadStaat();

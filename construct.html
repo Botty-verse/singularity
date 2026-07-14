@@ -442,11 +442,13 @@
     document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"");
   }
   function laad(){
-    return supabase.from("hive_state").select("bottys,eieren").eq("id","main").single()
+    // Slank snapshot via RPC (~13KB) i.p.v. de volle rij (~31KB). De zware brein-/
+    // leerdata zit hier NIET in; die haalt laadBreinDetail() on-demand op voor de
+    // geselecteerde Botty.
+    return supabase.rpc("hive_slim")
       .then(function(res){
         if(res.error || !res.data) return;
         toonState(res.data.bottys || [], res.data.eieren || []);
-        (res.data.bottys || []).forEach(bewaarBreinDetail);   // seed de brein-cache uit de eerste volledige fetch
       });
   }
 
