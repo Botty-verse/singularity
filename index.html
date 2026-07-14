@@ -624,8 +624,10 @@
   var elMap = {};   // naam → { kaart, wrap, floaters, bars }
   var laatstGetoondeKind = null;  // dedup voor geboorte-ticker
 
+  var laatsteStaat = 0;
   function renderState(state){
     if(!state || !state.bottys) return;
+    laatsteStaat = Date.now();
     var nieuweBottys = state.bottys;
     acties = state.acties || 0;
     firstOpened = state.first_opened || firstOpened;
@@ -866,13 +868,15 @@
   }
 
   // ── Realtime subscription ─────────────────────────────────────────────────
+  // Live-sync via broadcast: de edge function stuurt per tick een slank snapshot
+  // (zonder de zware brein-/leervelden) i.p.v. de volle rij via postgres_changes.
+  // Scheelt ~75-80% egress per kijker.
   supabase
-    .channel("hive")
-    .on("postgres_changes",
-      { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
-      function(payload){
+    .channel("hive-live")
+    .on("broadcast", { event:"state" },
+      function(msg){
         setVerbonden(true);
-        renderState(payload.new);
+        renderState(msg.payload);
       }
     )
     .subscribe(function(status){
@@ -880,7 +884,18 @@
     });
 
   // ── Initieel laden ─────────────────────────────────────────────────────────
+  // Eén keer de huidige staat ophalen zodat de pagina meteen gevuld is (de
+  // broadcast levert daarna elke tick de updates). Zware velden strippen we niet
+  // client-side — index gebruikt ze toch niet.
   document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> De hive verbindt met de cloud…';
+  function laadStaat(){
+    return supabase.from("hive_state").select("bottys,acties,first_opened,last_kweek").eq("id","main").single()
+      .then(function(res){ if(!res.error && res.data){ setVerbonden(true); renderState(res.data); } });
+  }
+  laadStaat();
+  // Vangnet: mocht de broadcast onverhoopt niet aankomen, haal dan pas ná stilte de
+  // staat op (kost alleen egress als er écht geen updates binnenkomen).
+  setInterval(function(){ if(!document.hidden && Date.now()-laatsteStaat > 15000) laadStaat(); }, 15000);
   fetch(TICK_URL, { method:"POST" })
     .then(function(r){ return r.json(); })
     .then(function(state){

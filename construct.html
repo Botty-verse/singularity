@@ -429,7 +429,9 @@
   // De hele bottys-blob is groot; hem elke tick opnieuw downloaden (én bovenop de
   // realtime-push) verdubbelt de egress. Daarom halen we hem alleen bij het openen
   // op en verwerken we live-updates verder via de realtime-subscription (zie onder).
+  var laatsteStaat = 0;
   function toonState(nieuweBottys, nieuweEieren){
+    laatsteStaat = Date.now();
     if(nieuweBottys) bottys = nieuweBottys.filter(function(b){ return b && b.naam; });
     if(nieuweEieren){ eieren = nieuweEieren; }
     renderEieren();
@@ -444,7 +446,29 @@
       .then(function(res){
         if(res.error || !res.data) return;
         toonState(res.data.bottys || [], res.data.eieren || []);
+        (res.data.bottys || []).forEach(bewaarBreinDetail);   // seed de brein-cache uit de eerste volledige fetch
       });
+  }
+
+  // Zware brein-/leervelden zitten NIET in de live-broadcast. Voor het geselecteerde
+  // breinpaneel halen we ze on-demand op en cachen we ze per Botty.
+  var breinDetail = {};
+  function bewaarBreinDetail(b){
+    if(b && b.naam) breinDetail[b.naam] = { brein:b.brein, breinN:b.breinN, lexicon:b.lexicon, chem:b.chem };
+  }
+  function laadBreinDetail(){
+    return supabase.from("hive_state").select("bottys").eq("id","main").single()
+      .then(function(res){
+        if(res.error || !res.data) return;
+        (res.data.bottys || []).forEach(bewaarBreinDetail);
+        if(sel) updateKit();   // her-render het paneel met de verse brein-data
+      });
+  }
+  // Vul een (slanke) Botty aan met de gecachte brein-detaildata voor de weergave.
+  function metBrein(b){
+    var d = b && breinDetail[b.naam];
+    if(d){ b.brein=d.brein; b.breinN=d.breinN; b.lexicon=d.lexicon; b.chem=d.chem; }
+    return b;
   }
 
   // ── Broedmachine: eieren renderen & uitbroeden ────────────────────────────
@@ -1104,7 +1128,8 @@
     document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
     document.getElementById("kit-naam").textContent = b.naam;
     delete breinPrev[b.naam];   // verse selectie → geen valse puls
-    renderBrein(b); renderBreinAnat(b);
+    metBrein(b); renderBrein(b); renderBreinAnat(b);
+    if(!breinDetail[b.naam]) laadBreinDetail();   // nog geen detail gecacht → haal op
   }
   var kitPuls = 0;
   function updateKitLive(){
@@ -1126,7 +1151,7 @@
       rij.querySelector(".dbar > span").style.width = v + "%";
       rij.classList.toggle("hoog", v > 65);
     });
-    renderBrein(b); renderBreinAnat(b);   // live brein-graaf + anatomie: geleerde verbanden + versterking
+    metBrein(b); renderBrein(b); renderBreinAnat(b);   // live brein-graaf + anatomie (detail uit cache)
     var bpm = Math.round(55 + (100-g)*1.1 + (b.ziek?25:0));
     document.getElementById("ecg-band").style.setProperty("--dur", (60/bpm*2).toFixed(2)+"s");
     document.getElementById("kit-bpm").textContent = "♥ " + bpm + " klop/min";
@@ -1135,10 +1160,17 @@
   laad();
   requestAnimationFrame(frame);
   setInterval(tick, 6000);   // rustiger cadans → minder writes/realtime-pushes; sim haalt in via catch-up
-  supabase.channel("klaslokaal")
-    .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" },
-        function(p){ if(p.new && p.new.bottys){ toonState(p.new.bottys, p.new.eieren); } })
+  // Live-sync via broadcast: slank snapshot per tick (zonder de zware brein-/leer-
+  // velden). Het breinpaneel haalt die zware data on-demand op voor de selectie.
+  supabase.channel("hive-live")
+    .on("broadcast", { event:"state" },
+        function(msg){ var p = msg.payload; if(p && p.bottys){ toonState(p.bottys, p.eieren); } })
     .subscribe();
+  // Ververs de brein-detaildata zolang er een Botty geselecteerd is (laag tempo —
+  // leren gaat langzaam). Zonder selectie geen enkele extra fetch.
+  setInterval(function(){ if(sel) laadBreinDetail(); }, 20000);
+  // Vangnet: alleen ná stilte (geen broadcast) de staat opnieuw ophalen.
+  setInterval(function(){ if(!document.hidden && Date.now()-laatsteStaat > 15000) laad(); }, 15000);
 })();
 </script>
 <!-- De browser van de bezoeker rekent mee aan reuzenpriemen zodra de Construct opent. -->
