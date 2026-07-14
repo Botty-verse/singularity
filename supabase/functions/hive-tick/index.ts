@@ -938,6 +938,24 @@ function onthoud(b: any, soort: string, tekst: string) {
   if (b.herinneringen.length > 8) b.herinneringen = b.herinneringen.slice(-8); // alleen de recentste 8
 }
 
+// Egress-besparing: elke tick pusht realtime de volledige hive_state-rij naar
+// iedere kijker. Veel velden dragen zinloze float-precisie mee (bv. "85.6470588…"
+// = 25 bytes voor iets wat als bar 0-100 getoond wordt). Afronden vlak vóór opslag
+// verkleint de rij ~20-25% zonder merkbaar effect op de simulatie of weergave.
+function ront(v: any, d: number): any { return (typeof v === "number" && isFinite(v)) ? +v.toFixed(d) : v; }
+function compacteer(bottys: any[]) {
+  for (const b of bottys) {
+    b.energie = ront(b.energie, 1); b.data = ront(b.data, 1); b.fit = ront(b.fit, 1); b.geluk = ront(b.geluk, 1);
+    b.datakwaliteit = ront(b.datakwaliteit, 2); b.efficientie = ront(b.efficientie, 2);
+    b.stemming = ront(b.stemming, 2); b.levenskracht = ront(b.levenskracht, 2);
+    b.richting = ront(b.richting, 3); b.grootte = ront(b.grootte, 3);
+    if (b.pos) { b.pos.x = ront(b.pos.x, 1); b.pos.y = ront(b.pos.y, 1); }
+    if (b.temperament) for (const k in b.temperament) b.temperament[k] = ront(b.temperament[k], 3);
+    if (b.chem)        for (const k in b.chem)        b.chem[k]        = ront(b.chem[k], 2);
+    if (b.relaties)    for (const k in b.relaties)    b.relaties[k]    = ront(b.relaties[k], 1);
+  }
+}
+
 function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
   const by = genoomBytes(b.genome);
   const sociaalHoog = mult(by, 11) > 1.05;
@@ -1408,6 +1426,26 @@ async function broadcast(payload: object) {
       method: "POST",
       headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
       body: JSON.stringify({ messages: [{ topic: "realtime:hive-events", event: "actie", payload }] }),
+    });
+  } catch (_) { /* best-effort */ }
+}
+
+// Zware leer-/geheugenvelden: alleen het construct-breinpaneel gebruikt deze, en
+// dan nog enkel voor de geselecteerde Botty. Ze vormen ~80% van elke rij, dus we
+// laten ze wég uit de live-broadcast en laten de client ze on-demand ophalen.
+const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei"];
+function slankeBottys(bottys: any[]): any[] {
+  return bottys.map((b) => { const s: any = { ...b }; for (const k of ZWARE_VELDEN) delete s[k]; return s; });
+}
+// Live-sync: i.p.v. postgres_changes (dat élke keer de vólle rij naar iedere kijker
+// duwt) sturen we per tick een slank snapshot via broadcast. ~75-80% minder egress.
+async function broadcastState(bottys: any[], eieren: any[], acties: number, firstOpened: number, lastKweek: any) {
+  const payload = { bottys: slankeBottys(bottys), eieren, acties, first_opened: firstOpened, last_kweek: lastKweek };
+  try {
+    await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ messages: [{ topic: "realtime:hive-live", event: "state", payload }] }),
     });
   } catch (_) { /* best-effort */ }
 }
@@ -2006,6 +2044,7 @@ Deno.serve(async (req) => {
   // tegelijk tikken schrapt dit de dubbele/overlappende pushes.
   const magSchrijven = !rijBestond || gemist >= 1 || events.length > 0 || (vraag && vraag.actie);
   if (magSchrijven) {
+    compacteer(bottys);   // rond zinloze float-precisie af → kleinere rij → minder realtime-egress
     await supabase.from("hive_state").upsert({
       id: "main", bottys,
       first_opened: state.first_opened ?? nu,
@@ -2015,6 +2054,8 @@ Deno.serve(async (req) => {
       eieren,
       ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu },
     });
+    // Slank live-snapshot naar alle kijkers (vervangt de volle-rij postgres_changes).
+    await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek);
   }
 
   for (const ev of events) await broadcast(ev);
