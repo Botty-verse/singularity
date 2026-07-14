@@ -382,6 +382,11 @@ function sekseGrootte(basis: number, sekse: string): number {
 //   nieuwe vondst = +1 IQ · verstrooide misgok = -2 · niets vrij = 0
 // Slimmere Bottys (hogere datakwaliteit) slagen vaker én bekijken meer kandidaten,
 // dus kiezen "lekkerder" en vinden vaker iets.
+// ⏸️ Tijdelijke noodschakelaar: zet ALLE priem-functies uit. Zolang dit true is
+// jaagt geen enkele Botty op priemgetallen (geen vondsten, geen euforie, geen
+// wiskunde-events) en slaan we de bijbehorende DB-reads over. Zet terug op false
+// om het priemwerk weer aan te zetten.
+const PRIEM_UIT = true;
 const PRIEM_LO = 2;        // het hele veld vanaf het begin
 const PRIEM_HI = 1000000;  // 78.498 priemen onder 1.000.000 (al ontdekte worden gededupeerd)
 // Euforie-afkoelperiode: na een vondst-kick zoekt een Botty ~10 min niet echt —
@@ -1510,7 +1515,7 @@ Deno.serve(async (req) => {
     // dedup-set incompleet zodra er >1000 priemen zijn (→ priemen "herontdekken").
     // De dedup hoeft alleen het huidige zoekbereik te dekken (kandidaten vallen daar).
     const ontdekt = new Set<number>();
-    try {
+    if (!PRIEM_UIT) try {
       for (let from = 0; ; from += 1000) {
         const { data, error: e } = await supabase
           .from("priemvondsten").select("getal")
@@ -1525,11 +1530,11 @@ Deno.serve(async (req) => {
     const alleDenkers = bottys.filter(b => !b.bezigEi && !(NACHT && slaapt(b)));   // slapers jagen niet
     // Afkoelperiode: wie net een euforie had, jaagt even niet echt — hij broedt
     // op zijn volgende zet. Alleen afgekoelde Bottys doen de vind-ronde mee.
-    const denkers  = alleDenkers.filter(b => nu - (b.euforieOp || 0) >= EUFORIE_PAUZE);
-    const broeders = alleDenkers.filter(b => nu - (b.euforieOp || 0) <  EUFORIE_PAUZE);
+    const denkers  = PRIEM_UIT ? [] : alleDenkers.filter(b => nu - (b.euforieOp || 0) >= EUFORIE_PAUZE);
+    const broeders = PRIEM_UIT ? [] : alleDenkers.filter(b => nu - (b.euforieOp || 0) <  EUFORIE_PAUZE);
     // Wiskunde-ervaring eenmalig seeden uit de volledige vondsten-historie per bid
     // (alle priemen ooit, ook <10000). Alleen ophalen als er iets te seeden valt.
-    if (alleDenkers.some(b => typeof b.vondsten !== "number")) {
+    if (!PRIEM_UIT && alleDenkers.some(b => typeof b.vondsten !== "number")) {
       const vondstenPerBid: Record<string, number> = {};
       try {
         for (let from = 0; ; from += 1000) {

@@ -14,6 +14,7 @@
 (function () {
   "use strict";
   if (!window.BottyConfig || !window.Worker) return;
+  if (window.BottyConfig.PRIEM_UIT) return;   // priem-functies tijdelijk uitgezet
 
   var CFG = window.BottyConfig;
   var CLAIM_URL = CFG.SUPABASE_URL + "/functions/v1/priem-claim";
