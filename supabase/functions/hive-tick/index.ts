@@ -1419,7 +1419,8 @@ Deno.serve(async (req) => {
   try { vraag = await req.json(); } catch (_) { /* geen body = gewone tick */ }
 
   const { data: row, error } = await supabase.from("hive_state").select("*").eq("id", "main").single();
-  let state = (error || !row) ? maakNieuweHive() : row;
+  const rijBestond = !(error || !row);
+  let state = rijBestond ? row : maakNieuweHive();
   let bottys: any[] = state.bottys || [];
   const eieren: any[] = Array.isArray(state.eieren) ? state.eieren : [];
 
@@ -1998,15 +1999,23 @@ Deno.serve(async (req) => {
     }
   } catch (_) { /* best-effort: volgende tick opnieuw */ }
 
-  await supabase.from("hive_state").upsert({
-    id: "main", bottys,
-    first_opened: state.first_opened ?? nu,
-    acties,
-    last_updated_at: nu,
-    last_kweek: lastKweek,
-    eieren,
-    ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu },
-  });
+  // Egress-besparing: schrijf de (grote) hive_state-rij alléén weg als er echt iets
+  // veranderd is. Zonder sim-voortgang (gemist===0), zonder events en zonder
+  // bezoekersactie levert een write niks nieuws op — maar hij triggert wél een
+  // realtime-push van de volledige rij naar élke kijker. Bij meerdere tabs die
+  // tegelijk tikken schrapt dit de dubbele/overlappende pushes.
+  const magSchrijven = !rijBestond || gemist >= 1 || events.length > 0 || (vraag && vraag.actie);
+  if (magSchrijven) {
+    await supabase.from("hive_state").upsert({
+      id: "main", bottys,
+      first_opened: state.first_opened ?? nu,
+      acties,
+      last_updated_at: nu,
+      last_kweek: lastKweek,
+      eieren,
+      ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu },
+    });
+  }
 
   for (const ev of events) await broadcast(ev);
 
