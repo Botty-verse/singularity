@@ -10,6 +10,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERVAL          = 1000;
+const BROADCAST_MIN_MS  = 5500;   // egress-throttle: hoogstens ~1 live-broadcast per 6s, globaal
 const VERVAL_INTERVAL   = 2000;
 const ZORG_PER_TICK     = 2;
 const MAX_CATCHUP_TICKS = 5000;
@@ -2048,6 +2049,13 @@ Deno.serve(async (req) => {
   const magSchrijven = !rijBestond || gemist >= 1 || events.length > 0 || (vraag && vraag.actie);
   if (magSchrijven) {
     compacteer(bottys);   // rond zinloze float-precisie af → kleinere rij → minder realtime-egress
+    // Broadcast-throttle: de sim mag zo vaak schrijven als de kijkers hem aanstoten
+    // (voor soepele voortgang), maar de KOSTBARE egress-broadcast sturen we globaal
+    // hoogstens ~1×/6s. Zo schaalt de egress lineair met het aantal kijkers i.p.v.
+    // kwadratisch (bij veel tabs die tegelijk tikken). De broadcast-tijd bewaren we
+    // in ia_bucket.bcast (geen migratie nodig).
+    const vorigeBcast = (state.ia_bucket && typeof state.ia_bucket.bcast === "number") ? state.ia_bucket.bcast : 0;
+    const magBroadcast = nu - vorigeBcast >= BROADCAST_MIN_MS;
     await supabase.from("hive_state").upsert({
       id: "main", bottys,
       first_opened: state.first_opened ?? nu,
@@ -2055,10 +2063,10 @@ Deno.serve(async (req) => {
       last_updated_at: nu,
       last_kweek: lastKweek,
       eieren,
-      ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu },
+      ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu, bcast: magBroadcast ? nu : vorigeBcast },
     });
     // Slank live-snapshot naar alle kijkers (vervangt de volle-rij postgres_changes).
-    await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek);
+    if (magBroadcast) await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek);
   }
 
   for (const ev of events) await broadcast(ev);
