@@ -27,6 +27,54 @@ blijft toeschouwer**. Interacties zijn te observeren, niet om te micromanagen.
   rustplek, gezelschap/voortplanting naar andere Botty's en priemjacht naar het
   schoolbord. Daardoor is de keuze voor tuin of kamer niet langer willekeurig.
 
+## Wereld & objecten — opladen, eten, tanken (in uitwerking)
+
+De Botty's vullen hun drives aan bij objecten in de Construct: elk object hoort
+bij één drive en biedt een eigen manier om die te stillen. Nabijheid + het juiste
+doel triggert de aanvulling (zoals `zelfzorgRonde` nu al doet); we verrijken de
+feedback zodat de toeschouwer ziet wát een Botty ophaalt.
+
+### Objectenlijst — wat een Botty er vindt
+
+| Object (id) | Klasse | Icoon | Drive | Wat de Botty er doet / vindt |
+|---|---|---|---|---|
+| Laadcomputer (`laadkruk`) | machine | ⚡ | energie | **Opladen** — koppelt zich aan de steampunk-laadcomputer |
+| Kastje (`kastje`) | machine | 🗄️ | energie | **Tanken** — haalt er een schepje energie uit |
+| Bloempot (`bloempot`) | food | 🌼 | energie | **Eten** — knabbelt aan de eetbare, voedzame plant |
+| **Zon (`zon`) — NIEUW** | hemellichaam | ☀️ | energie | **Draadloos zonneladen** — staat stil in de openlucht, ☀️ boven de kop |
+| Schoolbord (`bord`) | kennis | 💾 | data | **Leren** — bestudeert de sommen op het bord |
+| Boekenkast (`boekenkast`) | kennis | 📚 | data | **Leren** — bladert door de boeken |
+| Lessenaar (`lessenaar`) | kennis | ✒️ | data | **Schrijven** — ordent zijn gedachten |
+| Wereldbol (`bal`) | kennis | 🏃 | fit | **Bewegen** — laat de globe tollen |
+| Kruk (`kruk`) | meubel | 🪑 | fit | **Rekken** — houdt zich soepel |
+| Stolp (`stolp`) | curio | 🔬 | geluk | **Verwonderen** — tuurt naar het wezen onder de stolp |
+| Open deur (`deur`) | plek | 🌲 | geluk | **Ontspannen** — snuift de bosgeur |
+
+Samengevat per drive: **energie** = opladen (laadcomputer), tanken (kastje), eten
+(bloempot) én zonneladen (zon) · **data** = leren (bord, boekenkast, lessenaar) ·
+**fit** = bewegen (wereldbol, kruk) · **geluk** = verwonderen/ontspannen (stolp, deur).
+
+### Uit te werken
+
+- [ ] **Opladen / eten / tanken zichtbaar maken** — per energiebron een eigen
+  micro-animatie + emoji boven de kop tijdens het aanvullen (⚡ opladen aan de
+  laadcomputer, 🍽️ eten bij de bloempot, 🔋 tanken bij het kastje). De drie
+  bronnen voelen zo elk anders, ook al vullen ze dezelfde `energie`-drive.
+- [ ] **Zon als object + draadloos zonneladen** — nieuw agent `zon` (klasse
+  hemellichaam, icoon ☀️, drive energie). Staat niet op de vloer maar aan de
+  hemel/bovenin en werkt alleen **bovengronds/in de openlucht** (tuin, niveau 0).
+  Laadregel: een Botty die **stilstaat** (idle, geen doel dat beweging vraagt) in
+  de openlucht laadt langzaam `energie` op; boven zijn kop verschijnt een ☀️.
+  's Nachts geen zon (haakt in op de bestaande `NACHT`-stand); later eventueel
+  weer/seizoen. Toeschouwer ziet Botty's die stil "zonnebaden".
+- [ ] **Slaapvoorkeur: ondergronds slapen, bovengronds wakker** — slapende/
+  rustende Botty's trekken naar de lagere, beschutte laag (kamer/ondergronds hol):
+  veilig en donker. Wakkere/actieve Botty's prefereren juist de bovengrondse laag
+  (tuin) — daar schijnt de zon om te laden en is er ruimte. Vervangt/vult de
+  huidige `dapper`-gebaseerde woonlaagkeuze (`thuis(b)` / `kiesDoelen`) aan met een
+  slaap/waak- + dag/nacht-gedreven verticaal ritme. Versterkt het zonneladen: naar
+  bóven voor de zon, naar béneden om te slapen.
+
 ## Creatures-roadmap (voorgesteld, nog niet gestart)
 
 - [ ] **Besmettelijke ziekte + co-evolutie** — het paper-model (§3.3.5): muterende
