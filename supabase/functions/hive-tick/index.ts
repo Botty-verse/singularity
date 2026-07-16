@@ -11,6 +11,14 @@ const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERVAL          = 1000;
 const BROADCAST_MIN_MS  = 5500;   // egress-throttle: hoogstens ~1 live-broadcast per 6s, globaal
+// CORS: de Construct/hive-pagina roept deze function cross-origin aan
+// (hive.ramonmoorlag.nl → *.supabase.co). Zonder deze headers blokkeert een strikte
+// browser (Safari) elke fetch en sneuvelt de preflight van interacties (aai/voer/woord).
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 const VERVAL_INTERVAL   = 2000;
 const ZORG_PER_TICK     = 2;
 const MAX_CATCHUP_TICKS = 5000;
@@ -1457,6 +1465,8 @@ async function broadcastState(bottys: any[], eieren: any[], acties: number, firs
 
 // ─── Hoofdlus ─────────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
+  // CORS-preflight (OPTIONS) meteen beantwoorden — anders faalt elke POST met headers.
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   // Bezoekersverzoek (optioneel): { actie: "broed", ei: "<id>" } broedt een rijp ei uit
   let vraag: any = null;
   try { vraag = await req.json(); } catch (_) { /* geen body = gewone tick */ }
@@ -2078,6 +2088,6 @@ Deno.serve(async (req) => {
 
   return new Response(
     JSON.stringify({ ok: true, ticks: gemist, events: events.length, bezoekers, interactie: iaEvent }),
-    { headers: { "Content-Type": "application/json" } },
+    { headers: { ...CORS, "Content-Type": "application/json" } },
   );
 });
