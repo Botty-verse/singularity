@@ -202,9 +202,19 @@
         <radialGradient id="bottyGlans" cx="0.4" cy="0.32" r="0.55">
           <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
+        <radialGradient id="zonGloed" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#fff3b0" stop-opacity="0.9"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/>
+        </radialGradient>
       </defs>
       <!-- Nieuwe achtergrond: geschilderde dwarsdoorsnede (tuin boven + ondergrondse kamer) -->
       <image href="assets/construct-achtergrond.webp" x="0" y="0" width="1500" height="844" preserveAspectRatio="none"/>
+
+      <!-- ☀️ De zon (agent 'zon' in agents.json): draadloze energiebron aan de tuin-hemel.
+           Overdag stralend, 's nachts gedimd via updateNacht(). -->
+      <g id="zonlucht" transform="translate(1300,95)" style="transition:opacity 5s ease">
+        <circle r="52" fill="url(#zonGloed)"/>
+        <circle r="26" fill="#ffe08a" stroke="#ffb23e" stroke-width="3"/>
+      </g>
 
       <!-- Klaslokaal: vaste decors (kleed + broedmachine). De losse object-agents
            worden hieronder door JS uit OBJDEF geplaatst, achter de Botty's. -->
@@ -351,6 +361,7 @@
     nacht = isNacht();
     document.body.classList.toggle("nacht", nacht);
     document.getElementById("nachtlaag").style.opacity = nacht ? "1" : "0";
+    var zl = document.getElementById("zonlucht"); if(zl) zl.style.opacity = nacht ? "0.12" : "1";
   }
   updateNacht();
   setInterval(updateNacht, 60000);
@@ -425,6 +436,10 @@
   function nameRnd(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0)/4294967295; }
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  // Energiebronnen voelen elk anders: opladen aan de laadcomputer, tanken uit het
+  // kastje, eten van de plant (zonneladen ☀️ heeft z'n eigen tak in de frame-loop).
+  var BRON_EMOJI = { laadkruk:"⚡", kastje:"🔋", bloempot:"🍽️" };
 
   // De hele bottys-blob is groot; hem elke tick opnieuw downloaden (én bovenop de
   // realtime-push) verdubbelt de egress. Daarom halen we hem alleen bij het openen
@@ -613,10 +628,11 @@
   // volle vloerbreedte (stabiel per naam). Zo staan Botty's met hetzelfde gedrag
   // (jagen, dwalen) tóch verspreid i.p.v. op één punt te clusteren.
   function thuis(b){
-    // woonlaag volgt de dapperheid: dappere Botty's wonen boven in de tuin,
-    // schuchtere onder in de kamer (persoonlijkheid → ruimtelijke keuze).
+    // Verticaal slaap/waak-ritme: overdag liever bovengronds in de tuin (zon,
+    // ruimte), 's nachts liever beneden in de beschutte kamer. Dapperheid blijft
+    // een lichte bias: dapperen wonen nét wat vaker boven.
     var d = (b.temperament && typeof b.temperament.dapper==="number") ? b.temperament.dapper : 0.5;
-    var nv = nameRnd(b.naam+"niv") < d ? 0 : 1;
+    var nv = nacht ? 1 : (nameRnd(b.naam+"niv") < (0.35 + 0.5*d) ? 0 : 1);
     var lv = NIVEAUS[nv];
     return { niveau:nv, x: lv.xlo + 55 + nameRnd(b.naam+"thuis")*(lv.xhi - lv.xlo - 110) };
   }
@@ -668,8 +684,14 @@
       // jagen doe je in je eentje: elk naar z'n eigen thuisplek + wat rondzwerven
       var tj = thuis(b); niv = tj.niveau; x = tj.x + (Math.random()-0.5)*280;
     } else {
-      // dwalen: rond de eigen thuisplek, verspreid over de wereld
-      var td = thuis(b); niv = td.niveau; x = td.x + (Math.random()-0.5)*240;
+      // dwalen: overdag naar de openlucht (tuin) om te zonnebaden ☀️,
+      // 's nachts rond de eigen (beschutte) thuisplek
+      if(!nacht){
+        var lt = NIVEAUS[0];
+        niv = 0; x = lt.xlo + 55 + nameRnd(b.naam+"zon")*(lt.xhi - lt.xlo - 110) + (Math.random()-0.5)*120;
+      } else {
+        var td = thuis(b); niv = td.niveau; x = td.x + (Math.random()-0.5)*240;
+      }
     }
     nd.doelNiveau = niv;
     var lv = NIVEAUS[niv];
@@ -814,9 +836,16 @@
         nd.gebruik.textContent = "💤";
         nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 12);
         nd.gebruik.setAttribute("opacity", "0.85");
+      } else if(b.zonladen && !nd.klim && !beweegt && nd.niveau === 0){
+        // ☀️ draadloos zonneladen: stilstaand bovengronds in de zon
+        nd.gebruik.textContent = "☀️";
+        nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 14);
+        nd.gebruik.setAttribute("opacity", "0.95");
       } else if(bezig){
+        // bron-emoji: opladen ⚡ / tanken 🔋 / eten 🍽️ voelen elk anders,
+        // andere objecten tonen hun eigen icoon
         var obj = OBJECTEN.filter(function(o){ return o.id === b.doel.obj; })[0];
-        nd.gebruik.textContent = obj ? obj.icoon : "✨";
+        nd.gebruik.textContent = BRON_EMOJI[b.doel.obj] || (obj ? obj.icoon : "✨");
         nd.gebruik.setAttribute("x", r.x + 30); nd.gebruik.setAttribute("y", y0 - 18);
         nd.gebruik.setAttribute("opacity", "0.9");
       } else nd.gebruik.setAttribute("opacity", "0");

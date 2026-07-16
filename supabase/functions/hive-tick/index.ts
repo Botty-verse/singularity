@@ -80,6 +80,7 @@ const DRIVE_LABEL: Record<string, string> = { energie: "een leeg gevoel", data: 
 const ZELFZORG_START = 55;   // laagste bar hieronder → zelf naar een object
 const ZELFZORG_KLAAR = 80;   // bar hierboven → klaar, weer wat anders gaan doen
 const GEBRUIK_AFSTAND = 80;  // dicht genoeg bij het object om het te gebruiken
+const ZON_LAAD = 1.4;        // ☀️ energie/tick voor een Botty die overdag buiten "zonnebadet"
 
 // ── Lerend brein (Creatures-stijl reward/punishment) ────────────────────────────
 // Wélk object een drive oplost staat NIET vast: elke Botty leert het zelf. Per
@@ -1551,6 +1552,10 @@ Deno.serve(async (req) => {
       updateStemming(b, bezoekers);
       updateLevenskracht(b);
       updateGroei(b);
+      // ☀️ Draadloos zonneladen: overdag laadt een rustig-dwalende (bovengrondse)
+      // Botty langzaam energie op. Vlag reist mee in het broadcast-snapshot.
+      b.zonladen = !NACHT && !!b.doel && b.doel.soort === "dwalen" && !slaapt(b);
+      if (b.zonladen) b.energie = klem(b.energie + ZON_LAAD * Math.min(gemist, 10));
     });
 
     // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie).
