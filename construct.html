@@ -727,17 +727,21 @@
       } else {
         // op het doelniveau: loop naar doelX; bij aankomst korte rust, dan nieuw doel
         var dxx = nd.doelX - r.x;
-        if(Math.abs(dxx) < 8){
+        var geparkeerd = Math.abs(dxx) < 8;
+        if(geparkeerd){
           if(nd.pauze <= 0){ nieuwDoel(nd, b); nd.pauze = 700 + Math.random()*2600; }
           else nd.pauze -= 16;
         } else r.x += (dxx>0?1:-1) * Math.min(speed, Math.abs(dxx));
-        // horizontale scheiding met buren op hetzelfde niveau
+        // Horizontale scheiding met buren op hetzelfde niveau. Bij rust zachter én
+        // met een dode zone, zodat aangekomen Botty's niet eeuwig tegen elkaar aan
+        // blijven schuifelen (dat gaf het "gedrentel op de plek").
         var sepx = 0;
         bottys.forEach(function(o){
           if(o.naam===b.naam) return; var on = nodes[o.naam]; if(!on || on.niveau!==nd.niveau || on.klim) return;
           var ox = on.render.x - r.x, ad = Math.abs(ox);
-          if(ad < 72 && ad > 0.5) sepx -= (ox/ad) * (72-ad) * 0.03;
+          if(ad < 64 && ad > 0.5) sepx -= (ox/ad) * (64-ad) * (geparkeerd ? 0.014 : 0.03);
         });
+        if(Math.abs(sepx) < 0.2) sepx = 0;   // dode zone tegen eindeloos micro-duwen
         r.x += sepx;
       }
       // voet-hoogte: vloer van huidig niveau, of geïnterpoleerd op de trap
@@ -767,7 +771,11 @@
       }
 
       var beweegt = Math.abs(r.x - was) > 0.3;
-      if((r.x - was) < -0.06) nd.linksom = true; else if((r.x - was) > 0.06) nd.linksom = false;
+      // Richtingshysterese: pas omdraaien bij aanhoudende beweging, niet bij micro-
+      // gedrentel (separatie/verpozen/muurcontact). Voorkomt het sprite-flikkeren
+      // wanneer een Botty vrijwel op zijn plek staat.
+      nd.richtAcc = (nd.richtAcc || 0) * 0.72 + (r.x - was);
+      if(nd.richtAcc < -1.1) nd.linksom = true; else if(nd.richtAcc > 1.1) nd.linksom = false;
       var linksom = nd.linksom;
 
       // Van sprite wisselen als de Botty een andere levensfase in groeide.
@@ -862,6 +870,12 @@
       }
       nd.laatstY0 = y0; nd.laatstH = h;
     });
+    // Diepte-ordening: wie lager op de vloer staat (grotere voetY) of dichterbij is,
+    // hoort vóór getekend. Zo overlappen Botty's netjes i.p.v. in willekeurige volgorde.
+    var geordend = bottys.map(function(b){ return nodes[b.naam]; }).filter(Boolean)
+      .sort(function(a,c){ return (a.render.y - c.render.y) || (a.render.x - c.render.x); });
+    var volg = geordend.map(function(n){ return n.b.naam; }).join(",");
+    if(volg !== laag._volg){ laag._volg = volg; geordend.forEach(function(n){ laag.appendChild(n.g); }); }
     // camera: volg de geselecteerde Botty (Creatures-stijl), anders de hele wereld
     var doelCam;
     if(sel && nodes[sel]){
