@@ -888,7 +888,10 @@
     kamerEl.setAttribute("viewBox", cam.x.toFixed(1)+" "+cam.y.toFixed(1)+" "+cam.w.toFixed(1)+" "+(cam.w*WERELD_R).toFixed(1));
     // hand meeschalen met de zoom zodat hij altijd even groot oogt
     if(handPos){ var hs = cam.w/WERELD_B; handEl.setAttribute("transform","translate("+handPos.x+","+handPos.y+") scale("+hs.toFixed(3)+")"); }
-    updateKitLive();
+    // Kit-render mag de animatieloop NOOIT platleggen: een fout in het brein-paneel
+    // (bv. ontbrekende on-demand detaildata) wordt opgevangen i.p.v. de frame te
+    // laten crashen — anders bevriest de hele Construct zodra je een Botty selecteert.
+    try { updateKitLive(); } catch(e){ if(!frame._gemeld){ frame._gemeld = true; console.error("kit-render fout:", e); } }
     requestAnimationFrame(frame);
   }
 
@@ -1173,7 +1176,8 @@
     document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
     document.getElementById("kit-naam").textContent = b.naam;
     delete breinPrev[b.naam];   // verse selectie → geen valse puls
-    metBrein(b); renderBrein(b); renderBreinAnat(b);
+    try { metBrein(b); renderBrein(b); renderBreinAnat(b); }
+    catch(e){ console.error("brein-paneel fout:", e); }
     if(!breinDetail[b.naam]) laadBreinDetail();   // nog geen detail gecacht → haal op
   }
   var kitPuls = 0;
