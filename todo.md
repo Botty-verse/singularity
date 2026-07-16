@@ -54,26 +54,18 @@ Samengevat per drive: **energie** = opladen (laadcomputer), tanken (kastje), ete
 (bloempot) én zonneladen (zon) · **data** = leren (bord, boekenkast, lessenaar) ·
 **fit** = bewegen (wereldbol, kruk) · **geluk** = verwonderen/ontspannen (stolp, deur).
 
-### Uit te werken
+### Uitgewerkt (gebouwd volgens docs/plan-zon-slaap-objecten.md)
 
-- [ ] **Opladen / eten / tanken zichtbaar maken** — per energiebron een eigen
-  micro-animatie + emoji boven de kop tijdens het aanvullen (⚡ opladen aan de
-  laadcomputer, 🍽️ eten bij de bloempot, 🔋 tanken bij het kastje). De drie
-  bronnen voelen zo elk anders, ook al vullen ze dezelfde `energie`-drive.
-- [ ] **Zon als object + draadloos zonneladen** — nieuw agent `zon` (klasse
-  hemellichaam, icoon ☀️, drive energie). Staat niet op de vloer maar aan de
-  hemel/bovenin en werkt alleen **bovengronds/in de openlucht** (tuin, niveau 0).
-  Laadregel: een Botty die **stilstaat** (idle, geen doel dat beweging vraagt) in
-  de openlucht laadt langzaam `energie` op; boven zijn kop verschijnt een ☀️.
-  's Nachts geen zon (haakt in op de bestaande `NACHT`-stand); later eventueel
-  weer/seizoen. Toeschouwer ziet Botty's die stil "zonnebaden".
-- [ ] **Slaapvoorkeur: ondergronds slapen, bovengronds wakker** — slapende/
-  rustende Botty's trekken naar de lagere, beschutte laag (kamer/ondergronds hol):
-  veilig en donker. Wakkere/actieve Botty's prefereren juist de bovengrondse laag
-  (tuin) — daar schijnt de zon om te laden en is er ruimte. Vervangt/vult de
-  huidige `dapper`-gebaseerde woonlaagkeuze (`thuis(b)` / `kiesDoelen`) aan met een
-  slaap/waak- + dag/nacht-gedreven verticaal ritme. Versterkt het zonneladen: naar
-  bóven voor de zon, naar béneden om te slapen.
+- [x] **Opladen / eten / tanken zichtbaar** — bron-emoji boven de kop tijdens het
+  aanvullen: ⚡ laadcomputer, 🔋 kastje, 🍽️ bloempot; overige objecten tonen hun
+  eigen icoon. (Micro-animaties per bron: later te verfijnen.)
+- [x] **Zon als object + draadloos zonneladen** — agent `zon` (hemellichaam, ☀️)
+  in agents.json; `ZON_LAAD`-regel in hive-tick: een dwalende Botty laadt overdag
+  `energie` op (`b.zonladen`), 's nachts uit. Zon aan de tuin-hemel (dimt 's
+  nachts), ☀️ boven de kop van een stilstaande zonnebader op niveau 0.
+- [x] **Slaapvoorkeur: beschut slapen, bovengronds wakker** — `thuis(b)` kiest
+  's nachts de beschutte kamer; dwalen gaat overdag expliciet naar de tuin (zon).
+  Dapperheid blijft een lichte bias. Slapen/rusten blijft bij RUST (kamer).
 
 ## Creatures-roadmap (voorgesteld, nog niet gestart)
 
