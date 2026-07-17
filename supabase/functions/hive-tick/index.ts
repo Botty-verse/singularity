@@ -1467,6 +1467,7 @@ async function broadcastState(bottys: any[], eieren: any[], acties: number, firs
 Deno.serve(async (req) => {
   // CORS-preflight (OPTIONS) meteen beantwoorden — anders faalt elke POST met headers.
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  try {
   // Bezoekersverzoek (optioneel): { actie: "broed", ei: "<id>" } broedt een rijp ei uit
   let vraag: any = null;
   try { vraag = await req.json(); } catch (_) { /* geen body = gewone tick */ }
@@ -2090,4 +2091,14 @@ Deno.serve(async (req) => {
     JSON.stringify({ ok: true, ticks: gemist, events: events.length, bezoekers, interactie: iaEvent }),
     { headers: { ...CORS, "Content-Type": "application/json" } },
   );
+  } catch (e) {
+    // Zelfs bij een interne fout een CORS-antwoord teruggeven — anders geeft Deno een
+    // kale 500 zonder CORS-headers, wat een strikte browser (Safari) als een
+    // "access control"-fout meldt i.p.v. als de echte serverfout.
+    console.error("hive-tick fout:", e);
+    return new Response(
+      JSON.stringify({ ok: false, error: String((e as any)?.message ?? e) }),
+      { status: 200, headers: { ...CORS, "Content-Type": "application/json" } },
+    );
+  }
 });
