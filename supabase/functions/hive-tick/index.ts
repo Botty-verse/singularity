@@ -272,11 +272,12 @@ function biochemie(b: any, bottys: any[]) {
   // ── Metabolisme: glucose (snel) + glycogeen-reserve (traag) ──────────────────
   // Eten/energie levert bloedsuiker; bewegen & denken verbranden het. Overschot
   // gaat de reserve in; bij een tekort tapt het lichaam de reserve weer aan.
-  c.glucose   += (b.energie ?? 50) * 0.05 - (actief ? 2.4 : 0.9);
-  const surplus = Math.max(0, c.glucose - 65), tekort = Math.max(0, 30 - c.glucose);
-  c.glycogeen += surplus * 0.06 - tekort * 0.12;
-  c.glucose   += tekort * 0.12 * (c.glycogeen > 2 ? 1 : 0);   // reserve vult de suiker aan
-  if (c.glucose < 25 && c.glycogeen < 5) c.vermoeidheid += 2.5;   // tank leeg → futloos
+  // glucose weerspiegelt de verzadiging (omgekeerd aan honger) met wat vertraging;
+  // activiteit verbrandt extra. Glycogeen is de trage buffer die overschot opslaat.
+  const doelGlucose = 100 - (c.honger ?? 0);
+  c.glucose   += (doelGlucose - c.glucose) * 0.15 - (actief ? 1.2 : 0);
+  c.glycogeen += (c.glucose - 50) * 0.03;                          // vult bij overschot, tapt bij tekort
+  if (c.glucose < 15 && c.glycogeen < 8) c.vermoeidheid += 2;      // beide leeg → futloos
   // ── Adrenaline: vecht/vlucht bij acute dreiging ──────────────────────────────
   c.adrenaline += (b.ziek ? 6 : 0) + ((c.gif ?? 0) > 40 ? 4 : 0) + (nabij >= 5 ? 3 : 0);
   c.adrenaline -= 1.2;                                        // ebt sowieso weg
