@@ -711,6 +711,16 @@
   }
 
   function frame(ts){
+    // De HELE frame-body mag de animatieloop nooit platleggen: één fout ergens
+    // hierin (bv. de camera-volgcode die pas áán gaat zodra je een Botty selecteert,
+    // of een Safari-randgeval in de SVG-matrix) zou requestAnimationFrame(frame)
+    // onbereikbaar maken en de Construct bevriezen — precies wat 'aanklikken =
+    // bevriezen' oplevert. Vangen we alles af, dan leeft de loop altijd door.
+    try { frameBody(ts); }
+    catch(e){ if(!frame._gemeld){ frame._gemeld = true; console.error("frame-fout:", e); } }
+    requestAnimationFrame(frame);
+  }
+  function frameBody(ts){
     // verwijder vertrokken Botty's
     Object.keys(nodes).forEach(function(n){ if(!bottys.find(function(b){return b.naam===n;})){ laag.removeChild(nodes[n].g); delete nodes[n]; } });
     bottys.forEach(function(b){
@@ -910,11 +920,7 @@
     kamerEl.setAttribute("viewBox", cam.x.toFixed(1)+" "+cam.y.toFixed(1)+" "+cam.w.toFixed(1)+" "+(cam.w*WERELD_R).toFixed(1));
     // hand meeschalen met de zoom zodat hij altijd even groot oogt
     if(handPos){ var hs = cam.w/WERELD_B; handEl.setAttribute("transform","translate("+handPos.x+","+handPos.y+") scale("+hs.toFixed(3)+")"); }
-    // Kit-render mag de animatieloop NOOIT platleggen: een fout in het brein-paneel
-    // (bv. ontbrekende on-demand detaildata) wordt opgevangen i.p.v. de frame te
-    // laten crashen — anders bevriest de hele Construct zodra je een Botty selecteert.
-    try { updateKitLive(); } catch(e){ if(!frame._gemeld){ frame._gemeld = true; console.error("kit-render fout:", e); } }
-    requestAnimationFrame(frame);
+    updateKitLive();   // brein-/biochemiepaneel bijwerken (frame() vangt fouten al af)
   }
 
   // ── De Hand: jouw cursor in de wereld ────────────────────────────────────
