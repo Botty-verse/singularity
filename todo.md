@@ -74,10 +74,10 @@ Samengevat per drive: **energie** = opladen (laadcomputer), tanken (kastje), ete
   Toeschouwer ziet uitbraken ontstaan, uitdoven én resistentie zich verspreiden.
 - [ ] **Meer levensfases** — nu baby/tiener/volwassen; toevoegen: pup/kind en
   bejaard, met eigen gedrag en uiterlijk.
-- [ ] **Biochemie zichtbaar** in de verzorgerskit / construct (drives & stofjes tonen).
-- [ ] **Glucose/glycogeen-metabolisme** — echte energiehuishouding i.p.v. losse honger.
-- [ ] **Adrenaline** — kortstondige stress-boost met gedragsgevolg (vluchten/bevriezen).
-- [ ] **Hormonale voortplantingscyclus** — vruchtbaarheid als ritme i.p.v. simpele kans.
+- [x] **Biochemie zichtbaar** — biochemie-strook onder de brein-anatomie: 14 stofjes/hormonen als gloeiende balken, live uit `b.chem`.
+- [x] **Glucose/glycogeen-metabolisme** — glucose (snel) + glycogeen-reserve (traag), naast de honger-drive.
+- [x] **Adrenaline** — piek bij acute dreiging → sneller bewegen + 💥 boven de kop.
+- [x] **Hormonale voortplantingscyclus** — libido-ritme (24 min, stress-onderdrukt) stuurt de voortplantingsdrang; 💕 in het vruchtbare venster. Plus oxytocine (binding) & cortisol (chronische stress).
 - [ ] **Benoemde mutaties** — mutaties een naam/label geven i.p.v. anonieme byte-flips.
 - [ ] **Eetbare objecten + gifstoffen** — objecten in de construct die een Botty kan
   opeten (effect op drives); planten/objecten met inslikbare gifstoffen (het `gif`-

@@ -212,7 +212,15 @@ function erfBrein(ouderA: any, ouderB: any): { brein: Record<string, Record<stri
 // Drives als chemicaliën (Creatures-getrouw). Naast de vier bar-drives dragen we
 // drie "gevoelens" mee die het gedrag én het gezicht sturen: verveling, angst,
 // eenzaamheid — met eigen emitters, half-lives en receptors.
-const CHEM: string[] = ["honger", "vermoeidheid", "stress", "endorfine", "gif", "verveling", "angst", "eenzaamheid"];
+// Metabolisme + hormonen (uitbreiding, draait NAAST de bar-drives):
+//  glucose  = snelle bloedsuiker (eten↑, verbranden↓)   glycogeen = trage reserve
+//  adrenaline = vecht/vlucht-piek bij acute dreiging     libido = vruchtbaarheidsritme
+//  oxytocine  = sociale binding (dempt stress/eenzaamheid) cortisol = chronische stress
+const CHEM: string[] = ["honger", "vermoeidheid", "stress", "endorfine", "gif", "verveling", "angst", "eenzaamheid",
+  "glucose", "glycogeen", "adrenaline", "libido", "oxytocine", "cortisol"];
+// Startwaarden voor de nieuwe stofjes (0 zou een verse Botty "uitgehongerd" tonen).
+const CHEM_START: Record<string, number> = { glucose: 60, glycogeen: 50 };
+const LIBIDO_CYCLE_MS = 24 * 60 * 1000;   // ~24 min vruchtbaarheidsritme per Botty
 function chemHalfLives(G: any): Record<string, number> {
   // half-life in ticks: hoe hoger, hoe trager de stof wegebt (genoom-bepaald)
   return {
@@ -224,6 +232,12 @@ function chemHalfLives(G: any): Record<string, number> {
     verveling:    18,                       // verveling bouwt traag op en zakt traag
     angst:        8  / G.ziekKans,          // angst ebt vrij snel weg als de dreiging voorbij is
     eenzaamheid:  16 * G.social,            // socialere Bottys voelen eenzaamheid langer na
+    glucose:      5,                        // bloedsuiker wisselt vrij snel
+    glycogeen:    140,                      // reserve verandert heel traag
+    adrenaline:   3,                        // vecht/vlucht dooft snel uit
+    libido:       26,                       // hormoonrit verandert geleidelijk
+    oxytocine:    11,                       // binding zindert wat na
+    cortisol:     90,                       // chronische stress blijft lang hangen
   };
 }
 const chemVervalFactor = (h: number) => Math.pow(0.5, 1 / Math.max(1, h));
@@ -235,7 +249,7 @@ const stressFactor = (b: any): number => 1 + stressVan(b) / 100 * 1.5;
 function biochemie(b: any, bottys: any[]) {
   const G = exprVan(b);
   const c = b.chem = b.chem || {};
-  for (const k of CHEM) if (typeof c[k] !== "number") c[k] = 0;
+  for (const k of CHEM) if (typeof c[k] !== "number") c[k] = CHEM_START[k] ?? 0;
   const actief = b.doel && b.doel.soort !== "bijkomen" && b.doel.soort !== "herstellen" && b.doel.soort !== "slapen";
   let nabij = 0;
   if (b.pos) for (const o of bottys) { if (o !== b && !o.bezigEi && o.pos && afstand2(b.pos, o.pos) < ZICHT * ZICHT) nabij++; }
@@ -255,6 +269,28 @@ function biochemie(b: any, bottys: any[]) {
   // eenzaamheid: stijgt in je eentje, zakt snel in gezelschap.
   c.eenzaamheid  += (nabij === 0 ? 1.3 : -2.2);
 
+  // ── Metabolisme: glucose (snel) + glycogeen-reserve (traag) ──────────────────
+  // Eten/energie levert bloedsuiker; bewegen & denken verbranden het. Overschot
+  // gaat de reserve in; bij een tekort tapt het lichaam de reserve weer aan.
+  c.glucose   += (b.energie ?? 50) * 0.05 - (actief ? 2.4 : 0.9);
+  const surplus = Math.max(0, c.glucose - 65), tekort = Math.max(0, 30 - c.glucose);
+  c.glycogeen += surplus * 0.06 - tekort * 0.12;
+  c.glucose   += tekort * 0.12 * (c.glycogeen > 2 ? 1 : 0);   // reserve vult de suiker aan
+  if (c.glucose < 25 && c.glycogeen < 5) c.vermoeidheid += 2.5;   // tank leeg → futloos
+  // ── Adrenaline: vecht/vlucht bij acute dreiging ──────────────────────────────
+  c.adrenaline += (b.ziek ? 6 : 0) + ((c.gif ?? 0) > 40 ? 4 : 0) + (nabij >= 5 ? 3 : 0);
+  c.adrenaline -= 1.2;                                        // ebt sowieso weg
+  c.vermoeidheid -= Math.min(c.vermoeidheid, (c.adrenaline ?? 0) * 0.08);   // pusht moeheid weg
+  // ── Libido: cyclisch vruchtbaarheidsritme (stress onderdrukt het) ────────────
+  const venster = Math.sin((Date.now() / LIBIDO_CYCLE_MS + genHash(b.bid || b.naam || "", "libido")) * Math.PI * 2);
+  c.libido    += (rijp(b) ? (venster > 0 ? venster * 4 : -2.5) : -3) - stressVan(b) * 0.02;
+  // ── Oxytocine: sociale binding — stijgt bij gezelschap, dempt stress/eenzaamheid ─
+  c.oxytocine += (nabij > 0 ? 1.4 + Math.min(nabij, 3) * 0.4 : -1.0);
+  c.eenzaamheid -= Math.min(c.eenzaamheid, (c.oxytocine ?? 0) * 0.05);
+  c.stress      -= Math.min(c.stress, (c.oxytocine ?? 0) * 0.03);
+  // ── Cortisol: trage integrator van stress (chronisch) ────────────────────────
+  c.cortisol  += (c.stress > 40 ? (c.stress - 40) * 0.03 : -0.4);
+
   // Reactie: endorfine blust stress (katalytische afbraak). Bewust zwakker (0.06)
   // zodat endorfine ambiënte stress dempt maar acute stress (ziek/eenzaam) niet
   // volledig maskeert — anders bouwt stress nooit op en zijn de fertiliteit/
@@ -272,7 +308,13 @@ function biochemie(b: any, bottys: any[]) {
   if (c.verveling   > 50) d -= (c.verveling   - 50) * 0.025;
   if (c.angst       > 45) d -= (c.angst       - 45) * 0.05;
   if (c.eenzaamheid > 50) d -= (c.eenzaamheid - 50) * 0.03;
+  if (c.cortisol    > 50) d -= (c.cortisol    - 50) * 0.02;   // chronische stress drukt aanhoudend
   if (d !== 0) b.stemming = klem((b.stemming ?? 50) + d);
+
+  // Lichte vlaggen voor de arena-weergave (reizen mee in het slanke snapshot):
+  // een adrenaline-piek (⚡, sneller bewegen) en het vruchtbare venster (♥).
+  b.adrenalinePiek = (c.adrenaline ?? 0) > 45;
+  b.vruchtbaar = rijp(b) && (c.libido ?? 0) > 60;
 
   // Dominant gevoel → gezichtsuitdrukking (de client leest b.humeur). Ziek en slaap
   // krijgen client-side voorrang; hier bepalen we bang/eenzaam/verveeld/blij.
@@ -1102,7 +1144,10 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   }
   const T = temp(b);   // temperament weegt de gedragskeuze (persoonlijkheid = nature)
   // Fertiliteit: te veel stress onderdrukt de voortplantingsdrang (Creatures p.16).
-  if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && Math.random() < 0.4) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
+  // Voortplanting volgt nu het hormonale ritme: libido (cyclisch, stress-onderdrukt)
+  // bepaalt de kans i.p.v. een vaste worp. Buiten het vruchtbare venster jaagt hij niet.
+  const libido = b.chem?.libido ?? 0;
+  if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && libido > 40 && Math.random() < 0.12 + (libido / 100) * 0.5) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
   // Gezelschap zoeken: sterk gestuurd door hoe sociaal (verlegen ↔ gezellig) een Botty is.
   if (Math.random() < 0.12 + 0.6 * T.sociaal) {
     const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
