@@ -82,7 +82,10 @@ Samengevat per drive: **energie** = opladen (laadcomputer), tanken (kastje), ete
 - [ ] **Eetbare objecten + gifstoffen** — objecten in de construct die een Botty kan
   opeten (effect op drives); planten/objecten met inslikbare gifstoffen (het `gif`-
   drive bestaat al, de bron nog niet).
-- [ ] **Geurgradiënten** — Botty's ruiken eten/soortgenoten en bewegen langs de gradiënt.
+- [~] **Geurgradiënten** — *client-side eerste plak (Fase 1) gebouwd:* een Botty
+  "ruikt" een bron pas binnen reukbereik en speurt tot dan (🔎→👃→👁️), i.p.v.
+  alwetend recht op zijn object af te lopen. Nog open: de canonieke, server-side
+  geur-diffusie in `hive-tick`.
 - [ ] **Temperament-genen** — erfelijke persoonlijkheid (verlegen/nieuwsgierig/agressief).
 - [ ] **Levensverhaal-lezer** — per Botty een terug-te-lezen biografie (geboorte, leren, kinderen, dood).
 - [ ] **Hall of Fame** — eregalerij van bijzondere Botty's (oudste, slimste, meeste nakomelingen).
@@ -101,8 +104,11 @@ Mechanismen uit het paper die we nog niet hebben (§ verwijst naar het paper):
   zodat uitgestelde beloning/straf aan de juiste beslissing wordt toegekend.
 - [ ] **Gen-koppeling (linkage ∝ afstand)** (§3.4) — trekjes die samen overerven; sluit
   aan op *temperament-genen*. (Single-point crossover geeft dit deels al.)
-- [ ] **Zicht op zichtlijn + geluidsdemping** (§3.1) — semi-symbolische waarneming: alleen
-  zien wat in de kijkrichting ligt, geluid dat dooft achter objecten. (Geur staat al los.)
+- [~] **Zicht op zichtlijn + geluidsdemping** (§3.1) — semi-symbolische waarneming: alleen
+  zien wat in de kijkrichting ligt, geluid dat dooft achter objecten. *Client-side
+  eerste plak (Fase 1): zicht werkt nu alleen in de kijkrichting op dezelfde vloer
+  (👁️ pas als het object vóór de Botty ligt), met een gezichtsveld-kegel op de
+  geselecteerde Botty.* Nog open: geluidsdemping en occlusie achter objecten.
 
 ## Brein-roadmap (volgende stappen)
 

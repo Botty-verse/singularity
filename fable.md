@@ -92,6 +92,14 @@ goede kant op kijken. Optioneel een subtiele geur-heatmap-overlay in de Construc
   geen ray-casting: "object in kijkrichting → neuron vuurt."
 - Geurgradiënt-navigatie vervangt de huidige directe koers naar het doel.
 
+**Voortgang.** ✅ *Eerste plak gebouwd & headless geverifieerd (client-side, `construct.html`):*
+een Botty loopt niet langer alwetend recht op zijn object af, maar **speurt** (🔎)
+tot hij binnen reukbereik de **geur** vangt (👃) en pas als het object op dezelfde
+vloer vóór hem ligt **ziet** hij het (👁️) — met een **gezichtsveld-kegel** op de
+geselecteerde Botty. Bewezen: de volledige 🔎→👃→👁️-sequentie treedt op, zoekers
+homen cross-floor in, en de render-loop blijft 60 fps (geen freeze). *Nog open in
+deze fase:* de canonieke, server-side geur-diffusie + geluidsdemping/occlusie.
+
 ---
 
 ### 🧠 Fase 2 — Brein v2: het échte Creatures-leren (20%) — *het hart*

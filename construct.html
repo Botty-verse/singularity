@@ -360,6 +360,14 @@
     for(var i=0;i<TRAPPEN.length;i++){ var t=TRAPPEN[i]; if((t.van===a&&t.naar===c)||(t.van===c&&t.naar===a)) return t; }
     return TRAPPEN[0];
   }
+  // ── Zintuigen (Fase 1 — Creatures §3.1/§5): semi-symbolische waarneming.
+  // Geur is rondom en dooft met afstand (+straf tussen vloeren); zicht werkt alleen
+  // in de kijkrichting, op dezelfde vloer, en op kortere afstand. Zo weet een Botty
+  // niet langer alwetend waar zijn object staat: hij speurt tot hij de geur vangt,
+  // dan homet hij in, en pas als het object vóór hem ligt "ziet" hij het.
+  var GEUR_STRAAL  = 380;   // reukbereik (px in de wereld) — rondom
+  var ZICHT_STRAAL = 250;   // zichtbereik — alleen in de kijkrichting
+  var VLOER_STRAF  = 300;   // reuk verzwakt fors tussen de twee vloeren
   var SVGNS = "http://www.w3.org/2000/svg";
   var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff", dwalen:"#c9b98a" };
 
@@ -437,6 +445,13 @@
   };
 
   var laag = document.getElementById("laag");
+  // Gezichtsveld-kegel van de geselecteerde Botty (Fase 1). Achter de sprites
+  // gehangen (eerste kind van de laag) zodat hij de Botty's niet overlapt.
+  var zichtKegel = document.createElementNS(SVGNS, "path");
+  zichtKegel.setAttribute("fill", "#ffd98a");
+  zichtKegel.setAttribute("opacity", "0");
+  zichtKegel.setAttribute("pointer-events", "none");
+  laag.insertBefore(zichtKegel, laag.firstChild);
   var fxlaag = document.getElementById("fxlaag");
   var handEl = document.getElementById("hand");
   var kamerEl = document.getElementById("kamer");
@@ -665,14 +680,15 @@
     // stabiele "baan" per Botty (-0.5..0.5): zo gaan ze náást elkaar staan bij een
     // gedeeld doel i.p.v. op dezelfde plek te blijven hangen.
     var lane = nameRnd(b.naam+"lane") - 0.5;
+    nd.zoekt = false;   // standaard: geen speurtocht (wordt gezet door naarBron)
     if(soort==="zelfzorg" && b.doel){
       var oid = b.doel.obj || b.doel.poi;
       var o = OBJECTEN.filter(function(z){ return z.id===oid; })[0];
-      if(o){ niv = o.niveau; x = o.x + lane*130; }
+      if(o){ var r0 = naarBron(nd, o, lane*130); niv = r0.niv; x = r0.x; }
       else { niv = 1; x = RUST.x + lane*160; }
     } else if(soort==="nieuwsgierig" && b.doel){
       var poi = POIS[b.doel.poi];
-      if(poi){ niv = poi.niveau; x = poi.x + lane*95; }
+      if(poi){ var r1 = naarBron(nd, { x:poi.x, niveau:poi.niveau }, lane*95); niv = r1.niv; x = r1.x; }
       else { var tn = thuis(b); niv = tn.niveau; x = tn.x + lane*160; }
     } else if(soort==="bijkomen" || soort==="herstellen" || soort==="slapen"){
       niv = RUST.niveau; x = RUST.x + lane*320;
@@ -708,6 +724,46 @@
     nd.doelNiveau = niv;
     var lv = NIVEAUS[niv];
     nd.doelX = Math.max(lv.xlo, Math.min(lv.xhi, x));
+  }
+
+  // ── Zintuigen (Fase 1) ──────────────────────────────────────────────────────
+  // Het doelwit dat een Botty nú probeert waar te nemen (object / POI / vriend),
+  // of null als zijn intentie geen ruimtelijke bron heeft (dwalen, priemjacht).
+  function intentDoel(nd, b){
+    var soort = b && b.doel && b.doel.soort;
+    if(soort==="zelfzorg"){
+      var o = OBJECTEN.filter(function(z){ return z.id===(b.doel.obj||b.doel.poi); })[0];
+      return o ? { x:o.x, niveau:o.niveau, id:o.id, icoon:o.icoon } : null;
+    }
+    if(soort==="nieuwsgierig"){
+      var p = POIS[b.doel.poi];
+      return p ? { x:p.x, niveau:p.niveau, id:b.doel.poi } : null;
+    }
+    if(soort==="gezelschap" && b.doel.naar && nodes[b.doel.naar]){
+      var v = nodes[b.doel.naar]; return { x:v.render.x, niveau:v.niveau, id:b.doel.naar };
+    }
+    return null;
+  }
+  // Wat neemt deze node van dat doelwit waar? ruikt = rondom binnen bereik (dooft
+  // met afstand + vloerstraf); ziet = in de kijkrichting, dezelfde vloer, dichterbij.
+  function neemWaar(nd, doel){
+    if(!doel) return { ruikt:false, ziet:false, dx:0 };
+    var dx = doel.x - nd.render.x, adx = Math.abs(dx);
+    var zelfdeVloer = nd.niveau === doel.niveau;
+    var reukAfstand = adx + (zelfdeVloer ? 0 : VLOER_STRAF);
+    var voorkant = adx < 26 || ((dx < 0) === !!nd.linksom);   // ligt het vóór z'n neus?
+    return { ruikt: reukAfstand < GEUR_STRAAL,
+             ziet: zelfdeVloer && voorkant && adx < ZICHT_STRAAL, dx: dx };
+  }
+  // Navigatie naar een bron: heeft de Botty de geur nog niet? Dan speurt hij — hij
+  // gaat naar de juiste vloer en stapt een reukbereik dichterbij. Zodra hij de geur
+  // vangt, gaat hij er recht op af (homing). Zet nd.zoekt voor de zichtbare cue.
+  function naarBron(nd, o, laneX){
+    if(neemWaar(nd, o).ruikt){ nd.zoekt = false; return { niv:o.niveau, x:o.x + laneX }; }
+    nd.zoekt = true;
+    var dir = o.x > nd.render.x ? 1 : -1;
+    var stap = Math.min(Math.abs(o.x - nd.render.x), GEUR_STRAAL * 0.85);
+    return { niv:o.niveau, x: nd.render.x + dir * stap };
   }
 
   function frame(ts){
@@ -862,6 +918,9 @@
       // zelfzorg-icoon zodra de Botty bij zijn object is
       var bezig = b.doel && b.doel.soort === "zelfzorg" && !nd.klim
         && nd.niveau===nd.doelNiveau && Math.abs(r.x - nd.doelX) < 60;
+      // Zintuigen (Fase 1): wat neemt deze Botty van zijn doelwit waar?
+      var pDoel = intentDoel(nd, b);
+      var waar = pDoel ? neemWaar(nd, pDoel) : null;
       if(inSlaap){
         nd.gebruik.textContent = "💤";
         nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 12);
@@ -888,6 +947,12 @@
         nd.gebruik.textContent = BRON_EMOJI[b.doel.obj] || (obj ? obj.icoon : "✨");
         nd.gebruik.setAttribute("x", r.x + 30); nd.gebruik.setAttribute("y", y0 - 18);
         nd.gebruik.setAttribute("opacity", "0.9");
+      } else if(waar && beweegt && !nd.klim){
+        // onderweg naar een waargenomen bron: 🔎 speuren (nog niets), 👃 de geur te
+        // pakken, 👁️ het object in het vizier — het zintuiglijke pad naar het doel.
+        nd.gebruik.textContent = waar.ziet ? "👁️" : (waar.ruikt ? "👃" : "🔎");
+        nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 14);
+        nd.gebruik.setAttribute("opacity", "0.85");
       } else nd.gebruik.setAttribute("opacity", "0");
       nd.ring.setAttribute("fill", b.ziek ? "#e0556b" : (DOEL_KLEUR[b.doel && b.doel.soort] || "#9aa0a4"));
       if(b.gedachte){ var t=nd.g.querySelector("title")||nd.g.appendChild(document.createElementNS(SVGNS,"title")); t.textContent = b.naam+": "+b.gedachte; }
@@ -908,6 +973,15 @@
       .sort(function(a,c){ return (a.render.y - c.render.y) || (a.render.x - c.render.x); });
     var volg = geordend.map(function(n){ return n.b.naam; }).join(",");
     if(volg !== laag._volg){ laag._volg = volg; geordend.forEach(function(n){ laag.appendChild(n.g); }); }
+    // Fase 1 — het gezichtsveld van de geselecteerde Botty (zicht = kijkrichting):
+    // een zachte kegel die met hem meedraait, zodat de toeschouwer ziet wát hij ziet.
+    if(sel && nodes[sel]){
+      var snK = nodes[sel], fy = vloerVan(snK.niveau) - 46, dirK = snK.linksom ? -1 : 1;
+      var txK = snK.render.x + dirK * ZICHT_STRAAL;
+      zichtKegel.setAttribute("d", "M"+snK.render.x.toFixed(0)+","+fy.toFixed(0)
+        +" L"+txK.toFixed(0)+","+(fy-64).toFixed(0)+" L"+txK.toFixed(0)+","+(fy+44).toFixed(0)+" Z");
+      zichtKegel.setAttribute("opacity", "0.13");
+    } else zichtKegel.setAttribute("opacity", "0");
     // camera: volg de geselecteerde Botty (Creatures-stijl), anders de hele wereld
     var doelCam;
     if(sel && nodes[sel]){
