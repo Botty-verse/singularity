@@ -137,6 +137,7 @@
   .kit-brein-noot{font-size:.72rem;color:#7fb89a;line-height:1.35;margin-top:.25rem;}
   .kit-biochem-kop{font-weight:700;color:#a3ffce;font-size:.86rem;margin:.6rem 0 .3rem;}
   .kit-biochem{display:grid;grid-template-columns:repeat(2,1fr);gap:.28rem .6rem;}
+  .bio-melding{grid-column:1/-1;color:#8fb7a6;font-size:.74rem;font-style:italic;padding:.2rem 0;}
   .biostof{display:flex;align-items:center;gap:.34rem;font-size:.72rem;color:#cfe7db;}
   .biostof .bio-ico{width:1.05em;text-align:center;flex:0 0 auto;}
   .biostof .bio-naam{flex:0 0 5.6em;color:#9fc7b4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -360,6 +361,14 @@
     for(var i=0;i<TRAPPEN.length;i++){ var t=TRAPPEN[i]; if((t.van===a&&t.naar===c)||(t.van===c&&t.naar===a)) return t; }
     return TRAPPEN[0];
   }
+  // ── Zintuigen (Fase 1 — Creatures §3.1/§5): semi-symbolische waarneming.
+  // Geur is rondom en dooft met afstand (+straf tussen vloeren); zicht werkt alleen
+  // in de kijkrichting, op dezelfde vloer, en op kortere afstand. Zo weet een Botty
+  // niet langer alwetend waar zijn object staat: hij speurt tot hij de geur vangt,
+  // dan homet hij in, en pas als het object vóór hem ligt "ziet" hij het.
+  var GEUR_STRAAL  = 380;   // reukbereik (px in de wereld) — rondom
+  var ZICHT_STRAAL = 250;   // zichtbereik — alleen in de kijkrichting
+  var VLOER_STRAF  = 300;   // reuk verzwakt fors tussen de twee vloeren
   var SVGNS = "http://www.w3.org/2000/svg";
   var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff", dwalen:"#c9b98a" };
 
@@ -437,6 +446,13 @@
   };
 
   var laag = document.getElementById("laag");
+  // Gezichtsveld-kegel van de geselecteerde Botty (Fase 1). Achter de sprites
+  // gehangen (eerste kind van de laag) zodat hij de Botty's niet overlapt.
+  var zichtKegel = document.createElementNS(SVGNS, "path");
+  zichtKegel.setAttribute("fill", "#ffd98a");
+  zichtKegel.setAttribute("opacity", "0");
+  zichtKegel.setAttribute("pointer-events", "none");
+  laag.insertBefore(zichtKegel, laag.firstChild);
   var fxlaag = document.getElementById("fxlaag");
   var handEl = document.getElementById("hand");
   var kamerEl = document.getElementById("kamer");
@@ -485,13 +501,26 @@
   function bewaarBreinDetail(b){
     if(b && b.naam) breinDetail[b.naam] = { brein:b.brein, breinN:b.breinN, lexicon:b.lexicon, chem:b.chem };
   }
+  // De biochemie-strook én de gekleurde brein-verbindingen komen ALLEEN uit deze
+  // on-demand fetch (de slanke live-baan strípt chem/brein er bewust uit). Faalt hij,
+  // dan hoort de gebruiker dat te merken i.p.v. eeuwig lege balken te zien — daarom
+  // loggen we de fout en houden we een vlag bij die het paneel kan tonen.
+  var breinDetailFout = false;
   function laadBreinDetail(){
-    return supabase.from("hive_state").select("bottys").eq("id","main").single()
+    // Via de RPC-baan (POST /rpc/hive_detail), niet via een directe tabel-select:
+    // die directe select faalde stil op Safari waardoor chem/brein-verbindingen leeg
+    // bleven. De RPC-baan is dezelfde als hive_slim en werkt overal.
+    return supabase.rpc("hive_detail")
       .then(function(res){
-        if(res.error || !res.data) return;
-        (res.data.bottys || []).forEach(bewaarBreinDetail);
+        if(res.error || !res.data){
+          if(res.error){ breinDetailFout = true; console.warn("detail-fetch (brein/biochemie) faalde:", res.error.message || res.error); if(sel) updateKit(); }
+          return;
+        }
+        breinDetailFout = false;
+        (res.data || []).forEach(bewaarBreinDetail);
         if(sel) updateKit();   // her-render het paneel met de verse brein-data
-      });
+      })
+      .catch(function(e){ breinDetailFout = true; console.warn("detail-fetch (brein/biochemie) fout:", (e && e.message) || e); if(sel) updateKit(); });
   }
   // Vul een (slanke) Botty aan met de gecachte brein-detaildata voor de weergave.
   function metBrein(b){
@@ -665,14 +694,15 @@
     // stabiele "baan" per Botty (-0.5..0.5): zo gaan ze náást elkaar staan bij een
     // gedeeld doel i.p.v. op dezelfde plek te blijven hangen.
     var lane = nameRnd(b.naam+"lane") - 0.5;
+    nd.zoekt = false;   // standaard: geen speurtocht (wordt gezet door naarBron)
     if(soort==="zelfzorg" && b.doel){
       var oid = b.doel.obj || b.doel.poi;
       var o = OBJECTEN.filter(function(z){ return z.id===oid; })[0];
-      if(o){ niv = o.niveau; x = o.x + lane*130; }
+      if(o){ var r0 = naarBron(nd, o, lane*130); niv = r0.niv; x = r0.x; }
       else { niv = 1; x = RUST.x + lane*160; }
     } else if(soort==="nieuwsgierig" && b.doel){
       var poi = POIS[b.doel.poi];
-      if(poi){ niv = poi.niveau; x = poi.x + lane*95; }
+      if(poi){ var r1 = naarBron(nd, { x:poi.x, niveau:poi.niveau }, lane*95); niv = r1.niv; x = r1.x; }
       else { var tn = thuis(b); niv = tn.niveau; x = tn.x + lane*160; }
     } else if(soort==="bijkomen" || soort==="herstellen" || soort==="slapen"){
       niv = RUST.niveau; x = RUST.x + lane*320;
@@ -710,7 +740,57 @@
     nd.doelX = Math.max(lv.xlo, Math.min(lv.xhi, x));
   }
 
+  // ── Zintuigen (Fase 1) ──────────────────────────────────────────────────────
+  // Het doelwit dat een Botty nú probeert waar te nemen (object / POI / vriend),
+  // of null als zijn intentie geen ruimtelijke bron heeft (dwalen, priemjacht).
+  function intentDoel(nd, b){
+    var soort = b && b.doel && b.doel.soort;
+    if(soort==="zelfzorg"){
+      var o = OBJECTEN.filter(function(z){ return z.id===(b.doel.obj||b.doel.poi); })[0];
+      return o ? { x:o.x, niveau:o.niveau, id:o.id, icoon:o.icoon } : null;
+    }
+    if(soort==="nieuwsgierig"){
+      var p = POIS[b.doel.poi];
+      return p ? { x:p.x, niveau:p.niveau, id:b.doel.poi } : null;
+    }
+    if(soort==="gezelschap" && b.doel.naar && nodes[b.doel.naar]){
+      var v = nodes[b.doel.naar]; return { x:v.render.x, niveau:v.niveau, id:b.doel.naar };
+    }
+    return null;
+  }
+  // Wat neemt deze node van dat doelwit waar? ruikt = rondom binnen bereik (dooft
+  // met afstand + vloerstraf); ziet = in de kijkrichting, dezelfde vloer, dichterbij.
+  function neemWaar(nd, doel){
+    if(!doel) return { ruikt:false, ziet:false, dx:0 };
+    var dx = doel.x - nd.render.x, adx = Math.abs(dx);
+    var zelfdeVloer = nd.niveau === doel.niveau;
+    var reukAfstand = adx + (zelfdeVloer ? 0 : VLOER_STRAF);
+    var voorkant = adx < 26 || ((dx < 0) === !!nd.linksom);   // ligt het vóór z'n neus?
+    return { ruikt: reukAfstand < GEUR_STRAAL,
+             ziet: zelfdeVloer && voorkant && adx < ZICHT_STRAAL, dx: dx };
+  }
+  // Navigatie naar een bron: heeft de Botty de geur nog niet? Dan speurt hij — hij
+  // gaat naar de juiste vloer en stapt een reukbereik dichterbij. Zodra hij de geur
+  // vangt, gaat hij er recht op af (homing). Zet nd.zoekt voor de zichtbare cue.
+  function naarBron(nd, o, laneX){
+    if(neemWaar(nd, o).ruikt){ nd.zoekt = false; return { niv:o.niveau, x:o.x + laneX }; }
+    nd.zoekt = true;
+    var dir = o.x > nd.render.x ? 1 : -1;
+    var stap = Math.min(Math.abs(o.x - nd.render.x), GEUR_STRAAL * 0.85);
+    return { niv:o.niveau, x: nd.render.x + dir * stap };
+  }
+
   function frame(ts){
+    // De HELE frame-body mag de animatieloop nooit platleggen: één fout ergens
+    // hierin (bv. de camera-volgcode die pas áán gaat zodra je een Botty selecteert,
+    // of een Safari-randgeval in de SVG-matrix) zou requestAnimationFrame(frame)
+    // onbereikbaar maken en de Construct bevriezen — precies wat 'aanklikken =
+    // bevriezen' oplevert. Vangen we alles af, dan leeft de loop altijd door.
+    try { frameBody(ts); }
+    catch(e){ if(!frame._gemeld){ frame._gemeld = true; console.error("frame-fout:", e); } }
+    requestAnimationFrame(frame);
+  }
+  function frameBody(ts){
     // verwijder vertrokken Botty's
     Object.keys(nodes).forEach(function(n){ if(!bottys.find(function(b){return b.naam===n;})){ laag.removeChild(nodes[n].g); delete nodes[n]; } });
     bottys.forEach(function(b){
@@ -852,6 +932,9 @@
       // zelfzorg-icoon zodra de Botty bij zijn object is
       var bezig = b.doel && b.doel.soort === "zelfzorg" && !nd.klim
         && nd.niveau===nd.doelNiveau && Math.abs(r.x - nd.doelX) < 60;
+      // Zintuigen (Fase 1): wat neemt deze Botty van zijn doelwit waar?
+      var pDoel = intentDoel(nd, b);
+      var waar = pDoel ? neemWaar(nd, pDoel) : null;
       if(inSlaap){
         nd.gebruik.textContent = "💤";
         nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 12);
@@ -878,6 +961,12 @@
         nd.gebruik.textContent = BRON_EMOJI[b.doel.obj] || (obj ? obj.icoon : "✨");
         nd.gebruik.setAttribute("x", r.x + 30); nd.gebruik.setAttribute("y", y0 - 18);
         nd.gebruik.setAttribute("opacity", "0.9");
+      } else if(waar && beweegt && !nd.klim){
+        // onderweg naar een waargenomen bron: 🔎 speuren (nog niets), 👃 de geur te
+        // pakken, 👁️ het object in het vizier — het zintuiglijke pad naar het doel.
+        nd.gebruik.textContent = waar.ziet ? "👁️" : (waar.ruikt ? "👃" : "🔎");
+        nd.gebruik.setAttribute("x", r.x + 28); nd.gebruik.setAttribute("y", y0 - 14);
+        nd.gebruik.setAttribute("opacity", "0.85");
       } else nd.gebruik.setAttribute("opacity", "0");
       nd.ring.setAttribute("fill", b.ziek ? "#e0556b" : (DOEL_KLEUR[b.doel && b.doel.soort] || "#9aa0a4"));
       if(b.gedachte){ var t=nd.g.querySelector("title")||nd.g.appendChild(document.createElementNS(SVGNS,"title")); t.textContent = b.naam+": "+b.gedachte; }
@@ -898,6 +987,15 @@
       .sort(function(a,c){ return (a.render.y - c.render.y) || (a.render.x - c.render.x); });
     var volg = geordend.map(function(n){ return n.b.naam; }).join(",");
     if(volg !== laag._volg){ laag._volg = volg; geordend.forEach(function(n){ laag.appendChild(n.g); }); }
+    // Fase 1 — het gezichtsveld van de geselecteerde Botty (zicht = kijkrichting):
+    // een zachte kegel die met hem meedraait, zodat de toeschouwer ziet wát hij ziet.
+    if(sel && nodes[sel]){
+      var snK = nodes[sel], fy = vloerVan(snK.niveau) - 46, dirK = snK.linksom ? -1 : 1;
+      var txK = snK.render.x + dirK * ZICHT_STRAAL;
+      zichtKegel.setAttribute("d", "M"+snK.render.x.toFixed(0)+","+fy.toFixed(0)
+        +" L"+txK.toFixed(0)+","+(fy-64).toFixed(0)+" L"+txK.toFixed(0)+","+(fy+44).toFixed(0)+" Z");
+      zichtKegel.setAttribute("opacity", "0.13");
+    } else zichtKegel.setAttribute("opacity", "0");
     // camera: volg de geselecteerde Botty (Creatures-stijl), anders de hele wereld
     var doelCam;
     if(sel && nodes[sel]){
@@ -910,11 +1008,7 @@
     kamerEl.setAttribute("viewBox", cam.x.toFixed(1)+" "+cam.y.toFixed(1)+" "+cam.w.toFixed(1)+" "+(cam.w*WERELD_R).toFixed(1));
     // hand meeschalen met de zoom zodat hij altijd even groot oogt
     if(handPos){ var hs = cam.w/WERELD_B; handEl.setAttribute("transform","translate("+handPos.x+","+handPos.y+") scale("+hs.toFixed(3)+")"); }
-    // Kit-render mag de animatieloop NOOIT platleggen: een fout in het brein-paneel
-    // (bv. ontbrekende on-demand detaildata) wordt opgevangen i.p.v. de frame te
-    // laten crashen — anders bevriest de hele Construct zodra je een Botty selecteert.
-    try { updateKitLive(); } catch(e){ if(!frame._gemeld){ frame._gemeld = true; console.error("kit-render fout:", e); } }
-    requestAnimationFrame(frame);
+    updateKitLive();   // brein-/biochemiepaneel bijwerken (frame() vangt fouten al af)
   }
 
   // ── De Hand: jouw cursor in de wereld ────────────────────────────────────
@@ -1204,14 +1298,23 @@
   var biochemPrev = {};
   function renderBiochem(b){
     var box = document.getElementById("kit-biochem"); if(!box) return;
+    // Chem zit NIET in de slanke live-baan; hij komt uit de detail-fetch. Is die er
+    // nog niet (of gefaald), toon dat expliciet i.p.v. 14 misleidend-lege balken.
+    if(!breinDetail[b.naam]){
+      box.innerHTML = '<div class="bio-melding">' +
+        (breinDetailFout ? "⚠️ biochemie kon niet laden" : "biochemie laden…") + '</div>';
+      return;
+    }
     var c = b.chem || {}, prev = biochemPrev[b.naam] || {}, p = [];
     BIOSTOF.forEach(function(s){
       var v = Math.max(0, Math.min(100, c[s[0]] || 0));
       var piek = (prev[s[0]] != null && v - prev[s[0]] > 6) ? " piek" : "";
+      // Kleur direct op de balk zetten (geen CSS-custom-property-omweg) — robuuster
+      // over browsers heen.
       p.push('<div class="biostof'+piek+'" title="'+s[2]+': '+Math.round(v)+'/100">'
         + '<span class="bio-ico">'+s[1]+'</span>'
         + '<span class="bio-naam">'+s[2]+'</span>'
-        + '<span class="bio-baan"><span class="bio-vul" style="width:'+v.toFixed(0)+'%;--bc:'+s[3]+'"></span></span></div>');
+        + '<span class="bio-baan"><span class="bio-vul" style="width:'+v.toFixed(0)+'%;background:'+s[3]+'"></span></span></div>');
     });
     box.innerHTML = p.join("");
     var np = {}; BIOSTOF.forEach(function(s){ np[s[0]] = Math.max(0, Math.min(100, c[s[0]] || 0)); });
