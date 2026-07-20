@@ -507,14 +507,17 @@
   // loggen we de fout en houden we een vlag bij die het paneel kan tonen.
   var breinDetailFout = false;
   function laadBreinDetail(){
-    return supabase.from("hive_state").select("bottys").eq("id","main").single()
+    // Via de RPC-baan (POST /rpc/hive_detail), niet via een directe tabel-select:
+    // die directe select faalde stil op Safari waardoor chem/brein-verbindingen leeg
+    // bleven. De RPC-baan is dezelfde als hive_slim en werkt overal.
+    return supabase.rpc("hive_detail")
       .then(function(res){
         if(res.error || !res.data){
           if(res.error){ breinDetailFout = true; console.warn("detail-fetch (brein/biochemie) faalde:", res.error.message || res.error); if(sel) updateKit(); }
           return;
         }
         breinDetailFout = false;
-        (res.data.bottys || []).forEach(bewaarBreinDetail);
+        (res.data || []).forEach(bewaarBreinDetail);
         if(sel) updateKit();   // her-render het paneel met de verse brein-data
       })
       .catch(function(e){ breinDetailFout = true; console.warn("detail-fetch (brein/biochemie) fout:", (e && e.message) || e); if(sel) updateKit(); });
