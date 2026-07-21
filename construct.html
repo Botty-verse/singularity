@@ -1003,14 +1003,10 @@
         +" L"+txK.toFixed(0)+","+(fy-64).toFixed(0)+" L"+txK.toFixed(0)+","+(fy+44).toFixed(0)+" Z");
       zichtKegel.setAttribute("opacity", "0.13");
     } else zichtKegel.setAttribute("opacity", "0");
-    // camera: volg de geselecteerde Botty (Creatures-stijl), anders de hele wereld
-    var doelCam;
-    if(sel && nodes[sel]){
-      var sn = nodes[sel], cw = 760, ch = cw*WERELD_R;
-      doelCam = { w:cw,
-        x: Math.max(0, Math.min(WERELD_B-cw, sn.render.x - cw/2)),
-        y: Math.max(0, Math.min(WERELD_H-ch, vloerVan(sn.niveau) - ch*0.62)) };
-    } else doelCam = { x:0, y:0, w:WERELD_B };
+    // camera: altijd de hele wereld tonen. (Vroeger zoomde hij in op de geselecteerde
+    // Botty; dat maakte een Botty "groter" zodra je 'm aanklikte/aaide — niet gewenst.
+    // De selectie blijft zichtbaar via de gloed + het verzorgerspaneel.)
+    var doelCam = { x:0, y:0, w:WERELD_B };
     cam.x += (doelCam.x-cam.x)*0.07; cam.y += (doelCam.y-cam.y)*0.07; cam.w += (doelCam.w-cam.w)*0.07;
     kamerEl.setAttribute("viewBox", cam.x.toFixed(1)+" "+cam.y.toFixed(1)+" "+cam.w.toFixed(1)+" "+(cam.w*WERELD_R).toFixed(1));
     // hand meeschalen met de zoom zodat hij altijd even groot oogt

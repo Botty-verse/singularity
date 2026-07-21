@@ -250,13 +250,18 @@ function biochemie(b: any, bottys: any[]) {
   const G = exprVan(b);
   const c = b.chem = b.chem || {};
   for (const k of CHEM) if (typeof c[k] !== "number") c[k] = CHEM_START[k] ?? 0;
+  // Leeftijd weegt mee in de biochemie: een ouder lijf werkt trager (traag metabolisme,
+  // sneller moe, trager herstel) en houdt stress langer vast; een jong lijf herstelt
+  // vlot. born/young = jong (−), adult = neutraal, elder/sage = oud (+).
+  const veroud = ({ born: -1, young: -0.6, teen: -0.25, adult: 0, elder: 0.7, sage: 1 } as Record<string, number>)[b.stage] ?? 0;
+  const oud = Math.max(0, veroud);   // alleen het "oud"-deel (0 tot 1)
   const actief = b.doel && b.doel.soort !== "bijkomen" && b.doel.soort !== "herstellen" && b.doel.soort !== "slapen";
   let nabij = 0;
   if (b.pos) for (const o of bottys) { if (o !== b && !o.bezigEi && o.pos && afstand2(b.pos, o.pos) < ZICHT * ZICHT) nabij++; }
 
   // Emitters: toestand → stof
   c.honger       += (100 - (b.energie ?? 50)) * 0.045;
-  c.vermoeidheid += (100 - (b.fit ?? 50)) * 0.03 + (actief ? 1.4 : 0);
+  c.vermoeidheid += (100 - (b.fit ?? 50)) * 0.03 + (actief ? 1.4 : 0) + oud * 0.8;   // oud lijf is sneller moe
   c.stress       += (100 - (b.geluk ?? 50)) * 0.02 + (b.ziek ? 4 : 0) + (nabij === 0 ? 0.8 : 0);
   if (nabij > 0) c.endorfine += Math.min(nabij, 3) * 1.1;                 // gezelschap voelt goed
   if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b)) c.gif += 22; // stress verzwakt de weerstand
@@ -275,8 +280,9 @@ function biochemie(b: any, bottys: any[]) {
   // glucose weerspiegelt de verzadiging (omgekeerd aan honger) met wat vertraging;
   // activiteit verbrandt extra. Glycogeen is de trage buffer die overschot opslaat.
   const doelGlucose = 100 - (c.honger ?? 0);
-  c.glucose   += (doelGlucose - c.glucose) * 0.15 - (actief ? 1.2 : 0);
-  c.glycogeen += (c.glucose - c.glycogeen) * 0.02;                 // trage reserve = voortschrijdend gemiddelde van de suiker
+  const metabool = 1 - veroud * 0.4;   // jong: vlot metabolisme (>1); oud: traag (<1)
+  c.glucose   += (doelGlucose - c.glucose) * 0.15 * metabool - (actief ? 1.2 : 0);
+  c.glycogeen += (c.glucose - c.glycogeen) * 0.02 * metabool;      // trage reserve = voortschrijdend gemiddelde van de suiker
   if (c.glucose < 15 && c.glycogeen < 12) c.vermoeidheid += 2;     // beide leeg → futloos
   // ── Adrenaline: vecht/vlucht bij acute dreiging ──────────────────────────────
   c.adrenaline += (b.ziek ? 6 : 0) + ((c.gif ?? 0) > 40 ? 4 : 0) + (nabij >= 5 ? 3 : 0);
@@ -290,7 +296,7 @@ function biochemie(b: any, bottys: any[]) {
   c.eenzaamheid -= Math.min(c.eenzaamheid, (c.oxytocine ?? 0) * 0.05);
   c.stress      -= Math.min(c.stress, (c.oxytocine ?? 0) * 0.03);
   // ── Cortisol: trage integrator van stress (chronisch) ────────────────────────
-  c.cortisol  += (c.stress > 40 ? (c.stress - 40) * 0.03 : -0.4);
+  c.cortisol  += (c.stress > 40 ? (c.stress - 40) * 0.03 * (1 + oud * 0.8) : -0.4);   // op leeftijd hoopt chronische stress sneller op
 
   // Reactie: endorfine blust stress (katalytische afbraak). Bewust zwakker (0.06)
   // zodat endorfine ambiënte stress dempt maar acute stress (ziek/eenzaam) niet
@@ -298,8 +304,11 @@ function biochemie(b: any, bottys: any[]) {
   // immuniteit-effecten onzichtbaar.
   c.stress -= Math.min(c.stress, c.endorfine * 0.06);
 
-  // Half-lives: exponentieel verval per stof
+  // Half-lives: exponentieel verval per stof. Leeftijd stelt drie ervan bij:
   const hl = chemHalfLives(G);
+  hl.vermoeidheid *= (1 + veroud * 0.6);   // oud herstelt trager, jong vlot
+  hl.cortisol     *= (1 + oud * 0.8);      // chronische stress blijft op leeftijd langer hangen
+  hl.endorfine    *= (1 - veroud * 0.25);  // jong: endorfine zindert langer na; oud: dooft sneller
   for (const k of CHEM) c[k] = Math.max(0, Math.min(100, +(c[k] * chemVervalFactor(hl[k])).toFixed(2)));
 
   // Receptors: endorfine tilt de stemming op, stress/verveling/angst/eenzaamheid drukken.
