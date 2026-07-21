@@ -11,6 +11,9 @@ const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERVAL          = 1000;
 const BROADCAST_MIN_MS  = 5500;   // egress-throttle: hoogstens ~1 live-broadcast per 6s, globaal
+const TICK_THROTTLE_MS  = 5000;   // globale tick-throttle: liep er net al een echte tick,
+                                  // dan slaan gewone (niet-interactie) aanroepen de dure
+                                  // volle-rij read/write/broadcast over. Catch-up haalt in.
 // CORS: de Construct/hive-pagina roept deze function cross-origin aan
 // (hive.ramonmoorlag.nl → *.supabase.co). Zonder deze headers blokkeert een strikte
 // browser (Safari) elke fetch en sneuvelt de preflight van interacties (aai/voer/woord).
@@ -1573,6 +1576,18 @@ Deno.serve(async (req) => {
   // Bezoekersverzoek (optioneel): { actie: "broed", ei: "<id>" } broedt een rijp ei uit
   let vraag: any = null;
   try { vraag = await req.json(); } catch (_) { /* geen body = gewone tick */ }
+
+  // Globale tick-throttle: een gewone tick (geen bezoekersinteractie) doet niets nieuws
+  // als er <TICK_THROTTLE_MS geleden al een echte tick liep. Dan slaan we de dure
+  // volle-rij read/write + broadcast over met alleen een piepkleine klok-read. Zo
+  // schaalt de DB-last niet meer mee met het aantal kijkers; de sim verliest niets
+  // (catch-up reconstrueert de gemiste tijd deterministisch uit last_updated_at).
+  if (!(vraag && vraag.actie)) {
+    const { data: klok } = await supabase.from("hive_state").select("last_updated_at").eq("id", "main").single();
+    if (klok && klok.last_updated_at && Date.now() - new Date(klok.last_updated_at).getTime() < TICK_THROTTLE_MS) {
+      return new Response(JSON.stringify({ ok: true, skipped: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
+    }
+  }
 
   const { data: row, error } = await supabase.from("hive_state").select("*").eq("id", "main").single();
   const rijBestond = !(error || !row);

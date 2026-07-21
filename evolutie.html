@@ -570,7 +570,7 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 var SUPABASE_URL  = BottyConfig.SUPABASE_URL;
 var SUPABASE_ANON = BottyConfig.SUPABASE_ANON;
 var TICK_URL = SUPABASE_URL + "/functions/v1/hive-tick";
-var TICK_INTERVAL = 3000;   // sim haalt in via catch-up; minder edge-function-calls
+var TICK_INTERVAL = 10000;   // sim haalt in via catch-up; minder edge-function-calls (server throttlet bovendien globaal)
 
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
