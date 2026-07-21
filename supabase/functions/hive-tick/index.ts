@@ -268,7 +268,9 @@ function biochemie(b: any, bottys: any[]) {
   // Nieuwe drives (emitters):
   // verveling: stijgt bij doelloos jagen/dwalen, daalt bij zelfzorg, gezelschap en euforie.
   const bezigLeuk = b.doel && (b.doel.soort === "zelfzorg" || b.doel.soort === "gezelschap" || b.doel.soort === "nieuwsgierig");
-  c.verveling    += (bezigLeuk ? -1.4 : 0.7) - Math.min(c.endorfine, 30) * 0.03;
+  // leerhonger: weinig kennis (lage data) maakt rusteloos/verveeld → de kennis-objecten
+  // (bord/boekenkast/lessenaar) vullen data en dichten zo dit gat in de biochemie.
+  c.verveling    += (bezigLeuk ? -1.4 : 0.7) + (100 - (b.data ?? 50)) * 0.02 - Math.min(c.endorfine, 30) * 0.03;
   // angst: ziekte en overbevolking maken bang; endorfine stelt gerust.
   c.angst        += (b.ziek ? 2.4 : 0) + (nabij >= 4 ? 0.7 : 0) + (c.gif ?? 0) * 0.02 - Math.min(c.endorfine, 40) * 0.04;
   // eenzaamheid: stijgt in je eentje, zakt snel in gezelschap.
@@ -397,6 +399,36 @@ function praat(spreker: any, luisteraar: any): { concept: string; woord: string 
   if (luisteraar.lexicon[concept] === woord) return null;
   luisteraar.lexicon[concept] = Math.random() < 0.12 ? muteerWoord(woord) : woord;
   return { concept, woord: luisteraar.lexicon[concept] };
+}
+// Kennis is deelbaar via taal: een Botty met een stellige, benoembare overtuiging
+// ("dit object stilt die behoefte" / "juist niet") geeft die door aan een gespreks-
+// partner. Taal is het vehikel — alleen objecten die de spreker kán benoemen (woord
+// in het lexicon) worden gedeeld; hij leert de luisteraar het woord én stelt diens
+// geloof een stukje bij. De luisteraar bevestigt het daarna zelf nog door te doen.
+// Zo verspreidt kennis zich cultureel i.p.v. dat elke Botty alles zelf moet leren.
+const KENNIS_DREMPEL = 0.15;   // hoe stellig de overtuiging moet zijn om te delen
+const KENNIS_TEMPO = 0.3;      // hoe hard de luisteraar meebuigt (partieel)
+function deelKennis(spreker: any, luisteraar: any): { drive: string; obj: string; positief: boolean } | null {
+  const brein = spreker.brein, lex = spreker.lexicon;
+  if (!brein || !lex) return null;
+  const kand: { drive: string; obj: string; w: number }[] = [];
+  for (const drive of DRIVE_STATS) {
+    const rij = brein[drive]; if (!rij) continue;
+    for (const obj in rij) if (Math.abs(rij[obj] - 0.5) >= KENNIS_DREMPEL && lex[obj]) kand.push({ drive, obj, w: rij[obj] });
+  }
+  if (!kand.length) return null;
+  const k = kand[Math.floor(Math.random() * kand.length)];   // een willekeurige stellige overtuiging
+  // 1) het woord meegeven (taal draagt de kennis)
+  luisteraar.lexicon = luisteraar.lexicon || {};
+  if (luisteraar.lexicon[k.obj] !== lex[k.obj]) luisteraar.lexicon[k.obj] = Math.random() < 0.12 ? muteerWoord(lex[k.obj]) : lex[k.obj];
+  // 2) het geloof partieel bijstellen richting dat van de spreker
+  luisteraar.brein = luisteraar.brein || {};
+  luisteraar.brein[k.drive] = luisteraar.brein[k.drive] || {};
+  const oud = luisteraar.brein[k.drive][k.obj] ?? 0.5;
+  luisteraar.brein[k.drive][k.obj] = +Math.max(0, Math.min(1, oud + (k.w - oud) * KENNIS_TEMPO)).toFixed(3);
+  luisteraar.breinN = luisteraar.breinN || {};
+  luisteraar.breinN[k.drive] = (luisteraar.breinN[k.drive] || 0) + 1;
+  return { drive: k.drive, obj: k.obj, positief: k.w > 0.5 };
 }
 
 // Punten van interesse in het klaslokaal — waar nieuwsgierige Botty's naartoe zweven
@@ -1313,6 +1345,7 @@ function socialeRonde(bottys: any[], events: object[]) {
   }
   // Per Botty: buren waarnemen → emotionele besmetting + affiniteit + taal.
   let praatGedaan = false;
+  let kennisGedeeld = false;
   for (const b of actief) {
     const emp = empathie(b);
     let som = 0, n = 0;
@@ -1328,6 +1361,20 @@ function socialeRonde(bottys: any[], events: object[]) {
           events.push({ soort: "taal", naamA: b.naam, naamB: c.naam,
             tekst: "🗨️ <b>" + b.naam + "</b> zegt “" + p.woord + "” (" + conceptLabel(p.concept, bottys) + ") tegen <b>" + c.naam + "</b>" });
           praatGedaan = true;
+        }
+      }
+      // Kennis delen: geef een stellige, benoembare object-overtuiging door aan de buur.
+      if (Math.random() < 0.12) {
+        const k = deelKennis(b, c);
+        if (k) {
+          const objKort = OBJECTEN.find(o => o.id === k.obj)?.kort || k.obj;
+          const zin = objKort + (k.positief ? " helpt tegen " : " níét helpt tegen ") + (DRIVE_LABEL[k.drive] || k.drive);
+          onthoud(c, "leren", "ik leerde van " + b.naam + " dat " + zin.replace("níét", "niet"));
+          if (!kennisGedeeld && Math.random() < 0.5) {
+            events.push({ soort: "taal", naamA: b.naam, naamB: c.naam,
+              tekst: "📚 <b>" + b.naam + "</b> leert <b>" + c.naam + "</b> dat " + zin });
+            kennisGedeeld = true;
+          }
         }
       }
     }
