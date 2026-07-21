@@ -39,8 +39,6 @@
   @keyframes vlam{0%,100%{opacity:.4;transform:scaleX(1)}50%{opacity:.65;transform:scaleX(1.15)}}
   .broed{animation:broed 3.4s ease-in-out infinite;transform-origin:center;}
   @keyframes broed{0%,100%{opacity:.6}50%{opacity:1}}
-  .obj-halo{animation:objectPuls 3.6s ease-in-out infinite;}
-  @keyframes objectPuls{0%,100%{opacity:.16}50%{opacity:.42}}
   .gebruik{animation:broed 1.6s ease-in-out infinite;}
   /* Losse object-agents: eigen sfeer-animatie (Creatures-stijl leven) */
   .amb-glow{animation:ambGlow 3.2s ease-in-out infinite;}
@@ -49,6 +47,10 @@
   @keyframes ambSway{0%,100%{transform:rotate(-2.3deg)}50%{transform:rotate(2.3deg)}}
   .amb-critter{transform-box:fill-box;transform-origin:50% 100%;animation:ambCritter 2.8s ease-in-out infinite;}
   @keyframes ambCritter{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  /* Object trilt kortstondig zodra een Botty het gebruikt — zichtbaar "wat er gebeurt".
+     Twee classes → wint qua specificiteit van de amb-* sfeeranimaties tijdens de tril. */
+  .objagent.trilt{transform-box:fill-box;transform-origin:50% 100%;animation:objTril .5s ease-in-out;}
+  @keyframes objTril{0%,100%{transform:translate(0,0)}15%{transform:translate(-3px,0)}32%{transform:translate(3px,0)}50%{transform:translate(-2px,0)}68%{transform:translate(2px,0)}84%{transform:translate(-1px,0)}}
 
   /* ── Creatures-laag: de Hand, spraakbubbels, selectie, verzorgerskit ── */
   svg.kamer{cursor:none;}
@@ -226,11 +228,9 @@
         <circle r="26" fill="#ffe08a" stroke="#ffb23e" stroke-width="3"/>
       </g>
 
-      <!-- Klaslokaal: vaste decors (kleed + broedmachine). De losse object-agents
+      <!-- Klaslokaal: vaste decors (broedmachine). De losse object-agents
            worden hieronder door JS uit OBJDEF geplaatst, achter de Botty's. -->
       <g id="klaslaag">
-        <!-- accent: kleed op de kamervloer -->
-        <image href="assets/klas/obj_20.png" x="585" y="574" width="230" height="97"/>
         <!-- 🐣 broedmachine: koperen ketel met groene gloed (eieren komen hierin) -->
         <image href="assets/klas/obj_12.png" x="312" y="565" width="95" height="97"/>
       </g>
@@ -393,7 +393,7 @@
   var OBJDEF_FALLBACK = [
     { id:"boekenkast",img:"obj_05", x:118,  y:503, w:126, h:159, niveau:1, icoon:"📚" },
     { id:"laadkruk",  img:"obj_09", x:456,  y:585, w:96,  h:77,  niveau:1, icoon:"⚡", ambient:"glow" },
-    { id:"bord",      img:"obj_00", x:690,  y:546, w:174, h:116, niveau:1, icoon:"💾" },
+    { id:"bord",      img:"obj_00", x:690,  y:476, w:174, h:116, niveau:1, icoon:"💾" },
     { id:"kruk",      img:"obj_21", x:900,  y:578, w:78,  h:84,  niveau:1, icoon:"🪑" },
     { id:"lessenaar", img:"obj_02", x:1010, y:548, w:142, h:114, niveau:1, icoon:"✒️" },
     { id:"stolp",     img:"obj_13", x:1180, y:568, w:94,  h:94,  niveau:1, icoon:"🔬", ambient:"critter" },
@@ -419,16 +419,22 @@
       var doel = { id:o.id, x:Math.round(o.x + o.w/2), niveau:o.niveau, icoon:o.icoon };
       doel.y = vloerVan(o.niveau) - 26;   // halo net boven de vloer
       OBJECTEN.push(doel);
-      // zachte pulserende halo + icoon
-      var halo = document.createElementNS(SVGNS,"circle");
-      halo.setAttribute("cx",doel.x); halo.setAttribute("cy",doel.y); halo.setAttribute("r","34");
-      halo.setAttribute("fill","#ffe6a8"); halo.setAttribute("class","obj-halo");
+      // Alleen een klein zwevend icoon (geen lichte bol/halo meer).
       var ic = document.createElementNS(SVGNS,"text");
       ic.setAttribute("x",doel.x); ic.setAttribute("y",doel.y-40); ic.setAttribute("text-anchor","middle");
       ic.setAttribute("style","font:16px sans-serif"); ic.setAttribute("opacity",".55");
       ic.textContent = o.icoon;
-      ol.appendChild(halo); ol.appendChild(ic);
+      ol.appendChild(ic);
     });
+  }
+  // Laat een object kortstondig trillen zodra een Botty het gebruikt (throttled per
+  // object). Zo ziet de toeschouwer wélk object wordt gebruikt.
+  var objTrilTijd = {};
+  function trilObject(id, ts){
+    var im = id && objImg[id]; if(!im) return;
+    if(ts - (objTrilTijd[id] || 0) < 1400) return;   // hooguit ~elke 1,4s een tril
+    objTrilTijd[id] = ts;
+    im.classList.remove("trilt"); void im.getBoundingClientRect(); im.classList.add("trilt");
   }
   fetch("agents.json").then(function(r){ return r.json(); }).then(function(cat){
     var def = (cat.agents||[]).filter(function(a){ return a && a.id && a.wereld && a.sprite; })
@@ -961,6 +967,7 @@
         nd.gebruik.textContent = BRON_EMOJI[b.doel.obj] || (obj ? obj.icoon : "✨");
         nd.gebruik.setAttribute("x", r.x + 30); nd.gebruik.setAttribute("y", y0 - 18);
         nd.gebruik.setAttribute("opacity", "0.9");
+        trilObject(b.doel.obj, ts);   // het gebruikte object trilt kortstondig mee
       } else if(waar && beweegt && !nd.klim){
         // onderweg naar een waargenomen bron: 🔎 speuren (nog niets), 👃 de geur te
         // pakken, 👁️ het object in het vizier — het zintuiglijke pad naar het doel.
