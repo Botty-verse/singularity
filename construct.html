@@ -1364,7 +1364,7 @@
 
   laad();
   requestAnimationFrame(frame);
-  setInterval(tick, 6000);   // rustiger cadans → minder writes/realtime-pushes; sim haalt in via catch-up
+  setInterval(tick, 10000);   // rustiger cadans → minder writes/realtime-pushes; sim haalt in via catch-up (server throttlet bovendien globaal)
   // Live-sync via broadcast: slank snapshot per tick (zonder de zware brein-/leer-
   // velden). Het breinpaneel haalt die zware data on-demand op voor de selectie.
   supabase.channel("hive-live")
@@ -1373,7 +1373,7 @@
     .subscribe();
   // Ververs de brein-detaildata zolang er een Botty geselecteerd is (laag tempo —
   // leren gaat langzaam). Zonder selectie geen enkele extra fetch.
-  setInterval(function(){ if(sel) laadBreinDetail(); }, 20000);
+  setInterval(function(){ if(sel) laadBreinDetail(); }, 30000);
   // Vangnet: alleen ná stilte (geen broadcast) de staat opnieuw ophalen.
   setInterval(function(){ if(!document.hidden && Date.now()-laatsteStaat > 15000) laad(); }, 15000);
 })();
