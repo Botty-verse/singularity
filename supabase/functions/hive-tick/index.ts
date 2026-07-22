@@ -1066,6 +1066,17 @@ function compacteer(bottys: any[]) {
     if (b.temperament) for (const k in b.temperament) b.temperament[k] = ront(b.temperament[k], 3);
     if (b.chem)        for (const k in b.chem)        b.chem[k]        = ront(b.chem[k], 2);
     if (b.relaties)    for (const k in b.relaties)    b.relaties[k]    = ront(b.relaties[k], 1);
+    // Lexicon-groei begrenzen: de naam-woorden (nm:<bid>) stapelen op met elke
+    // ontmoette Botty over generaties → onbeperkt. Cap op 80; snoei liefst de
+    // naam-woorden (oudste eerst), de object-/actie-/drive-woorden zijn fundamenteler.
+    if (b.lexicon) {
+      const lk = Object.keys(b.lexicon);
+      let teVeel = lk.length - 80;
+      if (teVeel > 0) {
+        for (const k of lk.filter(x => x.startsWith("nm:"))) { if (teVeel <= 0) break; delete b.lexicon[k]; teVeel--; }
+        if (teVeel > 0) for (const k of Object.keys(b.lexicon).slice(0, teVeel)) delete b.lexicon[k];
+      }
+    }
   }
 }
 
@@ -1605,7 +1616,9 @@ Deno.serve(async (req) => {
     }
   }
 
-  const { data: row, error } = await supabase.from("hive_state").select("*").eq("id", "main").single();
+  // Lees alleen de kolommen die de tick echt gebruikt (i.p.v. select *).
+  const { data: row, error } = await supabase.from("hive_state")
+    .select("bottys,eieren,acties,first_opened,ia_bucket,last_updated_at").eq("id", "main").single();
   const rijBestond = !(error || !row);
   let state = rijBestond ? row : maakNieuweHive();
   let bottys: any[] = state.bottys || [];
@@ -1642,6 +1655,13 @@ Deno.serve(async (req) => {
   // gemist → daar ruimen we op. Scheelt ~40× minder DELETE's per minuut.
   if (gemist >= 20) {
     await supabase.from("bezoeker_pings").delete().lt("ts", new Date(nu - 120000).toISOString());
+    // Retentie: houd de geschiedenis-tabellen begrensd (anders groeien geboorten/levens
+    // onbeperkt richting de 500MB DB-limiet). 180 dagen is ruim voor stamboom/grafschriften.
+    try {
+      const retentie = new Date(nu - 180 * 86400000).toISOString();
+      await supabase.from("geboorten").delete().lt("ts", retentie);
+      await supabase.from("levens").delete().lt("ts", retentie);
+    } catch (_) { /* retentie is niet kritisch voor de tick */ }
   }
 
   let acties: number = state.acties ?? 0;
