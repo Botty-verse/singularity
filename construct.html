@@ -1384,7 +1384,7 @@
     .subscribe();
   // Ververs de brein-detaildata zolang er een Botty geselecteerd is (laag tempo —
   // leren gaat langzaam). Zonder selectie geen enkele extra fetch.
-  setInterval(function(){ if(sel) laadBreinDetail(); }, 30000);
+  setInterval(function(){ if(sel && !document.hidden) laadBreinDetail(); }, 30000);   // niet pollen op de achtergrond
   // Vangnet: alleen ná stilte (geen broadcast) de staat opnieuw ophalen.
   setInterval(function(){ if(!document.hidden && Date.now()-laatsteStaat > 15000) laad(); }, 15000);
 })();
