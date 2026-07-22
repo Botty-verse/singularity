@@ -597,7 +597,15 @@
   }
   // Alleen de tick aanstoten; de nieuwe staat komt via de realtime-subscription
   // binnen (geen dubbele download meer). Scheelt fors in egress.
-  function tick(){ if(document.hidden) return; fetch(TICK_URL,{method:"POST"}).catch(function(){}); }
+  // Tik alleen als de sim "stil" is: kwam er recent nog een broadcast binnen, dan
+  // duwt iemand anders (of de cron) de sim al vooruit en hoeven wij niet te POSTen.
+  // Zo coördineren de kijkers zichzelf → bij meerdere tabs ~1 tick-bron i.p.v. per tab.
+  var TICK_STALE_MS = 9000;
+  function tick(){
+    if(document.hidden) return;
+    if(Date.now() - laatsteStaat < TICK_STALE_MS) return;   // recent live → bespaar de invocatie
+    fetch(TICK_URL,{method:"POST"}).catch(function(){});
+  }
 
   // Jonge Botty's (tiener) worden getekend met de uitgesneden pixel-art walk-cycle
   // (assets/sprites/young). De overige fases blijven de procedurele SVG-sprite.

@@ -848,6 +848,9 @@
     if(tickTimer) clearInterval(tickTimer);
     tickTimer = setInterval(function(){
       if(document.hidden) return; // Geen tick als tab op de achtergrond is
+      // Kwam er recent nog een broadcast binnen? Dan tikt iemand/de cron de sim al —
+      // sla de eigen POST over (het live-beeld komt van de broadcast).
+      if(Date.now() - laatsteStaat < 9000) return;
       fetch(TICK_URL, { method:"POST" })
         .then(function(r){ return r.json(); })
         .then(function(state){
