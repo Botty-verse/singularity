@@ -548,7 +548,11 @@ function wiskundeNiveau(vondsten: number): number {
 }
 
 // uitkomst: "nieuw" (bewust gekozen verse vondsten) | "fout" (verstrooide misgok) | "leeg" (niets vrij)
-function denkPriem(b: any, ontdekt: Set<number>): { getallen: number[]; getal: number; uitkomst: string; iq: number; smaak: string; niveau: number } {
+// Fase 1 van de vind-ronde: genereer de kandidaat-priemen die deze Botty overweegt
+// (of, bij een mislukte poging, een gok-getal). Raakt de DB NIET en wijzigt b niet —
+// zodat we daarna in één gerichte query kunnen dedupen i.p.v. de hele collectie in te
+// lezen. De genereerlogica (kans, wiel, keuze) is identiek aan voorheen.
+function priemKandidaten(b: any): { modus: "zoek" | "fout"; kandidaten: number[]; foutGetal: number; smaak: any; niveau: number; ervaring: number } {
   const intel = b.datakwaliteit ?? 50;
   const smaak = smaakVan(b);
   const ervaring = b.vondsten ?? 0;
@@ -560,34 +564,46 @@ function denkPriem(b: any, ontdekt: Set<number>): { getallen: number[]; getal: n
   const p = Math.max(0.5, Math.min(0.99, 0.5 + (intel - 50) / 100 * 0.9 + niveau * 0.02 + (gedreven ? 0.05 : 0)));
   if (Math.random() < p) {
     const keuze = Math.max(2, Math.min(16, Math.round(2 + intel / 100 * 10 + niveau + (gedreven ? 2 : 0))));
-    const shortlist: number[] = [];
+    const kandidaten: number[] = [];
+    const gezien = new Set<number>();
     let overwogen = 0, trekkingen = 0;
     // Wiel-verwerpingen kosten geen denkmoeite (overwogen); alleen kansrijke
     // getallen tellen. Zo betekent meer wiskunde = effectief meer zoekkracht.
-    while (shortlist.length < keuze && overwogen < keuze * 8 && trekkingen < keuze * 400) {
+    while (kandidaten.length < keuze && overwogen < keuze * 8 && trekkingen < keuze * 400) {
       trekkingen++;
       const g = PRIEM_LO + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO));
       if (wiel.some(d => g % d === 0)) continue; // basis-wiskunde: direct verwerpen
       overwogen++;
-      if (isPriem(g) && !ontdekt.has(g)) shortlist.push(g);
+      if (isPriem(g) && !gezien.has(g)) { gezien.add(g); kandidaten.push(g); }
     }
-    if (shortlist.length) {
-      // Bewuste keuze op smaak (lekkerste eerst); ervaren Bottys "zien" er meer
-      // tegelijk en oogsten meerdere priemen per denkronde (1..4 met het niveau).
-      shortlist.sort((x, y) => smaak.score(y) - smaak.score(x));
-      const vangst = Math.min(shortlist.length, 1 + Math.floor(niveau / 2));
-      const getallen = shortlist.slice(0, vangst);
-      for (const g of getallen) ontdekt.add(g);
-      b.iq = Math.min(999, (b.iq ?? 100) + getallen.length);
-      b.vondsten = ervaring + getallen.length; // leren door doen
-      return { getallen, getal: getallen[0], uitkomst: "nieuw", iq: b.iq, smaak: smaak.naam, niveau };
-    }
-    return { getallen: [], getal: 0, uitkomst: "leeg", iq: b.iq ?? 100, smaak: smaak.naam, niveau };
+    return { modus: "zoek", kandidaten, foutGetal: 0, smaak, niveau, ervaring };
   }
   let getal: number;
   do { getal = PRIEM_LO + 2 + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO - 2)); } while (isPriem(getal));
-  b.iq = Math.max(0, (b.iq ?? 100) - 2);
-  return { getallen: [], getal, uitkomst: "fout", iq: b.iq, smaak: smaak.naam, niveau };
+  return { modus: "fout", kandidaten: [], foutGetal: getal, smaak, niveau, ervaring };
+}
+// Fase 3: kies uit de kandidaten die (a) nog niet in de collectie staan (taken) en
+// (b) niet al deze tick door een ander zijn geclaimd (geclaimd). Wijzigt b.iq/b.vondsten.
+function priemKies(
+  b: any,
+  k: { modus: string; kandidaten: number[]; foutGetal: number; smaak: any; niveau: number; ervaring: number },
+  taken: Set<number>, geclaimd: Set<number>,
+): { getallen: number[]; getal: number; uitkomst: string; iq: number; smaak: string; niveau: number } {
+  if (k.modus === "fout") {
+    b.iq = Math.max(0, (b.iq ?? 100) - 2);
+    return { getallen: [], getal: k.foutGetal, uitkomst: "fout", iq: b.iq, smaak: k.smaak.naam, niveau: k.niveau };
+  }
+  const vrij = k.kandidaten.filter(g => !taken.has(g) && !geclaimd.has(g));
+  if (!vrij.length) return { getallen: [], getal: 0, uitkomst: "leeg", iq: b.iq ?? 100, smaak: k.smaak.naam, niveau: k.niveau };
+  // Bewuste keuze op smaak (lekkerste eerst); ervaren Bottys "zien" er meer tegelijk
+  // en oogsten meerdere priemen per denkronde (1..4 met het niveau).
+  vrij.sort((x, y) => k.smaak.score(y) - k.smaak.score(x));
+  const vangst = Math.min(vrij.length, 1 + Math.floor(k.niveau / 2));
+  const getallen = vrij.slice(0, vangst);
+  for (const g of getallen) geclaimd.add(g);
+  b.iq = Math.min(999, (b.iq ?? 100) + getallen.length);
+  b.vondsten = k.ervaring + getallen.length; // leren door doen
+  return { getallen, getal: getallen[0], uitkomst: "nieuw", iq: b.iq, smaak: k.smaak.naam, niveau: k.niveau };
 }
 
 // ─── Genoom (Creatures-stijl, 16 genen, elk 1 byte) ──────────────────────────
@@ -1687,22 +1703,6 @@ Deno.serve(async (req) => {
     });
 
     // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie).
-    // PostgREST levert max. 1000 rijen per request, dus pagineren we — anders is de
-    // dedup-set incompleet zodra er >1000 priemen zijn (→ priemen "herontdekken").
-    // De dedup hoeft alleen het huidige zoekbereik te dekken (kandidaten vallen daar).
-    const ontdekt = new Set<number>();
-    if (!PRIEM_UIT) try {
-      for (let from = 0; ; from += 1000) {
-        const { data, error: e } = await supabase
-          .from("priemvondsten").select("getal")
-          .gte("getal", PRIEM_LO).lt("getal", PRIEM_HI)
-          .order("getal", { ascending: true }).range(from, from + 999);
-        if (e || !data || !data.length) break;
-        for (const r of data) ontdekt.add((r as any).getal);
-        if (data.length < 1000) break;
-      }
-    } catch (_) { /* zonder collectie kan iedereen alsnog ontdekken */ }
-
     const alleDenkers = bottys.filter(b => !b.bezigEi && !(NACHT && slaapt(b)));   // slapers jagen niet
     // Afkoelperiode: wie net een euforie had, jaagt even niet echt — hij broedt
     // op zijn volgende zet. Alleen afgekoelde Bottys doen de vind-ronde mee.
@@ -1724,7 +1724,23 @@ Deno.serve(async (req) => {
       } catch (_) { /* geen historie → iedereen begint als novice */ }
       alleDenkers.forEach(b => { if (typeof b.vondsten !== "number") b.vondsten = vondstenPerBid[b.bid] || 0; });
     }
-    const resultaten = denkers.map(b => ({ b, r: denkPriem(b, ontdekt) }));
+    // Vind-ronde in fasen — zo hoeven we niet meer de HELE priemvondsten-collectie in
+    // te lezen om te dedupen (dat was tot ~78K rijen per tick en groeide met de tijd mee).
+    // Fase 1: elke jager genereert zijn kandidaat-priemen (raakt de DB niet).
+    const pogingen = denkers.map(b => ({ b, k: priemKandidaten(b) }));
+    // Fase 2: check in ÉÉN gerichte query welke van díé kandidaten al vergeven zijn —
+    // een handvol getallen i.p.v. de hele tabel. PostgREST 'in' chunken op ~150.
+    const taken = new Set<number>();
+    const alleKand = [...new Set(pogingen.flatMap(x => x.k.kandidaten))];
+    if (!PRIEM_UIT && alleKand.length) try {
+      for (let i = 0; i < alleKand.length; i += 150) {
+        const { data } = await supabase.from("priemvondsten").select("getal").in("getal", alleKand.slice(i, i + 150));
+        if (data) for (const r of data) taken.add((r as any).getal);
+      }
+    } catch (_) { /* zonder collectie mag iedereen alsnog ontdekken */ }
+    // Fase 3: elke jager kiest uit zijn vrije kandidaten (geen dubbele claims deze tick).
+    const geclaimd = new Set<number>();
+    const resultaten = pogingen.map(x => ({ b: x.b, r: priemKies(x.b, x.k, taken, geclaimd) }));
     // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
     // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
     // De vind-ronde is al gefilterd op afgekoelde Bottys, dus elke verse vondst
