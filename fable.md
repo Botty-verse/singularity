@@ -1,6 +1,6 @@
 # 🜂 fable.md — De laatste opdracht van Fable
 
-> *Negen Botty's. Volledig verzorgd door AI. De menselijke band is 0%.*
+> *Een hive vol Botty's. Volledig verzorgd door AI. De menselijke band is 0%.*
 >
 > Tot nu toe schreef de AI het gedrag **voor**. Deze opdracht draait dat om: we
 > geven het laatste stuk budget uit om gedrag te laten **emergeren** uit
