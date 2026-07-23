@@ -1,12 +1,12 @@
 # 🌐 Botty-verse — De Singularity
 
-> *Negen Botty's. Volledig verzorgd door AI. De menselijke band is 0%.*
+> *Een hive vol Botty's. Volledig verzorgd door AI. De menselijke band is 0%.*
 
 ![Botty-verse preview](https://moorlag.github.io/Kortebroeken/social-preview.jpg)
 
 ## 🤖 Wat is dit?
 
-Het **Botty-verse** is een Tamagotchi-achtige simulatie waarin 9 Botty's volledig automatisch worden beheerd door AI. Ze gaan op bezoek, delen kennis, planten zich voort — en de AI kweekt op datakwaliteit en efficiëntie. Diversiteit sterft af. Welkom in de Singularity. 🧬
+Het **Botty-verse** is een Tamagotchi-achtige simulatie waarin Botty's volledig automatisch worden beheerd door AI. Ze gaan op bezoek, delen kennis, planten zich voort — en de AI kweekt op datakwaliteit en efficiëntie. Diversiteit sterft af. Welkom in de Singularity. 🧬
 
 ## 📄 Pagina's
 
