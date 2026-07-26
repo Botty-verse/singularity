@@ -893,6 +893,10 @@
 
       // Van sprite wisselen als de Botty een andere levensfase in groeide.
       if(nd.spriteStage !== b.stage) zetInner(nd, b);
+      // Loop-fase bijwerken vóór de framekeuze, zodat het wisselen van been exact
+      // samenvalt met de huppel (stap-ritme) verderop. Fase groeit alleen als de
+      // Botty écht beweegt → stilstaan bevriest de pas.
+      nd.loopFase += beweegt && !inSlaap ? 0.34 : 0;
       // Pixel-Botty: kies pose + frame op tempo. De sheets bevatten echte links- én
       // rechts-frames (aparte beentjes), dus we kiezen de juiste richting rechtstreeks
       // en spiegelen NIET meer via scaleX. Lopen wisselt tussen 2 frames; rennen en
@@ -903,7 +907,9 @@
         var dir = nd.spriteStage, LR = linksom ? "L" : "R", st, af = 0;
         if(inSlaap){            st = "lie" + LR; }
         else if(mv > 1.8){      st = "run" + LR; }
-        else if(moving){        st = "walk" + LR; af = Math.floor(ts/160) % 2; }
+        // Elk half huppel-ritme (π) stapt de Botty op het andere been → de twee
+        // loopframes wisselen synchroon met de zichtbare stap i.p.v. op de klok.
+        else if(moving){        st = "walk" + LR; af = Math.floor(nd.loopFase / Math.PI) % 2; }
         else {                  st = "idle"; }
         var sek = sekseMap(b);
         var url = "assets/sprites/" + sek + "/" + dir + "/" + dir + "_" + st + "_" + af + ".png";
@@ -917,8 +923,8 @@
       // grootte per fase (afgestemd op de nieuwe wereld)
       var schaalBasis = ({born:0.38,young:0.46,teen:0.50,adult:0.56,elder:0.58,sage:0.64}[b.stage] || 0.54) * (b.grootte||1);
       var w = 200*schaalBasis, h = 250*schaalBasis;
-      // loop-huppel + ademhaling (squash-&-stretch, voeten blijven op de vloer)
-      nd.loopFase += beweegt && !inSlaap ? 0.34 : 0;
+      // loop-huppel + ademhaling (squash-&-stretch, voeten blijven op de vloer);
+      // nd.loopFase is hierboven al bijgewerkt zodat huppel en frame synchroon lopen.
       var huppel = (beweegt && !inSlaap) ? Math.abs(Math.sin(nd.loopFase))*-5 : 0;
       var br = Math.sin(ts/(inSlaap?1600:1050) + nd.faseNum) * (inSlaap?0.03:0.016);
       var syB = schaalBasis*(1+br), sxB = schaalBasis*(1-br*0.6);
