@@ -18,6 +18,12 @@
   h1{font-size:clamp(1.5rem,4.5vw,2.4rem);font-weight:900;letter-spacing:-.02em;
      background:linear-gradient(135deg,#f6c75a,#ffe6a8);-webkit-background-clip:text;
      -webkit-text-fill-color:transparent;background-clip:text;}
+  h1 .versie{
+    display:inline-flex;align-items:center;gap:.3rem;margin-left:.5rem;vertical-align:middle;
+    font-size:.6rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+    -webkit-text-fill-color:#1a1206;background:linear-gradient(135deg,#f6c75a,#ffe6a8);
+    color:#1a1206;border-radius:999px;padding:.24rem .7rem;font-family:'Nunito',sans-serif;
+    box-shadow:0 1px 6px rgba(0,0,0,.35);}
   .ondertitel{max-width:680px;margin:.35rem auto 0;font-size:.9rem;color:#cbb189;line-height:1.5;}
   .terug{display:inline-block;margin-top:.5rem;color:#b89a6a;text-decoration:none;font-weight:700;font-size:.88rem;}
   .terug:hover{color:#ffe6a8;}
@@ -196,7 +202,7 @@
 </head>
 <body>
 <header>
-  <h1>🏫 Het klaslokaal</h1>
+  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 9 — Tred: de Botty's lopen nu écht">⬡ v9 · Tred</span></h1>
   <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
     hebben het lokaal voor zichzelf. Ze <strong>redden zichzelf</strong>: nieuwsgierig <strong>speuren</strong> (🔎) ze
     naar een object, ze <strong>ruiken</strong> (👃) en <strong>zien</strong> (👁️) het, en al doende leren ze wat hun
