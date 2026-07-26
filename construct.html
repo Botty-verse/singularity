@@ -609,13 +609,15 @@
     fetch(TICK_URL,{method:"POST"}).catch(function(){});
   }
 
-  // Jonge Botty's (tiener) worden getekend met de uitgesneden pixel-art walk-cycle
-  // (assets/sprites/young). De overige fases blijven de procedurele SVG-sprite.
-  // Alle fases behalve 'born' (baby) worden met pixel-art getekend; born blijft SVG.
+  // Alle fases behalve 'born' (baby) worden getekend met de uitgesneden pixel-art
+  // sprites uit assets/sprites/<sekse>/<fase>/ — met echte links/rechts-frames voor
+  // idle, lopen (2 frames), rennen en de liggende slaap-pose (m/v apart). 'born'
+  // blijft de procedurele SVG-sprite.
   var PIX_STAGES = { young:true, teen:true, adult:true, elder:true, sage:true };
-  function pixelInnerHTML(stage){
-    return '<image class="pixframe" x="-50" y="0" width="300" height="250" preserveAspectRatio="xMidYMax meet"'
-      + ' href="assets/sprites/'+stage+'/'+stage+'_idle_0.png"/>';
+  function sekseMap(b){ return (b && b.sekse === "v") ? "v" : "m"; }
+  function pixelInnerHTML(stage, sekse){
+    return '<image class="pixframe" x="-50" y="0" width="300" height="300" preserveAspectRatio="xMidYMax meet"'
+      + ' href="assets/sprites/'+sekse+'/'+stage+'/'+stage+'_idle_0.png"/>';
   }
   function svgSpriteInner(b){
     var pal = b.kleur || paletten[0];
@@ -647,7 +649,7 @@
   // zodat een Botty bij het opgroeien vanzelf van sprite wisselt.
   function zetInner(nd, b){
     if(PIX_STAGES[b.stage]){
-      nd.inner.innerHTML = pixelInnerHTML(b.stage);
+      nd.inner.innerHTML = pixelInnerHTML(b.stage, sekseMap(b));
       nd.pixel = true; nd.pimg = nd.inner.querySelector(".pixframe"); nd.pimgUrl = "";
     } else {
       nd.inner.innerHTML = svgSpriteInner(b);
@@ -891,19 +893,20 @@
 
       // Van sprite wisselen als de Botty een andere levensfase in groeide.
       if(nd.spriteStage !== b.stage) zetInner(nd, b);
-      // Pixel-Botty (jong): kies de juiste frame (idle/walk/run) op basis van tempo;
-      // de rechter-frames worden voor linksom via de bestaande scaleX-flip gespiegeld.
+      // Pixel-Botty: kies pose + frame op tempo. De sheets bevatten echte links- én
+      // rechts-frames (aparte beentjes), dus we kiezen de juiste richting rechtstreeks
+      // en spiegelen NIET meer via scaleX. Lopen wisselt tussen 2 frames; rennen en
+      // idle zijn 1 frame; slapen gebruikt de liggende pose.
       if(nd.pixel && nd.pimg){
         var mv = Math.abs(r.x - was);
         var moving = !inSlaap && mv > 0.35;
-        var dir = nd.spriteStage, st, af = 0;
-        if(dir === "young"){   // young heeft 2 loopframes + aparte run
-          st = inSlaap ? "idle" : (mv > 1.8 ? "runR" : (moving ? "walkR" : "idle"));
-          af = Math.floor(ts/170) % 2;
-        } else {               // teen/adult/elder/sage: idle + walk (1 frame)
-          st = moving ? "walkR" : "idle";
-        }
-        var url = "assets/sprites/" + dir + "/" + dir + "_" + st + "_" + af + ".png";
+        var dir = nd.spriteStage, LR = linksom ? "L" : "R", st, af = 0;
+        if(inSlaap){            st = "lie" + LR; }
+        else if(mv > 1.8){      st = "run" + LR; }
+        else if(moving){        st = "walk" + LR; af = Math.floor(ts/160) % 2; }
+        else {                  st = "idle"; }
+        var sek = sekseMap(b);
+        var url = "assets/sprites/" + sek + "/" + dir + "/" + dir + "_" + st + "_" + af + ".png";
         if(nd.pimgUrl !== url){
           nd.pimg.setAttribute("href", url);
           nd.pimg.setAttributeNS("http://www.w3.org/1999/xlink","href",url);
@@ -919,10 +922,13 @@
       var huppel = (beweegt && !inSlaap) ? Math.abs(Math.sin(nd.loopFase))*-5 : 0;
       var br = Math.sin(ts/(inSlaap?1600:1050) + nd.faseNum) * (inSlaap?0.03:0.016);
       var syB = schaalBasis*(1+br), sxB = schaalBasis*(1-br*0.6);
-      var y0 = voetY - h*(1+br) + huppel + (inSlaap ? 10 : 0);   // onderkant sprite ~ vloer
+      var y0 = voetY - h*(1+br) + huppel + (inSlaap && !nd.pixel ? 10 : 0);   // onderkant sprite ~ vloer
       var xL = r.x - w/2;
-      if(linksom) nd.inner.setAttribute("transform","translate("+(xL+w).toFixed(1)+","+y0.toFixed(1)+") scale("+(-sxB).toFixed(3)+","+syB.toFixed(3)+")");
-      else        nd.inner.setAttribute("transform","translate("+xL.toFixed(1)+","+y0.toFixed(1)+") scale("+sxB.toFixed(3)+","+syB.toFixed(3)+")");
+      // Pixel-sprites hebben eigen links/rechts-frames → niet spiegelen; alleen de
+      // procedurele SVG-Botty (born) wordt nog via scaleX omgeklapt.
+      var flip = linksom && !nd.pixel;
+      if(flip) nd.inner.setAttribute("transform","translate("+(xL+w).toFixed(1)+","+y0.toFixed(1)+") scale("+(-sxB).toFixed(3)+","+syB.toFixed(3)+")");
+      else     nd.inner.setAttribute("transform","translate("+xL.toFixed(1)+","+y0.toFixed(1)+") scale("+sxB.toFixed(3)+","+syB.toFixed(3)+")");
       nd.inner.setAttribute("opacity", b.ziek ? "0.7" : "1");
 
       // ── knipperen + gezichtsuitdrukking ──
