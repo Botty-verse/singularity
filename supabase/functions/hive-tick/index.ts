@@ -90,6 +90,8 @@ const DRIVE_STATS: string[] = ["energie", "data", "fit", "geluk"];
 const DRIVE_LABEL: Record<string, string> = { energie: "een leeg gevoel", data: "leerhonger", fit: "een slap lijf", geluk: "somberheid" };
 const ZELFZORG_START = 55;   // laagste bar hieronder → zelf naar een object
 const ZELFZORG_KLAAR = 80;   // bar hierboven → klaar, weer wat anders gaan doen
+const COMFORT = 60;          // bewustzijn.md stap 1 — boven dit voelt een drive 'op orde';
+                             // eronder bouwt de zelfzorg-salience vloeiend op (anticiperend)
 const GEBRUIK_AFSTAND = 80;  // dicht genoeg bij het object om het te gebruiken
 const ZON_LAAD = 1.4;        // ☀️ energie/tick voor een Botty die overdag buiten "zonnebadet"
 
@@ -1198,51 +1200,90 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
 // Een Botty vormt aan het begin van de tick een intentie. De hive-mechaniek buigt
 // daarna licht mee (zorg luistert, partners die een kind willen worden vaker
 // gekoppeld, gezelschap-zoekers ontmoeten elkaar, gedreven jagers zoeken feller).
+// bewustzijn.md — STAP 1: het podium (global workspace).
+// De doelkeuze is geen harde prioriteitsladder meer maar een SALIENCE-COMPETITIE:
+// elke kandidaat (drive, sociaal, nieuwsgierig, spel, werk) krijgt een salience, en
+// de sterkste wint het podium. De nood-hiërarchie zit ingebakken: nood-kandidaten
+// bouwen hun salience vloeiend op naarmate een bar zakt (anticiperend i.p.v.
+// reactief), en overschot-kandidaten tellen alléén mee als er marge is (overF).
+// De winnaar wordt zowel b.doel (ongewijzigde vorm) als het expliciete b.podium.
+function podiumZet(b: any, doel: any, focus: string, bron: string, salience: number, valentie: number) {
+  b.doel = doel;
+  const zelfde = b.podium && b.podium.soort === doel.soort && b.podium.focus === focus;
+  b.podium = {
+    soort: doel.soort, focus, bron,
+    salience: +salience.toFixed(1), valentie: +valentie.toFixed(2),
+    sinds: zelfde ? b.podium.sinds : Date.now(),
+  };
+}
 function kiesDoel(b: any, ctx: { anderen: any[] }) {
-  if (b.ziek) { b.doel = { soort: "herstellen", tekst: "weer beter worden" }; return; }
-  // 's Nachts slaapt iedereen die niet ziek is
-  if (NACHT) { b.doel = { soort: "slapen", tekst: "slapen tot de ochtend" }; return; }
+  // Nood die het podium altijd grijpt — geen competitie nodig.
+  if (b.ziek) { podiumZet(b, { soort: "herstellen", tekst: "weer beter worden" }, "weer beter worden", "lichaam", 100, -0.8); return; }
+  if (NACHT)  { podiumZet(b, { soort: "slapen", tekst: "slapen tot de ochtend" }, "slapen tot de ochtend", "lichaam", 95, 0.1); return; }
   if (slaapt(b)) b.doel = null;   // ochtend: wakker worden, vers doel kiezen
-  // Zelfregulatie (drives → affordances): hysterese eerst — wie al bij een object
-  // bezig is, blijft tot de drive echt is opgelost (anders flippert het doel).
-  if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && (b[b.doel.stat] ?? 100) < ZELFZORG_KLAAR) return;
-  // Dan: pak de sterkste drive (laagste bar). Wélk object daartegen helpt, kiest
-  // de Botty op basis van wat hij geleerd heeft (kiesObjectVoor) — niet vast.
-  const drive = DRIVE_STATS.map(s => ({ s, v: b[s] ?? 100 })).sort((p, q) => p.v - q.v)[0];
-  if (drive && drive.v < ZELFZORG_START) {
-    const o = kiesObjectVoor(b, drive.s);
-    b.doel = { soort: "zelfzorg", stat: drive.s, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0 };
+  // Hysterese: wie al bij een object bezig is, blijft tot de drive echt is opgelost.
+  if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && (b[b.doel.stat] ?? 100) < ZELFZORG_KLAAR) {
+    if (!b.podium) podiumZet(b, b.doel, b.doel.tekst || "zelfzorg", "drive", 40, -0.3);
     return;
   }
-  const T = temp(b);   // temperament weegt de gedragskeuze (persoonlijkheid = nature)
-  // Fertiliteit: te veel stress onderdrukt de voortplantingsdrang (Creatures p.16).
-  // Voortplanting volgt nu het hormonale ritme: libido (cyclisch, stress-onderdrukt)
-  // bepaalt de kans i.p.v. een vaste worp. Buiten het vruchtbare venster jaagt hij niet.
-  const libido = b.chem?.libido ?? 0;
-  if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && libido > 40 && Math.random() < 0.12 + (libido / 100) * 0.5) { b.doel = { soort: "voortplanting", tekst: "een kind krijgen" }; return; }
-  // Gezelschap zoeken: sterk gestuurd door hoe sociaal (verlegen ↔ gezellig) een Botty is.
-  if (Math.random() < 0.12 + 0.6 * T.sociaal) {
-    const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
-    if (an.length) {
-      let v: any;
-      if (b.relaties) { // liefst naar de beste vriend
-        const vriendBid = Object.keys(b.relaties).sort((p, q) => b.relaties[q] - b.relaties[p])[0];
-        if (vriendBid) v = an.find(x => x.bid === vriendBid);
-      }
-      if (!v) v = kies(an);
-      b.doel = { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" }; return;
+
+  const T = temp(b);   // temperament weegt de salience (persoonlijkheid = nature)
+  const minBar = Math.min(b.energie ?? 50, b.data ?? 50, b.fit ?? 50, b.geluk ?? 50);
+  // Overschot-factor: 0 als de laagste bar ≤45 (nood drukt), 1 vanaf ≥75 (ruimte om
+  // te leven). Zo verdwijnt het spel als eerste bij verwaarlozing.
+  const overF = Math.max(0, Math.min(1, (minBar - 45) / 30));
+
+  type Kand = { doel: any; focus: string; bron: string; sal: number; val: number };
+  const kand: Kand[] = [];
+
+  // NOOD — zelfzorg: salience bouwt vloeiend op zodra een bar onder COMFORT zakt.
+  const drive = DRIVE_STATS.map(s => ({ s, v: b[s] ?? 100 })).sort((p, q) => p.v - q.v)[0];
+  if (drive) {
+    const tekort = Math.max(0, COMFORT - drive.v);
+    if (tekort > 0) {
+      const o = kiesObjectVoor(b, drive.s);
+      kand.push({ doel: { soort: "zelfzorg", stat: drive.s, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0 },
+        focus: o.doe, bron: "drive", sal: 12 + tekort * 1.4, val: -0.3 - tekort / 150 });
     }
   }
-  // Nieuwsgierigheid: een nieuwsgierige Botty gaat vaker iets onderzoeken i.p.v. jagen.
-  if (Math.random() < 0.08 + 0.5 * T.nieuwsgierig) {
-    const poi = kies(POIS);
-    b.doel = { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst }; return;
+
+  // Voortplanting — hormonaal gepoort (libido, stress), alleen met marge.
+  const libido = b.chem?.libido ?? 0;
+  if (rijp(b) && (b.stemming ?? 50) > 65 && stressVan(b) < 45 && libido > 40) {
+    kand.push({ doel: { soort: "voortplanting", tekst: "een kind krijgen" },
+      focus: "een kind krijgen", bron: "drive", sal: (24 + libido * 0.4) * overF, val: 0.5 });
   }
-  // IJver: een luie Botty slentert liever wat rond dan te jagen; een ijverige jaagt.
-  if (T.ijver < 0.45 && Math.random() < (0.5 - T.ijver)) {
-    b.doel = { soort: "dwalen", tekst: "wat rondslenteren" }; return;
+
+  // OVERSCHOT — sociaal: gestuurd door hoe sociaal (verlegen ↔ gezellig) een Botty is.
+  const an = ctx.anderen.filter(x => x !== b && !x.bezigEi);
+  if (an.length) {
+    let v: any;
+    if (b.relaties) {
+      const vriendBid = Object.keys(b.relaties).sort((p, q) => b.relaties[q] - b.relaties[p])[0];
+      if (vriendBid) v = an.find(x => x.bid === vriendBid);
+    }
+    if (!v) v = kies(an);
+    kand.push({ doel: { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" },
+      focus: "bij " + v.naam + " zijn", bron: "sociaal", sal: (9 + 40 * T.sociaal) * overF, val: 0.4 });
   }
-  b.doel = { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam };
+
+  // OVERSCHOT — nieuwsgierigheid: een nieuwsgierige Botty onderzoekt liever dan te jagen.
+  const poi = kies(POIS);
+  kand.push({ doel: { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst },
+    focus: "kijken naar " + poi.tekst, bron: "dwaling", sal: (8 + 34 * T.nieuwsgierig) * overF, val: 0.5 });
+
+  // OVERSCHOT — dwalen/spel: een luie Botty slentert liever wat rond (aanzet naar §5.3).
+  kand.push({ doel: { soort: "dwalen", tekst: "wat rondslenteren" },
+    focus: "wat rondslenteren", bron: "dwaling", sal: (7 + 20 * (1 - T.ijver)) * overF, val: 0.3 });
+
+  // WERK / vangnet — priemjacht: altijd aanwezig, sterker bij ijverige Botty's.
+  kand.push({ doel: { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam },
+    focus: "jagen op " + smaakVan(b).naam, bron: "drive", sal: 6 + 20 * T.ijver, val: 0.2 });
+
+  // Ruis houdt de keuze levendig (geen twee identieke Botty's die synchroon lopen).
+  for (const k of kand) k.sal += Math.random() * 4;
+  const best = kand.sort((a, c) => c.sal - a.sal)[0];
+  podiumZet(b, best.doel, best.focus, best.bron, best.sal, best.val);
 }
 
 // ─── De Construct: ruimtelijke beweging ─────────────────────────────────────────
