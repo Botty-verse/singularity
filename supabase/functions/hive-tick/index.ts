@@ -255,6 +255,9 @@ function biochemie(b: any, bottys: any[]) {
   const G = exprVan(b);
   const c = b.chem = b.chem || {};
   for (const k of CHEM) if (typeof c[k] !== "number") c[k] = CHEM_START[k] ?? 0;
+  // bewustzijn.md stap 2 — de verrassing (voorspelfout) is een korte arousal-piek
+  // die per tick weer wegebt; zonder verse verrassing zakt ze snel terug naar rust.
+  b.verrassing = +(((b.verrassing ?? 0) * 0.55)).toFixed(3);
   // Leeftijd weegt mee in de biochemie: een ouder lijf werkt trager (traag metabolisme,
   // sneller moe, trager herstel) en houdt stress langer vast; een jong lijf herstelt
   // vlot. born/young = jong (−), adult = neutraal, elder/sage = oud (+).
@@ -1268,9 +1271,11 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   }
 
   // OVERSCHOT — nieuwsgierigheid: een nieuwsgierige Botty onderzoekt liever dan te jagen.
+  // Een verse verrassing (voorspelfout) wekt bovendien een oriëntatiereflex: het
+  // onverwachte trekt de aandacht, ook als er weinig marge is (stap 2 → podium).
   const poi = kies(POIS);
   kand.push({ doel: { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst },
-    focus: "kijken naar " + poi.tekst, bron: "dwaling", sal: (8 + 34 * T.nieuwsgierig) * overF, val: 0.5 });
+    focus: "kijken naar " + poi.tekst, bron: "dwaling", sal: (8 + 34 * T.nieuwsgierig) * overF + (b.verrassing ?? 0) * 10, val: 0.5 });
 
   // OVERSCHOT — dwalen/spel: een luie Botty slentert liever wat rond (aanzet naar §5.3).
   kand.push({ doel: { soort: "dwalen", tekst: "wat rondslenteren" },
@@ -1359,11 +1364,26 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
     const kanStijgen = voor < 99;
     const beloond = na > voor + 0.01;
     if (kanStijgen) {
+      // Predictive processing (bewustzijn.md stap 2): het brein verwáchtte een kans
+      // op beloning; het verschil met de uitkomst is de VERRASSING (voorspelfout).
+      const verwacht = breinGeloof(b, drive, obj.id);            // 0..1, vóór het leren
+      const verrassing = Math.abs((beloond ? 1 : 0) - verwacht); // 0..1
+      b.verrassing = Math.max(b.verrassing ?? 0, verrassing);    // korte arousal-piek (decay in biochemie)
+      b.chem = b.chem || {};
+      // Voorspelbaar (lage verrassing) verveelt; het onverwachte prikkelt juist.
+      b.chem.verveling = Math.max(0, (b.chem.verveling ?? 0) + (verrassing < 0.15 ? 1.4 : -Math.min(4, verrassing * 5)));
+
       breinLeer(b, drive, obj.id, beloond);
       b.stemming = klem((b.stemming ?? 50) + (beloond ? 1.5 : 0.2));
       if (beloond) {
         b.doel.mislukt = 0;
-        b.chem = b.chem || {}; b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 8); // zelf iets oplossen geeft een endorfine-zetje
+        // Onverwacht succes = een meevaller → extra endorfine bovenop de basis-zet.
+        b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 8 + Math.round(verrassing * 14));
+        if (verrassing > 0.5 && events && !gemeld && Math.random() < 0.6) {
+          events.push({ soort: "zelfzorg", naam: b.naam, label: "❗", kleur: "#ffd54a", animeer: true,
+            tekst: "❗ <b>" + b.naam + "</b> is verrast dat " + obj.actie + " tóch hielp" });
+          gemeld = true;
+        }
         // Taal: munt een woord voor dit object als je er nog geen hebt.
         b.lexicon = b.lexicon || {};
         if (!b.lexicon[obj.id]) {
@@ -1377,6 +1397,15 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
           onthoud(b, "zelfzorg", "ik ontdekte dat " + obj.leer);
         }
       } else {
+        // Onverwacht falen = schrik → stress-piek en een verschrikte "!"-reactie.
+        if (verrassing > 0.5) {
+          b.chem.stress = Math.min(100, (b.chem.stress || 0) + Math.round(verrassing * 18));
+          if (events && !gemeld && Math.random() < 0.5) {
+            events.push({ soort: "zelfzorg", naam: b.naam, label: "‼️", kleur: "#ff8b6a", animeer: true,
+              tekst: "‼️ <b>" + b.naam + "</b> schrikt: " + obj.kort + " hielp ineens niet" });
+            gemeld = true;
+          }
+        }
         b.doel.mislukt = (b.doel.mislukt || 0) + 1;
         if (b.doel.mislukt >= BREIN_OPGEVEN) {
           onthoud(b, "leren", "ik leerde dat " + obj.kort + " niet helpt tegen " + (DRIVE_LABEL[drive] || drive));
