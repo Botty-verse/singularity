@@ -620,10 +620,13 @@
   // idle, lopen (2 frames), rennen en de liggende slaap-pose (m/v apart). 'born'
   // blijft de procedurele SVG-sprite.
   var PIX_STAGES = { young:true, teen:true, adult:true, elder:true, sage:true };
+  // Cache-buster: opgehoogd wanneer de sprite-PNG's opnieuw gesneden zijn, zodat de
+  // browser de verse versie ophaalt i.p.v. een gecachte oude (identieke bestandspaden).
+  var SPRITE_VER = "?v=2";
   function sekseMap(b){ return (b && b.sekse === "v") ? "v" : "m"; }
   function pixelInnerHTML(stage, sekse){
     return '<image class="pixframe" x="-50" y="0" width="300" height="300" preserveAspectRatio="xMidYMax meet"'
-      + ' href="assets/sprites/'+sekse+'/'+stage+'/'+stage+'_idle_0.png"/>';
+      + ' href="assets/sprites/'+sekse+'/'+stage+'/'+stage+'_idle_0.png'+SPRITE_VER+'"/>';
   }
   function svgSpriteInner(b){
     var pal = b.kleur || paletten[0];
@@ -918,7 +921,7 @@
         else if(moving){        st = "walk" + LR; af = Math.floor(nd.loopFase / Math.PI) % 2; }
         else {                  st = "idle"; }
         var sek = sekseMap(b);
-        var url = "assets/sprites/" + sek + "/" + dir + "/" + dir + "_" + st + "_" + af + ".png";
+        var url = "assets/sprites/" + sek + "/" + dir + "/" + dir + "_" + st + "_" + af + ".png" + SPRITE_VER;
         if(nd.pimgUrl !== url){
           nd.pimg.setAttribute("href", url);
           nd.pimg.setAttributeNS("http://www.w3.org/1999/xlink","href",url);
