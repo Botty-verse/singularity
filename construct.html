@@ -377,7 +377,7 @@
   var ZICHT_STRAAL = 250;   // zichtbereik — alleen in de kijkrichting
   var VLOER_STRAF  = 300;   // reuk verzwakt fors tussen de twee vloeren
   var SVGNS = "http://www.w3.org/2000/svg";
-  var DOEL_KLEUR = { gezelschap:"#7fe0b0", priemjacht:"#7fc6ff", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff", dwalen:"#c9b98a" };
+  var DOEL_KLEUR = { gezelschap:"#7fe0b0", herstellen:"#f6c75a", bijkomen:"#f6c75a", voortplanting:"#ff9ec9", nieuwsgierig:"#e6c06a", zelfzorg:"#5ec6ff", slapen:"#9db7ff", dwalen:"#c9b98a" };
 
   // ── Dag & nacht op Nederlandse kloktijd (zelfde regel als de edge function) ──
   function isNacht(){
@@ -750,9 +750,6 @@
         niv = pn.niveau;
         x = pn.render.x + (lane<0?-1:1)*(60 + Math.abs(lane)*120);
       } else { var tv = thuis(b); niv = tv.niveau; x = tv.x + lane*160; }
-    } else if(soort==="priemjacht"){
-      // jagen doe je in je eentje: elk naar z'n eigen thuisplek + wat rondzwerven
-      var tj = thuis(b); niv = tj.niveau; x = tj.x + (Math.random()-0.5)*280;
     } else {
       // dwalen: overdag naar de openlucht (tuin) om te zonnebaden ☀️,
       // 's nachts rond de eigen (beschutte) thuisplek
@@ -770,7 +767,7 @@
 
   // ── Zintuigen (Fase 1) ──────────────────────────────────────────────────────
   // Het doelwit dat een Botty nú probeert waar te nemen (object / POI / vriend),
-  // of null als zijn intentie geen ruimtelijke bron heeft (dwalen, priemjacht).
+  // of null als zijn intentie geen ruimtelijke bron heeft (dwalen).
   function intentDoel(nd, b){
     var soort = b && b.doel && b.doel.soort;
     if(soort==="zelfzorg"){
@@ -1188,14 +1185,14 @@
 
   // ── Brabbelen: Creatures-babytaal per doel/toestand ──────────────────────
   var BRABBEL = {
-    priemjacht:   ["ikke zoek priem","priem waar?","getal getal getal","deelbaar? nee!"],
+    dwalen:       ["ikke loop","waar heen?","lalala","rondje rondje"],
     gezelschap:   ["wil vriend","samen leuk","waar iedereen?","botty bij botty"],
     herstellen:   ["botty moe","even rusten","zzz…","oplaadje doen"],
     bijkomen:     ["poeh poeh","even zitten","botty bijkomen"],
     voortplanting:["botty verliefd 💕","mooi botty daar","hartje snel"],
     nieuwsgierig: ["dat wat?","ooh mooi","ikke kijken","glimmend ding!"],
     zelfzorg:     ["ikke speel","dit fijn","zelf doen!"],
-    slapen:       ["zzz…","*snurk*","mmm… priempje…","zzz… vriendje…"],
+    slapen:       ["zzz…","*snurk*","mmm… lekker…","zzz… vriendje…"],
     ziek:         ["botty au","voel raar","niet lekker…"],
     verveeld:     ["saai…","niks te doen…","gaap…","boooring"],
     bang:         ["botty bang!","eng!","niet leuk…","help?"],
