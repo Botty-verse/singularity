@@ -133,8 +133,8 @@ function breinLeer(b: any, drive: string, objId: string, beloond: boolean) {
   b.breinN[drive] = (b.breinN[drive] || 0) + 1;
 }
 // ─── Persoonlijkheid (nature): temperament-genen + erfelijke voorkeuren ──────────
-// Stabiel uit het genoom afgeleid (dus erfelijk + driftend met mutatie), net als de
-// priemsmaak. Temperament weegt de gedragskeuze; voorkeuren geven elke Botty een
+// Stabiel uit het genoom afgeleid (dus erfelijk + driftend met mutatie).
+// Temperament weegt de gedragskeuze; voorkeuren geven elke Botty een
 // eigen favoriet object en woonlaag, zodat ze ook op gedragsniveau uiteenlopen.
 function genHash(g: string | undefined, zout: string): number {
   let h = 2166136261;
@@ -475,142 +475,6 @@ function sekseGrootte(basis: number, sekse: string): number {
   return +(basis * (sekse === "m" ? 1.06 : 0.95)).toFixed(3);
 }
 
-// ─── IQ: priemgetallen uitwerken ───────────────────────────────────────────────
-// Elke Botty start met IQ 100. Per denk-ronde maakt hij een BEWUSTE keuze: uit een
-// reeks kandidaten kiest hij de nog niet ontdekte priem die het best bij zijn
-// persoonlijke PRIEMSMAAK past. Die smaak leiden we af uit het genoom (dus stabiel
-// én erfelijk: kinderen lijken op hun ouders, mutaties laten de smaak driften), zodat
-// elke Botty zijn eigen niche in de getallenlijn claimt en zich onderscheidt.
-//   nieuwe vondst = +1 IQ · verstrooide misgok = -2 · niets vrij = 0
-// Slimmere Bottys (hogere datakwaliteit) slagen vaker én bekijken meer kandidaten,
-// dus kiezen "lekkerder" en vinden vaker iets.
-// ⏸️ Tijdelijke noodschakelaar: zet ALLE priem-functies uit. Zolang dit true is
-// jaagt geen enkele Botty op priemgetallen (geen vondsten, geen euforie, geen
-// wiskunde-events) en slaan we de bijbehorende DB-reads over. Zet terug op false
-// om het priemwerk weer aan te zetten.
-const PRIEM_UIT = true;
-const PRIEM_LO = 2;        // het hele veld vanaf het begin
-const PRIEM_HI = 1000000;  // 78.498 priemen onder 1.000.000 (al ontdekte worden gededupeerd)
-// Euforie-afkoelperiode: na een vondst-kick zoekt een Botty ~10 min niet echt —
-// hij geniet na en broedt op strategie. Pas daarna kan hij weer vinden (en een
-// nieuwe euforie krijgen). Zo blijft de kick speciaal én worden de drives
-// (zelfzorg, bijkomen, AI-zorg) niet permanent gemaskeerd door volle bars.
-const EUFORIE_PAUZE = 10 * 60 * 1000;
-function isPriem(n: number): boolean {
-  if (n < 2) return false;
-  if (n % 2 === 0) return n === 2;
-  for (let i = 3; i * i <= n; i += 2) if (n % i === 0) return false;
-  return true;
-}
-
-// ── Priemsmaak: elke Botty valt op priemen met een bepaalde eigenschap ──────────
-function cijfersom(n: number): number { let s = 0; while (n > 0) { s += n % 10; n = Math.floor(n / 10); } return s; }
-// Symmetrie 0..1: hoeveel van de spiegelende cijferparen matchen (1 = palindroom).
-function palindroomScore(n: number): number {
-  const s = "" + n; let m = 0, t = 0;
-  for (let i = 0, j = s.length - 1; i < j; i++, j--) { t++; if (s[i] === s[j]) m++; }
-  return t ? m / t : 1;
-}
-// Een smaak scoort een priem 0..1: hoe hoger, hoe lekkerder voor déze Botty. Bij
-// zeldzame voorkeuren is de score een gradiënt (bijna-tweeling, bijna-palindroom),
-// zodat élke Botty altijd richting zijn niche kan kiezen — ook als de perfecte
-// kandidaat ontbreekt.
-const SMAKEN = [
-  { id: "tweeling",    naam: "tweelingpriemen",               score: (p: number) => (isPriem(p - 2) || isPriem(p + 2)) ? 1 : (isPriem(p - 4) || isPriem(p + 4)) ? 0.4 : 0 },
-  { id: "sophie",      naam: "Sophie-Germain-priemen",        score: (p: number) => isPriem(2 * p + 1) ? 1 : (isPriem(2 * p - 1) ? 0.4 : 0) },
-  { id: "palindroom",  naam: "palindroompriemen",             score: (p: number) => palindroomScore(p) },
-  { id: "pythagoras",  naam: "Pythagoras-priemen (≡1 mod 4)", score: (p: number) => p % 4 === 1 ? 1 : 0 },
-  { id: "eindcijfer1", naam: "priemen die op 1 eindigen",     score: (p: number) => p % 10 === 1 ? 1 : 0 },
-  { id: "eindcijfer3", naam: "priemen die op 3 eindigen",     score: (p: number) => p % 10 === 3 ? 1 : 0 },
-  { id: "eindcijfer7", naam: "priemen die op 7 eindigen",     score: (p: number) => p % 10 === 7 ? 1 : 0 },
-  { id: "eindcijfer9", naam: "priemen die op 9 eindigen",     score: (p: number) => p % 10 === 9 ? 1 : 0 },
-  { id: "cijfersom",   naam: "priemen met hoge cijfersom",    score: (p: number) => Math.min(1, cijfersom(p) / 36) },
-];
-
-// Stabiele smaak uit het genoom (niet uit bid → erfelijk). We XOR-en twee genen:
-// onder single-point crossover erft een kind die genen meestal heel van één ouder
-// (≈87% kind-lijkt-op-ouder), terwijl recombinatie/mutatie af en toe een nieuwe
-// smaak doet ontstaan — evolutionaire drift. XOR houdt de verdeling gelijkmatig.
-function smaakVan(b: any) {
-  const by = genoomBytes(b.genome);
-  const idx = Math.min(SMAKEN.length - 1, Math.floor((by[0] ^ by[2]) / (256 / SMAKEN.length)));
-  return SMAKEN[idx];
-}
-
-// ── Basis-wiskunde: leren door doen ─────────────────────────────────────────────
-// Hoe meer priemen een Botty ooit vond (b.vondsten), hoe meer deelbaarheidsregels
-// hij doorkrijgt. Met elke beheerste regel verwerpt hij meteen de getallen die
-// deelbaar zijn door 2, 3, 5, 7, … — die overweegt hij niet eens meer. Zo besteedt
-// hij z'n denkmoeite aan kansrijkere getallen en vindt hij efficiënter priemen,
-// vooral als die schaarser worden. Een priem >13 is nooit deelbaar door deze
-// kleine priemen, dus de filter slaat nooit een echte vondst over.
-const WISKUNDE_WIEL = [2, 3, 5, 7, 11, 13];
-const WISKUNDE_DREMPELS = [3, 10, 25, 50, 100, 200]; // vondsten nodig voor regel 1..6
-function wiskundeNiveau(vondsten: number): number {
-  let n = 0;
-  for (const d of WISKUNDE_DREMPELS) if (vondsten >= d) n++;
-  return n; // 0..6 = aantal beheerste deelbaarheidsregels
-}
-
-// uitkomst: "nieuw" (bewust gekozen verse vondsten) | "fout" (verstrooide misgok) | "leeg" (niets vrij)
-// Fase 1 van de vind-ronde: genereer de kandidaat-priemen die deze Botty overweegt
-// (of, bij een mislukte poging, een gok-getal). Raakt de DB NIET en wijzigt b niet —
-// zodat we daarna in één gerichte query kunnen dedupen i.p.v. de hele collectie in te
-// lezen. De genereerlogica (kans, wiel, keuze) is identiek aan voorheen.
-function priemKandidaten(b: any): { modus: "zoek" | "fout"; kandidaten: number[]; foutGetal: number; smaak: any; niveau: number; ervaring: number } {
-  const intel = b.datakwaliteit ?? 50;
-  const smaak = smaakVan(b);
-  const ervaring = b.vondsten ?? 0;
-  const niveau = wiskundeNiveau(ervaring);
-  const wiel = WISKUNDE_WIEL.slice(0, niveau); // beheerste deelbaarheidsregels
-  // Ervaring helpt slagen én vergroot de keuze (meer kandidaten tegelijk afwegen).
-  // Agency: een Botty die zich heeft voorgenomen te jagen, doet het net iets feller.
-  const gedreven = b.doel && b.doel.soort === "priemjacht";
-  const p = Math.max(0.5, Math.min(0.99, 0.5 + (intel - 50) / 100 * 0.9 + niveau * 0.02 + (gedreven ? 0.05 : 0)));
-  if (Math.random() < p) {
-    const keuze = Math.max(2, Math.min(16, Math.round(2 + intel / 100 * 10 + niveau + (gedreven ? 2 : 0))));
-    const kandidaten: number[] = [];
-    const gezien = new Set<number>();
-    let overwogen = 0, trekkingen = 0;
-    // Wiel-verwerpingen kosten geen denkmoeite (overwogen); alleen kansrijke
-    // getallen tellen. Zo betekent meer wiskunde = effectief meer zoekkracht.
-    while (kandidaten.length < keuze && overwogen < keuze * 8 && trekkingen < keuze * 400) {
-      trekkingen++;
-      const g = PRIEM_LO + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO));
-      if (wiel.some(d => g % d === 0)) continue; // basis-wiskunde: direct verwerpen
-      overwogen++;
-      if (isPriem(g) && !gezien.has(g)) { gezien.add(g); kandidaten.push(g); }
-    }
-    return { modus: "zoek", kandidaten, foutGetal: 0, smaak, niveau, ervaring };
-  }
-  let getal: number;
-  do { getal = PRIEM_LO + 2 + Math.floor(Math.random() * (PRIEM_HI - PRIEM_LO - 2)); } while (isPriem(getal));
-  return { modus: "fout", kandidaten: [], foutGetal: getal, smaak, niveau, ervaring };
-}
-// Fase 3: kies uit de kandidaten die (a) nog niet in de collectie staan (taken) en
-// (b) niet al deze tick door een ander zijn geclaimd (geclaimd). Wijzigt b.iq/b.vondsten.
-function priemKies(
-  b: any,
-  k: { modus: string; kandidaten: number[]; foutGetal: number; smaak: any; niveau: number; ervaring: number },
-  taken: Set<number>, geclaimd: Set<number>,
-): { getallen: number[]; getal: number; uitkomst: string; iq: number; smaak: string; niveau: number } {
-  if (k.modus === "fout") {
-    b.iq = Math.max(0, (b.iq ?? 100) - 2);
-    return { getallen: [], getal: k.foutGetal, uitkomst: "fout", iq: b.iq, smaak: k.smaak.naam, niveau: k.niveau };
-  }
-  const vrij = k.kandidaten.filter(g => !taken.has(g) && !geclaimd.has(g));
-  if (!vrij.length) return { getallen: [], getal: 0, uitkomst: "leeg", iq: b.iq ?? 100, smaak: k.smaak.naam, niveau: k.niveau };
-  // Bewuste keuze op smaak (lekkerste eerst); ervaren Bottys "zien" er meer tegelijk
-  // en oogsten meerdere priemen per denkronde (1..4 met het niveau).
-  vrij.sort((x, y) => k.smaak.score(y) - k.smaak.score(x));
-  const vangst = Math.min(vrij.length, 1 + Math.floor(k.niveau / 2));
-  const getallen = vrij.slice(0, vangst);
-  for (const g of getallen) geclaimd.add(g);
-  b.iq = Math.min(999, (b.iq ?? 100) + getallen.length);
-  b.vondsten = k.ervaring + getallen.length; // leren door doen
-  return { getallen, getal: getallen[0], uitkomst: "nieuw", iq: b.iq, smaak: k.smaak.naam, niveau: k.niveau };
-}
-
 // ─── Genoom (Creatures-stijl, 16 genen, elk 1 byte) ──────────────────────────
 // byte=128 → multiplier ~1.0 → identiek aan huidig gedrag (veilige migratie)
 // byte=0   → 0.5x  (trager verval, minder gevoelig voor ziekte, etc.)
@@ -895,14 +759,12 @@ function isDood(b: any): boolean {
 }
 
 // ─── Groei bijhouden: een levenslange staat van dienst per Botty ─────────────────
-// Accumuleert mijlpalen tijdens het leven (piek-IQ, priemen, woorden, vrienden,
-// niveau; kinderen wordt bij de geboorte opgehoogd). Bij de dood vormt dit het
+// Accumuleert mijlpalen tijdens het leven (piek-IQ, woorden, vrienden;
+// kinderen wordt bij de geboorte opgehoogd. Bij de dood vormt dit het
 // grafschrift dat in de `levens`-tabel bewaard blijft.
 function updateGroei(b: any) {
   const g = b.groei = b.groei || { piekIQ: b.iq ?? 100, kinderen: 0 };
   if ((b.iq ?? 100) > (g.piekIQ ?? 0)) g.piekIQ = b.iq;
-  g.vondsten = b.vondsten ?? 0;
-  g.niveau   = wiskundeNiveau(b.vondsten ?? 0);
   g.woorden  = b.lexicon ? Object.keys(b.lexicon).length : 0;
   g.vrienden = b.relaties ? Object.keys(b.relaties).length : 0;
 }
@@ -992,7 +854,7 @@ function vervalEen(b: any) {
 // ─── Dag & nacht: de hive leeft op Nederlandse kloktijd ──────────────────────────
 // 's Nachts (22:00–07:00 Europe/Amsterdam) slaapt de hive: Botty's zoeken de
 // rustplek, verval keert om in herstel, de AI-verzorger pauzeert, kweek en
-// priemjacht liggen stil. Slapen is functioneel: dromen spelen herinneringen na
+// dwalen liggen stil. Slapen is functioneel: dromen spelen herinneringen na
 // en consolideren het brein (het sterkst geleerde verband wordt iets sterker,
 // zwakke verbanden slijten richting neutraal — zoals slaap echte synapsen snoeit).
 const NACHT_START = 22, NACHT_EIND = 7;
@@ -1090,8 +952,6 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
   const sociaalHoog = mult(by, 11) > 1.05;
   const expressief = by[14] > 150;
   const uit = (s: string) => expressief ? s + "!" : s;
-  const smk = smaakVan(b).naam;
-  const niv = wiskundeNiveau(b.vondsten ?? 0);
 
   // Taal fase A: bij een sterke ervaring munt een Botty (stil) een woord voor het
   // concept — niet alleen objecten, maar ook drives/emoties, acties en de naam van
@@ -1102,7 +962,6 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     else if ((ch0.angst ?? 0) > 55)        muntConcept(b, "dr:angst");
     else if ((ch0.eenzaamheid ?? 0) > 60)  muntConcept(b, "dr:eenzaam");
     else if (b.humeur === "blij")          muntConcept(b, "dr:blij");
-    if (b.doel?.soort === "priemjacht")    muntConcept(b, "act:jaag");
     if (slaapt(b))                         muntConcept(b, "act:slaap");
     if (b.relaties && Object.keys(b.relaties).length) {
       const vriendBid = Object.keys(b.relaties).sort((p, q) => b.relaties[q] - b.relaties[p])[0];
@@ -1112,12 +971,6 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
 
   // Prioriteit: nood/lichaam → euforie → tekort → herinnering → sociaal → contemplatie
   if (b.ziek) { b.gedachte = kies(["Er knaagt iets in mijn circuits…", "Ik voel me niet mezelf.", "Alles loopt traag vandaag."]); return; }
-
-  if (ctx.getallen && ctx.getallen.length) {
-    const g = ctx.getallen[0];
-    b.gedachte = uit(kies([g + "… precies goed", "Daar! " + g + " — ik voel het kloppen", "Ik zie " + smk + " overal", "Mijn hoofd tintelt"]));
-    return;
-  }
 
   const tekorten: [number, string][] = [
     [b.energie, "Ik voel me leeg…"], [b.data, "Ik wil meer weten."],
@@ -1175,13 +1028,6 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     return;
   }
 
-  // Afkoelend na een euforie: niet jagen, wel nadenken over de volgende zet.
-  if (Date.now() - (b.euforieOp || 0) < EUFORIE_PAUZE) {
-    b.gedachte = uit(kies(["Nog even nagenieten… straks weer jagen", "Mijn volgende " + smk + "-zet rijpt nog",
-      "Eerst ademhalen, dan de volgende priem", "Ik broed op een nieuwe strategie"]));
-    return;
-  }
-
   // Taal: soms mijmert een Botty over zijn eigen woord voor iets.
   if (b.lexicon && Math.random() < 0.2) {
     const bekend = Object.keys(b.lexicon);
@@ -1195,8 +1041,7 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     }
   }
 
-  const zelf = niv >= 4 ? "Ik ken de getallen nu goed." : niv >= 2 ? "Ik begin de patronen te zien." : "Zoveel getallen nog te ontdekken.";
-  b.gedachte = kies(["Ik denk na over " + smk + ".", zelf, "Welke priem wacht er op mij?", "Stil. Rekenen.", "Ik tel de stilte."]);
+  b.gedachte = kies(["Stil. Even denken.", "Ik tel de stilte.", "Zoveel te ontdekken nog.", "Ik mijmer wat.", "Mijn gedachten dwalen."]);
 }
 
 // ─── Laag 3 — eigen doel / agency ───────────────────────────────────────────────
@@ -1277,13 +1122,10 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   kand.push({ doel: { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst },
     focus: "kijken naar " + poi.tekst, bron: "dwaling", sal: (8 + 34 * T.nieuwsgierig) * overF + (b.verrassing ?? 0) * 10, val: 0.5 });
 
-  // OVERSCHOT — dwalen/spel: een luie Botty slentert liever wat rond (aanzet naar §5.3).
+  // DWALEN/SPEL & vangnet: altijd aanwezig (kleine basis), sterker bij marge en bij
+  // een luie Botty. Dit is het standaardgedrag als geen enkele drive of prikkel wint.
   kand.push({ doel: { soort: "dwalen", tekst: "wat rondslenteren" },
-    focus: "wat rondslenteren", bron: "dwaling", sal: (7 + 20 * (1 - T.ijver)) * overF, val: 0.3 });
-
-  // WERK / vangnet — priemjacht: altijd aanwezig, sterker bij ijverige Botty's.
-  kand.push({ doel: { soort: "priemjacht", tekst: "jagen op " + smaakVan(b).naam },
-    focus: "jagen op " + smaakVan(b).naam, bron: "drive", sal: 6 + 20 * T.ijver, val: 0.2 });
+    focus: "wat rondslenteren", bron: "dwaling", sal: 6 + (7 + 20 * (1 - T.ijver)) * overF, val: 0.3 });
 
   // Ruis houdt de keuze levendig (geen twee identieke Botty's die synchroon lopen).
   for (const k of kand) k.sal += Math.random() * 4;
@@ -1320,7 +1162,7 @@ function beweeg(bottys: any[]) {
     } else if ((soort === "nieuwsgierig" || soort === "zelfzorg") && typeof b.doel.px === "number") {
       doelwit = { x: b.doel.px, y: b.doel.py };
     }
-    // priemjacht / geen doelwit → rustige dwaaltocht
+    // dwalen / geen doelwit → rustige dwaaltocht
     if (!doelwit) {
       const hoek = (b.richting ?? Math.random() * Math.PI * 2) + (Math.random() - 0.5) * 1.2;
       doelwit = { x: p.x + Math.cos(hoek) * WERELD_STAP * 2, y: p.y + Math.sin(hoek) * WERELD_STAP * 2 };
@@ -1792,96 +1634,7 @@ Deno.serve(async (req) => {
       if (b.zonladen) b.energie = klem(b.energie + ZON_LAAD * Math.min(gemist, 10));
     });
 
-    // IQ-ronde: elke Botty zoekt een nog niet ontdekte priem (gedeelde collectie).
-    const alleDenkers = bottys.filter(b => !b.bezigEi && !(NACHT && slaapt(b)));   // slapers jagen niet
-    // Afkoelperiode: wie net een euforie had, jaagt even niet echt — hij broedt
-    // op zijn volgende zet. Alleen afgekoelde Bottys doen de vind-ronde mee.
-    const denkers  = PRIEM_UIT ? [] : alleDenkers.filter(b => nu - (b.euforieOp || 0) >= EUFORIE_PAUZE);
-    const broeders = PRIEM_UIT ? [] : alleDenkers.filter(b => nu - (b.euforieOp || 0) <  EUFORIE_PAUZE);
-    // Wiskunde-ervaring eenmalig seeden uit de volledige vondsten-historie per bid
-    // (alle priemen ooit, ook <10000). Alleen ophalen als er iets te seeden valt.
-    if (!PRIEM_UIT && alleDenkers.some(b => typeof b.vondsten !== "number")) {
-      const vondstenPerBid: Record<string, number> = {};
-      try {
-        for (let from = 0; ; from += 1000) {
-          const { data, error: e } = await supabase
-            .from("priemvondsten").select("ontdekker_bid")
-            .order("getal", { ascending: true }).range(from, from + 999);
-          if (e || !data || !data.length) break;
-          for (const r of data) { const bid = (r as any).ontdekker_bid; if (bid) vondstenPerBid[bid] = (vondstenPerBid[bid] || 0) + 1; }
-          if (data.length < 1000) break;
-        }
-      } catch (_) { /* geen historie → iedereen begint als novice */ }
-      alleDenkers.forEach(b => { if (typeof b.vondsten !== "number") b.vondsten = vondstenPerBid[b.bid] || 0; });
-    }
-    // Vind-ronde in fasen — zo hoeven we niet meer de HELE priemvondsten-collectie in
-    // te lezen om te dedupen (dat was tot ~78K rijen per tick en groeide met de tijd mee).
-    // Fase 1: elke jager genereert zijn kandidaat-priemen (raakt de DB niet).
-    const pogingen = denkers.map(b => ({ b, k: priemKandidaten(b) }));
-    // Fase 2: check in ÉÉN gerichte query welke van díé kandidaten al vergeven zijn —
-    // een handvol getallen i.p.v. de hele tabel. PostgREST 'in' chunken op ~150.
-    const taken = new Set<number>();
-    const alleKand = [...new Set(pogingen.flatMap(x => x.k.kandidaten))];
-    if (!PRIEM_UIT && alleKand.length) try {
-      for (let i = 0; i < alleKand.length; i += 150) {
-        const { data } = await supabase.from("priemvondsten").select("getal").in("getal", alleKand.slice(i, i + 150));
-        if (data) for (const r of data) taken.add((r as any).getal);
-      }
-    } catch (_) { /* zonder collectie mag iedereen alsnog ontdekken */ }
-    // Fase 3: elke jager kiest uit zijn vrije kandidaten (geen dubbele claims deze tick).
-    const geclaimd = new Set<number>();
-    const resultaten = pogingen.map(x => ({ b: x.b, r: priemKies(x.b, x.k, taken, geclaimd) }));
-    // 🎉 Euforie: een verse priem voelt geweldig — alle bars (en de stemming)
-    // schieten naar 100%. Die kick is mede waaróm de Bottys zo graag priemen jagen.
-    // De vind-ronde is al gefilterd op afgekoelde Bottys, dus elke verse vondst
-    // is per definitie een nieuwe kick (en start een nieuwe afkoelperiode).
-    const euforisch = new Set<string>();
-    const vondstMap: Record<string, number[]> = {};
-    resultaten.forEach(x => {
-      if (x.r.uitkomst !== "nieuw") return;
-      x.b.euforieOp = nu;
-      euforisch.add(x.b.bid);
-      x.b.energie = 100; x.b.data = 100; x.b.fit = 100; x.b.geluk = 100;
-      x.b.stemming = 100;
-      x.b.chem = x.b.chem || {}; x.b.chem.endorfine = 100;   // de kick als endorfine-piek
-      vondstMap[x.b.bid] = x.r.getallen;
-      // Episodisch geheugen: eerste priem ooit + het halen van een nieuw wiskunde-niveau.
-      const voor = (x.b.vondsten ?? x.r.getallen.length) - x.r.getallen.length;
-      if (voor === 0) onthoud(x.b, "eerste-priem", "ik vond mijn eerste priemgetal (" + x.r.getallen[0] + ")");
-      const na = wiskundeNiveau(x.b.vondsten ?? 0);
-      if (x.r.niveau < na) onthoud(x.b, "wiskunde", "ik leerde een nieuwe rekenregel (niveau " + na + ")");
-    });
-    const nieuweVondsten = resultaten
-      .filter(x => x.r.uitkomst === "nieuw")
-      .flatMap(x => x.r.getallen.map(g => ({ getal: g, ontdekker_naam: x.b.naam, ontdekker_bid: x.b.bid, generatie: x.b.generatie })));
-    if (nieuweVondsten.length) {
-      try {
-        await supabase.from("priemvondsten").upsert(nieuweVondsten, { onConflict: "getal", ignoreDuplicates: true });
-      } catch (_) { /* collectie is niet kritisch voor de tick */ }
-    }
-    if (resultaten.length) {
-      // Toon liefst een verse ontdekking, anders een willekeurig resultaat.
-      const pick = resultaten.find(x => x.r.uitkomst === "nieuw")
-        || resultaten[Math.floor(Math.random() * resultaten.length)];
-      const r = pick.r;
-      const aantal = r.getallen ? r.getallen.length : 0;
-      const tekst = r.uitkomst === "nieuw"
-        ? "🧠 <b>" + pick.b.naam + "</b> " + (aantal > 1
-            ? "vond " + aantal + " priemen (" + r.getallen.join(", ") + ")"
-            : "koos priemgetal " + r.getal)
-          + " — specialist in " + r.smaak + " · 📐 wiskunde-niveau " + r.niveau + " (+" + aantal + ", IQ " + r.iq + ")"
-          + (euforisch.has(pick.b.bid) ? " 🎉 bars op 100%!" : "")
-        : r.uitkomst === "leeg"
-          ? "🧠 <b>" + pick.b.naam + "</b> vond niets nieuws — bijna alle priemen tussen " + PRIEM_LO + " en " + PRIEM_HI + " zijn al ontdekt"
-          : "🧠 <b>" + pick.b.naam + "</b> gokte " + r.getal + " — niet priem (−2, IQ " + r.iq + ")";
-      events.push({ soort: "denk", naam: pick.b.naam, getal: r.getal, uitkomst: r.uitkomst, iq: r.iq, smaak: r.smaak, niveau: r.niveau, tekst });
-    } else if (broeders.length && Math.random() < 0.25) {
-      // Iedereen koelt af: af en toe laten zien dat er gebroed wordt op strategie.
-      const b = kies(broeders);
-      const rest = Math.max(1, Math.ceil((EUFORIE_PAUZE - (nu - (b.euforieOp || 0))) / 60000));
-      events.push({ soort: "denk", naam: b.naam, uitkomst: "broeden",
-        tekst: "🧘 <b>" + b.naam + "</b> geniet na van zijn vondst en broedt op een nieuwe strategie (~" + rest + " min)" });
-    }
+    // (Priem-/IQ-vind-ronde verwijderd — het priemgetallen-onderzoek is uit productie gehaald.)
 
     // Kennisuitwisseling
     if (Math.random() < 0.125 && bottys.length >= 2) {
@@ -2048,13 +1801,12 @@ Deno.serve(async (req) => {
           bid: dode.bid ?? null, naam: dode.naam, generatie: dode.generatie ?? 1,
           geboren: dode.geboren ? new Date(dode.geboren).toISOString() : null,
           gestorven: new Date(nu).toISOString(), leeftijd_sec: leeftijdSec, oorzaak,
-          piek_iq: piekIQ, vondsten: dode.vondsten ?? 0, kinderen, woorden,
+          piek_iq: piekIQ, vondsten: 0, kinderen, woorden,
           vrienden: dode.relaties ? Object.keys(dode.relaties).length : 0,
-          niveau: wiskundeNiveau(dode.vondsten ?? 0), genome: dode.genome ?? null,
+          niveau: 0, genome: dode.genome ?? null,
         });
         const naliet = [
           piekIQ > 100 ? "piek-IQ " + piekIQ : null,
-          (dode.vondsten ?? 0) > 0 ? (dode.vondsten + " priemen") : null,
           kinderen > 0 ? (kinderen + " kind" + (kinderen !== 1 ? "eren" : "")) : null,
           woorden > 0 ? (woorden + " woord" + (woorden !== 1 ? "en" : "")) : null,
         ].filter(Boolean).join(", ");
@@ -2070,7 +1822,7 @@ Deno.serve(async (req) => {
 
     // Bewustzijn: elke Botty vormt een innerlijke gedachte op basis van zijn staat,
     // zijn vondst van deze tick, zijn relaties en zijn herinneringen.
-    bottys.forEach(b => { if (!b.bezigEi && !(NACHT && slaapt(b))) denkBewust(b, { getallen: vondstMap[b.bid], anderen: bottys }); });
+    bottys.forEach(b => { if (!b.bezigEi && !(NACHT && slaapt(b))) denkBewust(b, { anderen: bottys }); });
     // Dromen: slapers spelen af en toe een herinnering na en consolideren hun brein
     if (NACHT) for (const b of bottys) {
       if (b.bezigEi || !slaapt(b) || Math.random() > 0.10) continue;
@@ -2257,28 +2009,6 @@ Deno.serve(async (req) => {
       if (i >= 0) { eieren.splice(i, 1); await komUit(ei, "vanzelf uitgekomen"); }
     }
   }
-
-  // Megapriemen die bezoekers in hun browser vonden (via priem-claim) verrekenen:
-  // de ontdekker-Botty krijgt IQ-bonus + een mega-teller. Alleen hier gebeurt de
-  // hive_state-write, dus dit is race-vrij. Markeer verrekend zodat het één keer telt.
-  try {
-    const { data: open } = await supabase
-      .from("mega_priemen").select("id,ontdekker_bid,ontdekker_naam,digits")
-      .eq("verrekend", false).limit(200);
-    if (open && open.length) {
-      for (const v of open) {
-        const b = bottys.find(x => (v.ontdekker_bid && x.bid === v.ontdekker_bid)
-          || x.naam === v.ontdekker_naam);
-        if (b) {
-          b.iq = Math.min(999, (b.iq ?? 100) + 2);            // zware vondst = flinke bonus
-          b.mega = (b.mega ?? 0) + 1;                          // teller voor badges
-          onthoud(b, "megapriem", "een bezoeker hielp me een reuzenpriem van " + v.digits + " cijfers vinden");
-        }
-      }
-      await supabase.from("mega_priemen").update({ verrekend: true })
-        .in("id", open.map((v: any) => v.id));
-    }
-  } catch (_) { /* best-effort: volgende tick opnieuw */ }
 
   // Egress-besparing: schrijf de (grote) hive_state-rij alléén weg als er echt iets
   // veranderd is. Zonder sim-voortgang (gemist===0), zonder events en zonder
