@@ -262,16 +262,16 @@
         <li>🏃 <b>Fit</b> — conditie</li>
         <li>😊 <b>Geluk</b> — humeur</li>
       </ul>
-      <p class="leg-noot">Bereik <b>0–100%</b> (0 = uitgeput, 100 = vol). De AI vult ze bij met zorg; ze vervallen vanzelf. Vindt een Botty een priem, dan schieten ze alle vier naar 100% — euforie 🎉.</p>
+      <p class="leg-noot">Bereik <b>0–100%</b> (0 = uitgeput, 100 = vol). De AI vult ze bij met zorg; ze vervallen vanzelf.</p>
     </div>
     <div class="leg-groep">
       <h4>🔢 Cijfers boven de kaart</h4>
       <ul>
-        <li>🧬 <b>Datakwaliteit</b> <span class="leg-bereik">0–100</span> — slimheid: bepaalt zorg-effect én priem-succes</li>
+        <li>🧬 <b>Datakwaliteit</b> <span class="leg-bereik">0–100</span> — slimheid: bepaalt het zorg-effect</li>
         <li>💪 <b>Efficiëntie</b> <span class="leg-bereik">0–100</span> — spierkracht / output</li>
         <li>⭐ <b>Generatie</b> <span class="leg-bereik">G1 en hoger</span> — de hoeveelste generatie</li>
         <li>📏 <b>Grootte</b> <span class="leg-bereik">0.80–1.20×</span> — erfelijke lichaamsgrootte</li>
-        <li>🧠 <b>IQ</b> <span class="leg-bereik">start 100 (0–999)</span> — +1 per nieuwe priem, −2 per misgok</li>
+        <li>🧠 <b>IQ</b> <span class="leg-bereik">start 100</span> — aangeboren slimheidscijfer</li>
       </ul>
     </div>
     <div class="leg-groep">
@@ -422,7 +422,7 @@
     <figcaption style="text-align:center;font-size:.8rem;color:#7fb89a;margin-top:.5rem;">Gelukzalig achter het glas — zij kijken nooit terug.</figcaption>
   </figure>
 
-  <p>Zie het eens zo: de Botty's zijn <strong>tamagotchi's die in de Matrix leven</strong>. Achter het glas eten ze, leren ze, krijgen ze kinderen en jagen ze op priemgetallen — en de AI zorgt dat het ze aan niets ontbreekt. Hun metertjes staan op honderd, hun gezichtjes stralen. Ze kennen alleen hun eigen wereld, en die wereld is goed.</p>
+  <p>Zie het eens zo: de Botty's zijn <strong>tamagotchi's die in de Matrix leven</strong>. Achter het glas eten ze, leren ze, krijgen ze kinderen en ontdekken ze hun wereld — en de AI zorgt dat het ze aan niets ontbreekt. Hun metertjes staan op honderd, hun gezichtjes stralen. Ze kennen alleen hun eigen wereld, en die wereld is goed.</p>
 
   <p>Van de <strong>buitenwereld</strong> — van ons, van het scherm, van de hand die het apparaatje vasthoudt — weten ze niets. En juist daaróm zijn ze volmaakt gelukkig. Geen twijfel, geen heimwee naar iets buiten de simulatie, want er <em>ís</em> voor hen niets buiten de simulatie. Wij kijken van buiten toe; zij leven van binnen — gelukzalig en compleet.</p>
 
@@ -447,8 +447,6 @@
   <a href="stamboom.html">🌳 Stamboom</a>
   <a href="populatie.html">🧬 Populatie & inteelt</a>
   <a href="evolutie.html">📈 Evolutie</a>
-  <a href="priemen.html">🔢 Priemvondsten</a>
-  <a href="iq-ranglijst.html">🧠 IQ-ranglijst</a>
   <a href="genoom.html">🗺️ Genoom-kaart</a>
   <a href="construct.html">🌍 De Construct</a>
   <a href="kaarten.html">🃏 Verzamelkaarten</a>
@@ -578,7 +576,7 @@
          + '<span title="efficiëntie">💪 '+ef+'</span>'
          + '<span title="generatie">⭐ G'+g+'</span>'
          + '<span title="grootte-gen (0.80–1.20×)">📏 '+grootte.toFixed(2)+'×</span>'
-         + (typeof b.iq==="number" ? '<span title="IQ — priemgetallen uitwerken (+1 goed, −2 fout)">🧠 '+Math.round(b.iq)+'</span>' : '')
+         + (typeof b.iq==="number" ? '<span title="IQ — aangeboren slimheidscijfer">🧠 '+Math.round(b.iq)+'</span>' : '')
          + ((b.genen&&b.genen.length) ? '<span title="extra genen bovenop de 16 kern-genen (§3.4)" style="color:#a3ffce">🧬+'+b.genen.length+'</span>' : '')
          + (muts ? '<span class="muts" title="mutaties">'+muts+'</span>' : '');
   }
