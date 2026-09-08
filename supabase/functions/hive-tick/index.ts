@@ -331,6 +331,16 @@ function biochemie(b: any, bottys: any[]) {
   if (c.cortisol    > 50) d -= (c.cortisol    - 50) * 0.02;   // chronische stress drukt aanhoudend
   if (d !== 0) b.stemming = klem((b.stemming ?? 50) + d);
 
+  // bewustzijn.md stap 3 — VALENTIE & AROUSAL: hoe het voelt, als één getal dat
+  // daarna van alles kleurt (perceptie, gedrag) i.p.v. losse meters. Valentie:
+  // prettig (endorfine/oxytocine) ↔ onprettig (stress/angst/eenzaamheid/cortisol).
+  // Arousal: hoe opgejaagd (adrenaline, acute stress, verse verrassing).
+  const posV = Math.max(0, (c.endorfine ?? 0) - 30) + (c.oxytocine ?? 0) * 0.3;
+  const negV = Math.max(0, (c.stress ?? 0) - 30) + Math.max(0, (c.angst ?? 0) - 30)
+    + Math.max(0, (c.eenzaamheid ?? 0) - 30) * 0.7 + Math.max(0, (c.cortisol ?? 0) - 40) * 0.5;
+  b.valentie = +Math.max(-1, Math.min(1, (posV - negV) / 60)).toFixed(2);
+  b.arousal  = +Math.max(0, Math.min(1, ((c.adrenaline ?? 0) + (c.stress ?? 0) * 0.5 + (b.verrassing ?? 0) * 40) / 80)).toFixed(2);
+
   // Lichte vlaggen voor de arena-weergave (reizen mee in het slanke snapshot):
   // een adrenaline-piek (⚡, sneller bewegen) en het vruchtbare venster (♥).
   b.adrenalinePiek = (c.adrenaline ?? 0) > 45;
@@ -1080,6 +1090,10 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // Overschot-factor: 0 als de laagste bar ≤45 (nood drukt), 1 vanaf ≥75 (ruimte om
   // te leven). Zo verdwijnt het spel als eerste bij verwaarlozing.
   const overF = Math.max(0, Math.min(1, (minBar - 45) / 30));
+  // bewustzijn.md stap 3 — valentie kleurt de exploratiedrang: een blije/kalme Botty
+  // (positieve valentie) gaat eerder op onderzoek en spelen; een bange (negatieve)
+  // trekt zich terug. ~0.6..1.3, vermenigvuldigt de overschot-kandidaten.
+  const gevoelF = Math.max(0.6, Math.min(1.3, 1 + (b.valentie ?? 0) * 0.3));
 
   type Kand = { doel: any; focus: string; bron: string; sal: number; val: number };
   const kand: Kand[] = [];
@@ -1120,12 +1134,12 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // onverwachte trekt de aandacht, ook als er weinig marge is (stap 2 → podium).
   const poi = kies(POIS);
   kand.push({ doel: { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst },
-    focus: "kijken naar " + poi.tekst, bron: "dwaling", sal: (8 + 34 * T.nieuwsgierig) * overF + (b.verrassing ?? 0) * 10, val: 0.5 });
+    focus: "kijken naar " + poi.tekst, bron: "dwaling", sal: (8 + 34 * T.nieuwsgierig) * overF * gevoelF + (b.verrassing ?? 0) * 10, val: 0.5 });
 
   // DWALEN/SPEL & vangnet: altijd aanwezig (kleine basis), sterker bij marge en bij
   // een luie Botty. Dit is het standaardgedrag als geen enkele drive of prikkel wint.
   kand.push({ doel: { soort: "dwalen", tekst: "wat rondslenteren" },
-    focus: "wat rondslenteren", bron: "dwaling", sal: 6 + (7 + 20 * (1 - T.ijver)) * overF, val: 0.3 });
+    focus: "wat rondslenteren", bron: "dwaling", sal: 6 + (7 + 20 * (1 - T.ijver)) * overF * gevoelF, val: 0.3 });
 
   // Ruis houdt de keuze levendig (geen twee identieke Botty's die synchroon lopen).
   for (const k of kand) k.sal += Math.random() * 4;
