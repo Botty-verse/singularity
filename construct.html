@@ -226,6 +226,15 @@
         <radialGradient id="zonGloed" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0" stop-color="#fff3b0" stop-opacity="0.9"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/>
         </radialGradient>
+        <!-- Stemmings-vignette (bewustzijn.md stap 3): de wereld kleurt mee met het
+             gevoel van de geselecteerde Botty — koel/donker aan de randen bij angst,
+             een warme gloed bij blijheid. -->
+        <radialGradient id="moodKoel" cx="0.5" cy="0.55" r="0.72">
+          <stop offset="0.4" stop-color="#0a1630" stop-opacity="0"/><stop offset="1" stop-color="#0a1630" stop-opacity="0.92"/>
+        </radialGradient>
+        <radialGradient id="moodWarm" cx="0.5" cy="0.5" r="0.75">
+          <stop offset="0" stop-color="#ffce7a" stop-opacity="0.55"/><stop offset="1" stop-color="#ffce7a" stop-opacity="0"/>
+        </radialGradient>
       </defs>
       <!-- Nieuwe achtergrond: geschilderde dwarsdoorsnede (tuin boven + ondergrondse kamer) -->
       <image href="assets/construct-achtergrond.webp" x="0" y="0" width="1500" height="844" preserveAspectRatio="none"/>
@@ -262,6 +271,11 @@
         <rect x="0" y="0" width="1500" height="420" fill="#0d1838" opacity="0.32"/>
         <circle cx="1185" cy="92" r="26" fill="#f3ecd2" opacity="0.9"/><circle cx="1175" cy="84" r="21" fill="#152246" opacity="0.6"/>
         <g fill="#fff"><circle cx="300" cy="70" r="1.6" opacity="0.85"/><circle cx="620" cy="48" r="1.3" opacity="0.7"/><circle cx="900" cy="96" r="1.8" opacity="0.8"/><circle cx="1360" cy="62" r="1.4" opacity="0.75"/><circle cx="150" cy="110" r="1.2" opacity="0.6"/></g>
+      </g>
+      <!-- Stemmings-vignette van de geselecteerde Botty (valentie kleurt de waarneming) -->
+      <g id="stemmingslaag" pointer-events="none">
+        <rect id="mood-koel" x="0" y="0" width="1500" height="844" fill="url(#moodKoel)" opacity="0" style="mix-blend-mode:multiply;transition:opacity 1.4s ease"/>
+        <rect id="mood-warm" x="0" y="0" width="1500" height="844" fill="url(#moodWarm)" opacity="0" style="mix-blend-mode:screen;transition:opacity 1.4s ease"/>
       </g>
       <!-- De Hand: jouw aanwezigheid in de Construct -->
       <g id="hand" class="hand" opacity="0"><text id="hand-ico" x="-8" y="26" style="font:34px sans-serif">🖐</text></g>
@@ -469,6 +483,20 @@
   var fxlaag = document.getElementById("fxlaag");
   var handEl = document.getElementById("hand");
   var kamerEl = document.getElementById("kamer");
+  var moodKoel = document.getElementById("mood-koel");
+  var moodWarm = document.getElementById("mood-warm");
+  // Stemmings-vignette: de wereld kleurt mee met de valentie/arousal van de
+  // geselecteerde Botty (bewustzijn.md stap 3 — valentie kleurt de waarneming).
+  function updateStemmingslaag(){
+    var nd = sel && nodes[sel]; var b = nd && nd.b;
+    var v = b && typeof b.valentie === "number" ? b.valentie : 0;
+    var ar = b && typeof b.arousal === "number" ? b.arousal : 0;
+    // negatief → koele, donkere randen (sterker bij hoge arousal); positief → warme gloed
+    var koel = v < 0 ? Math.min(0.6, -v * (0.45 + ar * 0.55)) : 0;
+    var warm = v > 0 ? Math.min(0.5, v * 0.5) : 0;
+    if(moodKoel) moodKoel.setAttribute("opacity", koel.toFixed(3));
+    if(moodWarm) moodWarm.setAttribute("opacity", warm.toFixed(3));
+  }
   var sel = null;                       // naam van de geselecteerde Botty
   var cam = { x:0, y:0, w:1500 };       // camera (viewBox), lerp't naar doel
   var bottys = [];               // server-staat
@@ -1041,6 +1069,7 @@
     // hand meeschalen met de zoom zodat hij altijd even groot oogt
     if(handPos){ var hs = cam.w/WERELD_B; handEl.setAttribute("transform","translate("+handPos.x+","+handPos.y+") scale("+hs.toFixed(3)+")"); }
     updateKitLive();   // brein-/biochemiepaneel bijwerken (frame() vangt fouten al af)
+    updateStemmingslaag();   // stap 3: valentie van de geselecteerde Botty kleurt de scene
   }
 
   // ── De Hand: jouw cursor in de wereld ────────────────────────────────────
