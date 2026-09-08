@@ -1568,8 +1568,8 @@ function slankeBottys(bottys: any[]): any[] {
 }
 // Live-sync: i.p.v. postgres_changes (dat élke keer de vólle rij naar iedere kijker
 // duwt) sturen we per tick een slank snapshot via broadcast. ~75-80% minder egress.
-async function broadcastState(bottys: any[], eieren: any[], acties: number, firstOpened: number, lastKweek: any) {
-  const payload = { bottys: slankeBottys(bottys), eieren, acties, first_opened: firstOpened, last_kweek: lastKweek };
+async function broadcastState(bottys: any[], eieren: any[], acties: number, firstOpened: number, lastKweek: any, egress?: any) {
+  const payload = { bottys: slankeBottys(bottys), eieren, acties, first_opened: firstOpened, last_kweek: lastKweek, egress };
   try {
     await fetch(`${SUPABASE_URL}/realtime/v1/api/broadcast`, {
       method: "POST",
@@ -2097,6 +2097,16 @@ Deno.serve(async (req) => {
     // in ia_bucket.bcast (geen migratie nodig).
     const vorigeBcast = (state.ia_bucket && typeof state.ia_bucket.bcast === "number") ? state.ia_bucket.bcast : 0;
     const magBroadcast = nu - vorigeBcast >= BROADCAST_MIN_MS;
+    // Lichte egress-meter: liftt mee op deze rij-write (nul extra queries). Schat de
+    // realtime-egress als payloadgrootte × aantal kijkers (de broadcast gaat naar elke
+    // kijker). Maandelijkse reset; opgeslagen in ia_bucket.egress (geen migratie).
+    const maand = new Date(nu).toISOString().slice(0, 7);
+    let egress = (state.ia_bucket && state.ia_bucket.egress && state.ia_bucket.egress.maand === maand)
+      ? state.ia_bucket.egress : { maand, bytes: 0, bcasts: 0 };
+    if (magBroadcast) {
+      const payloadBytes = JSON.stringify({ bottys: slankeBottys(bottys), eieren, acties, first_opened: state.first_opened ?? nu, last_kweek: lastKweek }).length;
+      egress = { maand, bytes: egress.bytes + payloadBytes * Math.max(1, bezoekers), bcasts: egress.bcasts + 1 };
+    }
     await supabase.from("hive_state").upsert({
       id: "main", bottys,
       first_opened: state.first_opened ?? nu,
@@ -2104,10 +2114,10 @@ Deno.serve(async (req) => {
       last_updated_at: nu,
       last_kweek: lastKweek,
       eieren,
-      ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu, bcast: magBroadcast ? nu : vorigeBcast },
+      ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu, bcast: magBroadcast ? nu : vorigeBcast, egress },
     });
     // Slank live-snapshot naar alle kijkers (vervangt de volle-rij postgres_changes).
-    if (magBroadcast) await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek);
+    if (magBroadcast) await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek, egress);
   }
 
   for (const ev of events) await broadcast(ev);
