@@ -1075,12 +1075,16 @@ function podiumZet(b: any, doel: any, focus: string, bron: string, salience: num
   };
 }
 function kiesDoel(b: any, ctx: { anderen: any[] }) {
+  // Hoe lang staat het huidige item al op het podium? (voor habituatie hieronder)
+  const dwell = (b.podium && b.podium.sinds) ? (Date.now() - b.podium.sinds) : 0;
   // Nood die het podium altijd grijpt — geen competitie nodig.
   if (b.ziek) { podiumZet(b, { soort: "herstellen", tekst: "weer beter worden" }, "weer beter worden", "lichaam", 100, -0.8); return; }
   if (NACHT)  { podiumZet(b, { soort: "slapen", tekst: "slapen tot de ochtend" }, "slapen tot de ochtend", "lichaam", 95, 0.1); return; }
   if (slaapt(b)) b.doel = null;   // ochtend: wakker worden, vers doel kiezen
-  // Hysterese: wie al bij een object bezig is, blijft tot de drive echt is opgelost.
-  if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && (b[b.doel.stat] ?? 100) < ZELFZORG_KLAAR) {
+  // Hysterese, maar BEGRENSD: wie bij een object bezig is blijft tot de drive is
+  // opgelost — behalve als het al te lang (~50s) op hetzelfde podium staat. Dan
+  // kiezen we opnieuw (habituatie), zodat niemand eindeloos op één item vastzit.
+  if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && (b[b.doel.stat] ?? 100) < ZELFZORG_KLAAR && dwell < 50000) {
     if (!b.podium) podiumZet(b, b.doel, b.doel.tekst || "zelfzorg", "drive", 40, -0.3);
     return;
   }
@@ -1127,6 +1131,25 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
     if (!v) v = kies(an);
     kand.push({ doel: { soort: "gezelschap", naar: v.naam, tekst: "bij " + v.naam + " zijn" },
       focus: "bij " + v.naam + " zijn", bron: "sociaal", sal: (9 + 40 * T.sociaal) * overF, val: 0.4 });
+
+    // ZELF & ANDER (bewustzijn.md stap 6) — theory of mind: een andere geest die het
+    // zwaar heeft (ziek/lege bars/bang/eenzaam) of juist straalt, dringt door tot het
+    // podium. De Botty 'beseft' de ander als iemand met een eigen binnenwereld en
+    // richt zich op hem. Sterker bij een sociaal temperament; blijft ónder de eigen
+    // acute nood, maar kan het gewone gezelschap/overschot overstijgen (empathie).
+    let opvallend: any = null, score = 0;
+    for (const o of an) {
+      const noodO = (o.ziek ? 40 : 0) + Math.max(0, 55 - Math.min(o.energie ?? 50, o.data ?? 50, o.fit ?? 50, o.geluk ?? 50));
+      const emoO = (o.humeur === "eenzaam" || o.humeur === "bang") ? 18 : (o.humeur === "blij" ? 10 : 0);
+      const s = noodO + emoO;
+      if (s > score) { score = s; opvallend = o; }
+    }
+    if (opvallend && score > 12) {
+      const blij = opvallend.humeur === "blij";
+      kand.push({ doel: { soort: "gezelschap", naar: opvallend.naam, tekst: "naar " + opvallend.naam },
+        focus: blij ? "delen in " + opvallend.naam + "'s blijdschap" : "besef: " + opvallend.naam + " heeft het zwaar",
+        bron: "sociaal", sal: (6 + score * 0.5) * (0.4 + T.sociaal), val: blij ? 0.4 : -0.1 });
+    }
   }
 
   // OVERSCHOT — nieuwsgierigheid: een nieuwsgierige Botty onderzoekt liever dan te jagen.
@@ -1160,8 +1183,26 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
 
   // Ruis houdt de keuze levendig (geen twee identieke Botty's die synchroon lopen).
   for (const k of kand) k.sal += Math.random() * 4;
+  // Habituatie: het item dat nú al de aandacht heeft, zwakt af naarmate het langer
+  // vasthoudt (tot −55% na ~40s). Zo verschuift de aandacht vanzelf en clusteren de
+  // Botty's niet allemaal blijvend op hetzelfde podium. Acute nood (hoge salience)
+  // wint alsnog — de straf raakt vooral gelijkwaardige overschot-keuzes.
+  const habit = Math.min(0.55, dwell / 40000 * 0.55);
+  if (habit > 0 && b.podium) for (const k of kand) if (k.focus === b.podium.focus) k.sal *= (1 - habit);
   const best = kand.sort((a, c) => c.sal - a.sal)[0];
   podiumZet(b, best.doel, best.focus, best.bron, best.sal, best.val);
+
+  // NARRATIEF ZELF (bewustzijn.md stap 7): sterk gevoelde of zelfgekozen momenten
+  // beklijven als episodische herinnering — het levensverhaal groeit zo uit wat de
+  // Botty beleefde en voelde, niet uit losse cijfers. Deze herinneringen duiken later
+  // vanzelf op in dromen, gedachten en het grafschrift.
+  if (Math.random() < 0.05) {
+    const val = best.val;
+    if (best.doel.spel)                          onthoud(b, "moment", "ik speelde met iets vertrouwds, gewoon omdat ik het wilde");
+    else if (best.bron === "sociaal" && best.focus.startsWith("besef")) onthoud(b, "moment", "ik maakte me zorgen om een ander");
+    else if (val <= -0.45)                        onthoud(b, "moment", "een zwaar moment: " + best.focus);
+    else if (val >= 0.45)                         onthoud(b, "moment", "een fijn moment: " + best.focus);
+  }
 }
 
 // ─── De Construct: ruimtelijke beweging ─────────────────────────────────────────
