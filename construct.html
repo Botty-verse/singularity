@@ -120,6 +120,16 @@
   .kit-sub{font-size:.75rem;color:#b89a6a;margin-top:.1rem;}
   .kit-gedachte{margin-top:.45rem;font-size:.82rem;color:#e6d2a8;font-style:italic;line-height:1.4;
                 background:#14100a;border:1px solid #4a3a28;border-radius:10px;padding:.4rem .6rem;}
+  /* Gedachtenstroom (bewustzijn.md stap 5): het podium + de rollende innerlijke stem */
+  .kit-podium{margin-top:.5rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;}
+  .kit-podium .pd-ico{font-size:1.05rem;line-height:1;}
+  .kit-podium .pd-label{color:#7fb89a;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;}
+  .kit-podium .pd-focus{font-weight:800;color:#ffe6a8;}
+  .kit-podium .pd-bar{flex:0 0 50px;height:5px;border-radius:99px;background:#241a10;overflow:hidden;margin-left:auto;}
+  .kit-podium .pd-bar>span{display:block;height:100%;background:linear-gradient(90deg,#f6c75a,#ffe6a8);transition:width .5s ease;}
+  .kit-stroom{margin-top:.4rem;display:flex;flex-direction:column;gap:.12rem;max-width:380px;}
+  .kit-stroom .sd{font-size:.78rem;color:#cbb189;line-height:1.35;opacity:.42;transition:opacity .5s ease;font-style:italic;}
+  .kit-stroom .sd:first-child{opacity:1;color:#e6d2a8;}
   .kit-drives{flex:1 1 220px;min-width:200px;display:flex;flex-direction:column;gap:.35rem;}
   .kit-brein{flex:1 1 100%;margin-top:.2rem;border-top:1px solid #14403c;padding-top:.5rem;}
   .kit-brein-kop{font-weight:700;color:#a3ffce;font-size:.86rem;margin-bottom:.15rem;}
@@ -310,6 +320,12 @@
         <div class="kit-naam" id="kit-naam"></div>
         <div class="kit-sub" id="kit-sub"></div>
         <div class="kit-gedachte" id="kit-gedachte">…</div>
+        <div class="kit-podium" id="kit-podium" hidden>
+          <span class="pd-ico" id="pd-ico">💭</span>
+          <span><span class="pd-label">op het podium</span><br><span class="pd-focus" id="pd-focus"></span></span>
+          <span class="pd-bar" title="salience — hoe sterk dit de aandacht grijpt"><span id="pd-bar-fill"></span></span>
+        </div>
+        <div class="kit-stroom" id="kit-stroom" aria-label="gedachtenstroom"></div>
       </div>
       <div class="kit-drives" id="kit-drives"></div>
       <div class="kit-hart">
@@ -1395,6 +1411,28 @@
     if(!breinDetail[b.naam]) laadBreinDetail();   // nog geen detail gecacht → haal op
   }
   var kitPuls = 0;
+  // ── Gedachtenstroom (stap 5): toon wat er NU op het podium staat + een rollende
+  // stroom van de innerlijke stem. Per Botty; reset bij een nieuwe selectie.
+  var stroomNaam = null, stroomItems = [], stroomLaatste = "";
+  var BRON_ICO = { drive:"🫀", sociaal:"👥", dwaling:"💭", lichaam:"😴" };
+  function updateStroom(b){
+    if(stroomNaam !== b.naam){ stroomNaam = b.naam; stroomItems = []; stroomLaatste = ""; document.getElementById("kit-stroom").innerHTML = ""; }
+    var pod = b.podium || {};
+    var podEl = document.getElementById("kit-podium");
+    podEl.hidden = !pod.focus;
+    if(pod.focus){
+      document.getElementById("pd-ico").textContent = BRON_ICO[pod.bron] || "💭";
+      var pf = document.getElementById("pd-focus"); pf.textContent = pod.focus;
+      var v = typeof pod.valentie === "number" ? pod.valentie : 0;
+      pf.style.color = v < -0.15 ? "#9fc0ff" : v > 0.15 ? "#ffd98a" : "#e6d2a8";   // koel bij onprettig, warm bij prettig
+      document.getElementById("pd-bar-fill").style.width = Math.max(0, Math.min(100, pod.salience || 0)) + "%";
+    }
+    var g = b.gedachte || "";
+    if(g && g !== stroomLaatste){
+      stroomLaatste = g; stroomItems.unshift(g); if(stroomItems.length > 6) stroomItems.pop();
+      document.getElementById("kit-stroom").innerHTML = stroomItems.map(function(t){ return '<div class="sd">“' + esc(t) + '”</div>'; }).join("");
+    }
+  }
   function updateKitLive(){
     if(!sel || (kitPuls++ % 30) !== 0) return;          // ±2x per seconde is genoeg
     var b = bottys.find(function(x){ return x.naam === sel; });
@@ -1408,6 +1446,7 @@
       + (kar ? " · " + kar : "")
       + (b.ziek ? " · 🤒 ziek" : "") + rijpTxt + " · doel: " + (b.doel && b.doel.soort || "dwalen");
     document.getElementById("kit-gedachte").textContent = "“" + (b.gedachte || "…") + "”";
+    updateStroom(b);   // stap 5: podium + gedachtenstroom bijwerken
     DRIVES.forEach(function(d){
       var v = Math.max(0, Math.min(100, 100 - (b[d.bron]||0)));
       var rij = document.getElementById("drive-"+d.id);
