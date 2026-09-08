@@ -1132,9 +1132,26 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // OVERSCHOT — nieuwsgierigheid: een nieuwsgierige Botty onderzoekt liever dan te jagen.
   // Een verse verrassing (voorspelfout) wekt bovendien een oriëntatiereflex: het
   // onverwachte trekt de aandacht, ook als er weinig marge is (stap 2 → podium).
+  // Leerwinst-honger (stap 4): verveling door voorspelbaarheid duwt richting het
+  // nieuwe — een verveelde Botty gaat juist méér onderzoeken (novelty-seeking).
   const poi = kies(POIS);
   kand.push({ doel: { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst },
-    focus: "kijken naar " + poi.tekst, bron: "dwaling", sal: (8 + 34 * T.nieuwsgierig) * overF * gevoelF + (b.verrassing ?? 0) * 10, val: 0.5 });
+    focus: "kijken naar " + poi.tekst, bron: "dwaling",
+    sal: (8 + 34 * T.nieuwsgierig) * overF * gevoelF + (b.verrassing ?? 0) * 10 + (b.chem?.verveling ?? 0) * 0.15, val: 0.5 });
+
+  // SPEL / dwalende geest (stap 4): in overschot én met een goed gevoel keert een
+  // Botty spontaan terug naar een object dat ze ZELF ooit ontdekte — niet uit nood,
+  // maar uit plezier/nieuwsgierigheid. Wélk object hangt af van haar eigen
+  // leergeschiedenis (b.zelfzorgGeleerd), dus dit gedrag is per Botty uniek en door
+  // niemand voorgeschreven: de zuiverste vorm van "ze doet dit omdat zíj het wil".
+  if (overF > 0.5 && (b.valentie ?? 0) > 0 && b.zelfzorgGeleerd) {
+    const geleerd = Object.keys(b.zelfzorgGeleerd);
+    if (geleerd.length) {
+      const o = OBJECTEN.find(z => z.id === geleerd[Math.floor(Math.random() * geleerd.length)]);
+      if (o) kand.push({ doel: { soort: "zelfzorg", stat: o.stat, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0, spel: true },
+        focus: "spelen met " + o.kort, bron: "dwaling", sal: (10 + 22 * T.nieuwsgierig) * overF * gevoelF, val: 0.6 });
+    }
+  }
 
   // DWALEN/SPEL & vangnet: altijd aanwezig (kleine basis), sterker bij marge en bij
   // een luie Botty. Dit is het standaardgedrag als geen enkele drive of prikkel wint.
