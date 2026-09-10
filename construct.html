@@ -215,7 +215,7 @@
 </head>
 <body>
 <header>
-  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 11 — De Spiegel: een spiegelobject in de kamer; de Botty's herkennen (of herkennen niet) zichzelf erin">⬡ v11 · De Spiegel</span></h1>
+  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 12 — De Merkproef: een Botty ontdekt via de spiegel een smetje op haar eigen lijf en poetst het weg — de gouden standaard van zelfherkenning">⬡ v12 · De Merkproef</span></h1>
   <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
     hebben het lokaal voor zichzelf. Ze <strong>redden zichzelf</strong>: nieuwsgierig <strong>speuren</strong> (🔎) ze
     naar een object, ze <strong>ruiken</strong> (👃) en <strong>zien</strong> (👁️) het, en al doende leren ze wat hun
@@ -282,6 +282,7 @@
         <rect x="568" y="466" width="68" height="126" rx="9" fill="#5b4633" stroke="#3a2c1e" stroke-width="3"/>
         <rect x="574" y="472" width="56" height="114" rx="5" fill="url(#spiegelGrad)"/>
         <image id="spiegel-refl" href="" x="0" y="0" width="90" height="132" opacity="0" clip-path="url(#spiegelGlas)" preserveAspectRatio="xMidYMax meet"/>
+        <circle id="spiegel-smet" r="4" opacity="0" clip-path="url(#spiegelGlas)" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
         <rect x="574" y="472" width="56" height="114" rx="5" fill="url(#spiegelGlans)" pointer-events="none"/>
       </g>
 
@@ -541,6 +542,7 @@
   // reflectie is een horizontaal omgeklapte, gedimde kopie van haar sprite —
   // de zichtbare kant van de spiegeltest (server: b.zelfherkenning + spiegelRonde).
   var spiegelRefl = document.getElementById("spiegel-refl");
+  var spiegelSmet = document.getElementById("spiegel-smet");
   function updateSpiegel(){
     if(!spiegelRefl) return;
     var best = null, bestd = 1e9;
@@ -560,9 +562,22 @@
       spiegelRefl.setAttribute("y", "454");
       // horizontaal spiegelen rond cx: translate(2·cx) + scale(-1,1)
       spiegelRefl.setAttribute("transform","translate("+(2*SPIEGEL.cx).toFixed(0)+",0) scale(-1,1)");
-      spiegelRefl.setAttribute("opacity", Math.max(0, 0.6 - bestd/320).toFixed(3));
+      var op = Math.max(0, 0.6 - bestd/320);
+      spiegelRefl.setAttribute("opacity", op.toFixed(3));
+      // v12: het smetje óók in het glas — dit is wat de Botty daar zíet en waardoor
+      // ze (bij genoeg zelfherkenning) beseft dat het op háár zit.
+      if(spiegelSmet){
+        var sm = best.b && best.b.smet;
+        if(sm && sm.kleur){
+          spiegelSmet.setAttribute("cx", SPIEGEL.cx.toFixed(1));
+          spiegelSmet.setAttribute("cy", "482");
+          spiegelSmet.setAttribute("fill", sm.kleur);
+          spiegelSmet.setAttribute("opacity", (op*1.4).toFixed(3));
+        } else spiegelSmet.setAttribute("opacity","0");
+      }
     } else {
       spiegelRefl.setAttribute("opacity","0");
+      if(spiegelSmet) spiegelSmet.setAttribute("opacity","0");
     }
   }
   var sel = null;                       // naam van de geselecteerde Botty
@@ -780,7 +795,11 @@
     var gebruik = document.createElementNS(SVGNS,"text"); gebruik.setAttribute("class","gebruik");
     gebruik.setAttribute("text-anchor","middle"); gebruik.setAttribute("style","font:15px sans-serif");
     gebruik.setAttribute("opacity","0");
-    g.appendChild(schaduw); g.appendChild(inner); g.appendChild(ring); g.appendChild(naam); g.appendChild(gebruik);
+    // v12 "De Merkproef": een smetje op het hoofd (alleen zichtbaar in de spiegel
+    // vanuit háár perspectief, maar wij zien 'm hier boven op de sprite).
+    var smet = document.createElementNS(SVGNS,"circle"); smet.setAttribute("class","smet");
+    smet.setAttribute("r","5"); smet.setAttribute("opacity","0"); smet.setAttribute("stroke","rgba(0,0,0,.25)"); smet.setAttribute("stroke-width","1");
+    g.appendChild(schaduw); g.appendChild(inner); g.appendChild(ring); g.appendChild(naam); g.appendChild(gebruik); g.appendChild(smet);
     // idle-beweging per Botty de-synchroniseren
     g.style.setProperty("--fase", (-(nameRnd(b.naam+"fase")*5)).toFixed(2) + "s");
     laag.appendChild(g);
@@ -788,7 +807,7 @@
     var idx = Object.keys(nodes).length;
     var startNiv = 1, lv0 = NIVEAUS[startNiv];
     var sx = lv0.xlo + (lv0.xhi-lv0.xlo) * ((idx+0.5)/9);
-    var nd = { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik,
+    var nd = { g:g, schaduw:schaduw, inner:inner, naam:naam, ring:ring, gebruik:gebruik, smet:smet,
              render:{ x:sx, y:vloerVan(startNiv) },
              niveau:startNiv, doelNiveau:startNiv, doelX:sx, klim:null, pauze:0, loopFase:0, linksom:false,
              traagMs:0, wakerX:sx,
@@ -1048,6 +1067,19 @@
       if(flip) nd.inner.setAttribute("transform","translate("+(xL+w).toFixed(1)+","+y0.toFixed(1)+") scale("+(-sxB).toFixed(3)+","+syB.toFixed(3)+")");
       else     nd.inner.setAttribute("transform","translate("+xL.toFixed(1)+","+y0.toFixed(1)+") scale("+sxB.toFixed(3)+","+syB.toFixed(3)+")");
       nd.inner.setAttribute("opacity", b.ziek ? "0.7" : "1");
+
+      // v12: smetje op het hoofd tekenen (mee-ademend met de sprite); onzichtbaar als schoon.
+      if(nd.smet){
+        if(b.smet && b.smet.kleur){
+          nd.smet.setAttribute("cx", r.x.toFixed(1));
+          nd.smet.setAttribute("cy", (y0 + h*(1+br)*0.24).toFixed(1));
+          nd.smet.setAttribute("r", (w*0.045).toFixed(1));
+          nd.smet.setAttribute("fill", b.smet.kleur);
+          nd.smet.setAttribute("opacity","0.92");
+        } else {
+          nd.smet.setAttribute("opacity","0");
+        }
+      }
 
       // ── knipperen + gezichtsuitdrukking ──
       if(!nd.volgendeKnipper) nd.volgendeKnipper = ts + 1200 + Math.random()*3500;

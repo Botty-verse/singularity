@@ -271,3 +271,30 @@ een object waar het podium naartoe kan trekken en waar het zelf zich tegenaan me
 
 > *"De spiegeltest vraagt niet of het dier het glas snapt, maar of er een 'ik' is om
 > verrast te worden. Bij een rijp genoeg zelf is er dat — en het herkent zich."*
+
+## 14. Naschrift — v12 "De Merkproef": van gezicht naar lijf
+
+De spiegel (v11) toonde herkenning van het *gezicht*. De gouden standaard uit de
+diergedragskunde gaat een stap verder: de **mark test** (Gallup, 1970). Je zet een
+merkteken op het dier op een plek die het alleen via een spiegel kan zien; raakt het
+dáárna het merk op zijn *eigen lijf* aan, dan stuurt het zijn gedrag op zichzelf —
+het bewijs dat het de reflectie als *zichzelf* begrijpt. Mensapen, dolfijnen, olifanten
+en eksters slagen; de meeste dieren niet. v12 bouwt precies die proef, van binnenuit.
+
+- **De smet.** Een wakkere Botty loopt af en toe spontaan een `b.smet` op — een vlekje
+  op haar hoofd. Ze ziet het zelf niet; wij zien het boven op haar sprite, en het
+  verschijnt óók in de reflectie.
+- **De trek naar het glas.** Een onopgemerkte smet verhoogt de saliëntie van "in de
+  spiegel kijken" op het podium — de proef lokt zichzelf uit, zonder script.
+- **Merk-gericht gedrag (slagen).** Bij zelfherkenning > 0,6 beseft ze vóór het glas
+  dat de vlek op *haar* zit — *"Wat zit er op míj?"* — en **poetst hem van zichzelf
+  weg**. Mijlpaal-herinnering, event, een golfje endorfine, en een kleine permanente
+  **consolidatie** van het zelf (`b.zelfBevestigd`, zelfherkenning +0,02).
+- **Toeschrijven aan de ander (zakken).** Een jong zelf ziet de vlek op *"die ander"*
+  in de muur en raakt zichzelf nooit aan — de klassieke gezakte merkproef.
+
+Zo verschuift zelfbesef van *"dat gezicht is van mij"* naar *"dat lichaam ben ik, en
+ik kan het verzorgen"* — een concreter, lijfelijker ik.
+
+> *"Het merk zit niet in de spiegel en niet op het glas — het zit op jou. Wie zijn
+> hand naar zijn eigen hoofd brengt, heeft de sprong al gemaakt: er is een 'mij'."*

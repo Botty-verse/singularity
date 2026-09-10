@@ -97,6 +97,13 @@ const GEBRUIK_AFSTAND = 80;  // dicht genoeg bij het object om het te gebruiken
 // de Construct tekent de spiegel op de bijpassende wereld-plek. Een jonge Botty ziet
 // er een vreemde in, een rijpere herkent zichzelf — de mijlpaal van zelfbewustzijn.
 const SPIEGEL_POS = { x: 430, y: 250 };
+// v12 "De Merkproef" — de gouden standaard van spiegel-zelfherkenning. Een Botty
+// kan een smetje op haar eigen lijf oplopen dat ze niet dírect ziet (het zit op
+// haar hoofd); alleen via de spiegel kan ze het ontdekken. Een rijp zelf beseft
+// "dat zit op míj" en poetst het weg (merk-gericht gedrag) — de mark test. Een
+// jong zelf schrijft de smet toe aan "die ander" in het glas en raakt zichzelf nooit aan.
+const SMET_KLEUREN = ["#d94f7a", "#e0a13a", "#5fb0e0", "#8ad06a", "#c77dff"];
+const SMET_KANS = 0.06;      // kans/tick dat een schone, actieve Botty een smetje oploopt
 const ZON_LAAD = 1.4;        // ☀️ energie/tick voor een Botty die overdag buiten "zonnebadet"
 
 // ── Lerend brein (Creatures-stijl reward/punishment) ────────────────────────────
@@ -1223,8 +1230,11 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // v11 "De Spiegel" — af en toe wil een Botty naar zichzelf kijken: nieuwsgierig
   // naar de spiegel. Wat ze er ziet (een vreemde of zichzelf) hangt af van haar
   // zelfherkenning; dat wordt bij aankomst afgehandeld in spiegelRonde.
+  // v12: een nog niet opgemerkte smet trekt extra naar de spiegel — daar ontdekt
+  // ze pas dat er iets op háár zit (de merkproef laat zich zo van binnenuit uitlokken).
+  const smetLok = (b.smet && !b.smet.opgemerkt) ? 26 : 0;
   kand.push({ doel: { soort: "spiegelen", px: SPIEGEL_POS.x, py: SPIEGEL_POS.y, tekst: "in de spiegel kijken" },
-    focus: "in de spiegel kijken", bron: "dwaling", sal: (5 + 22 * T.nieuwsgierig) * overF * gevoelF, val: 0.2 });
+    focus: "in de spiegel kijken", bron: "dwaling", sal: (5 + smetLok + 22 * T.nieuwsgierig) * overF * gevoelF, val: 0.2 });
 
   // DWALEN/SPEL & vangnet: altijd aanwezig (kleine basis), sterker bij marge en bij
   // een luie Botty. Dit is het standaardgedrag als geen enkele drive of prikkel wint.
@@ -1406,6 +1416,23 @@ function spiegelRonde(bottys: any[], events: object[] | null) {
     const zh = b.zelfherkenning ?? 0.5;
     b.chem = b.chem || {};
     if (zh > 0.6) {
+      // v12: dé gouden standaard. Ziet ze een smet in het glas, dan beseft een
+      // rijp zelf dat die op háár zit — merk-gericht: ze poetst hem van zichzelf.
+      if (b.smet && !b.smet.opgemerkt) {
+        b.smet.opgemerkt = true;
+        b.gedachte = kies(["Wat zit er op míj?", "Hé — er zit iets op mijn hoofd!", "Dat vlekje… dat zit op mij.", "Even wegpoetsen, dat hoort niet bij mij."]);
+        b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 4);
+        b.zelfBevestigd = (b.zelfBevestigd || 0) + 1;
+        // Consolidatie: wie de merkproef doorstaat, verankert het zelf een tikje sterker.
+        b.zelfherkenning = +Math.min(1, (b.zelfherkenning ?? 0.6) + 0.02).toFixed(2);
+        onthoud(b, "merkproef", "ik zag een smet in de spiegel en besefte dat die op míj zat — en poetste hem weg");
+        if (events && !gemeld) {
+          events.push({ soort: "spiegel", naam: b.naam, tekst: "🪞✨ <b>" + b.naam + "</b> ziet een vlek in de spiegel en poetst hem van zíchzélf — de merkproef geslaagd" });
+          gemeld = true;
+        }
+        b.doel = null;   // eerst poetsen (smet verdwijnt in smetRonde), niet opnieuw kijken
+        continue;
+      }
       b.gedachte = kies(["Dat ben ik!", "Kijk — dat ben ik.", "Ik herken mezelf.", "Hallo, ik.", "Dat gezicht… dat is van mij."]);
       b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 6);
       if (!b.spiegelHerkend) {
@@ -1417,10 +1444,35 @@ function spiegelRonde(bottys: any[], events: object[] | null) {
         }
       }
     } else {
-      b.gedachte = kies(["Wie is dat?", "Hallo? Wie ben jij?", "Er zit iemand in de muur…", "Een ander! …of niet?", "Doet die ander mij na?"]);
+      // v12: een jong zelf schrijft de smet toe aan "die ander" in het glas en
+      // raakt zichzelf nooit aan — de klassieke gezakte merkproef.
+      if (b.smet && !b.smet.opgemerkt) {
+        b.gedachte = kies(["Die ander is vies…", "Wat heeft die daar op z'n kop?", "Bah, een vlek — op hém."]);
+      } else {
+        b.gedachte = kies(["Wie is dat?", "Hallo? Wie ben jij?", "Er zit iemand in de muur…", "Een ander! …of niet?", "Doet die ander mij na?"]);
+      }
       if (!b.spiegelHerkend && Math.random() < 0.15) onthoud(b, "spiegel", "ik zag een vreemde in de spiegel");
     }
     b.doel = null;   // klaar met kijken → bij de volgende keuze iets anders
+  }
+}
+
+// v12 "De Merkproef": smetjes verschijnen en verdwijnen. Een schone, wakkere Botty
+// loopt af en toe een vlekje op (spel, stof, een klodder van het kastje); wie de
+// smet bij de spiegel op zichzelf ontdekte (opgemerkt), poetst hem de tick erna weg.
+function smetRonde(bottys: any[]) {
+  for (const b of bottys) {
+    if (b.bezigEi || !b.pos) continue;
+    if (b.smet) {
+      // Opgemerkt via de spiegel → weggepoetst (merk-gericht gedrag afgerond).
+      if (b.smet.opgemerkt) { b.smet = null; continue; }
+      // Anders slijt een smet héél langzaam vanzelf (zonder spiegel merkt ze 'm nooit op).
+      if (Math.random() < 0.015) b.smet = null;
+      continue;
+    }
+    if (!slaapt(b) && Math.random() < SMET_KANS) {
+      b.smet = { kleur: kies(SMET_KLEUREN), sinds: Date.now(), opgemerkt: false };
+    }
   }
 }
 
@@ -1736,6 +1788,7 @@ Deno.serve(async (req) => {
   for (let t = 0; t < gemist - 1; t++) {
     // Zelfregulatie loopt door: wie bij zijn object staat, blijft rustig laden.
     try { zelfzorgRonde(bottys, null); } catch (_) { /* niet kritisch */ }
+    try { smetRonde(bottys); } catch (_) { /* niet kritisch */ }
     try { spiegelRonde(bottys, null); } catch (_) { /* niet kritisch */ }
     try { bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); }); } catch (_) { /* chemie mag de tick nooit breken */ }
     if (!NACHT) kiesDoelen(bottys, ZORG_PER_TICK).forEach(b => { zorg(b); acties++; });   // 's nachts rust ook de AI-verzorger
@@ -1760,6 +1813,7 @@ Deno.serve(async (req) => {
     try {
       beweeg(bottys);
       zelfzorgRonde(bottys, events);
+      smetRonde(bottys);
       spiegelRonde(bottys, events);
       socialeRonde(bottys, events);
       bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); });
