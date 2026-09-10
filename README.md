@@ -65,6 +65,109 @@ klaslokaal in het bos waarin de Botty's live rondlopen. Wat er onder de motorkap
 
 Bereikbaar via **[hive.ramonmoorlag.nl](https://hive.ramonmoorlag.nl)**
 
+## 📚 Wetenschappelijke basis
+
+De simulatie is geen willekeur — elk mechanisme is geënt op echt, gepubliceerd
+onderzoek. Hieronder de bronnen per laag (alle citaties geverifieerd; controleer
+exacte pagina's/DOI's altijd in de bron zelf). Handig als vertrekpunt voor verder
+onderzoek.
+
+### Het podium — Global Workspace Theory *(bewustzijn.md §3)*
+- Baars, B. J. (1988). *A Cognitive Theory of Consciousness.* Cambridge University Press.
+- Baars, B. J. (2005). Global workspace theory of consciousness. *Progress in Brain Research*, 150, 45–53.
+- Dehaene, S., & Naccache, L. (2001). Towards a cognitive neuroscience of consciousness. *Cognition*, 79(1–2), 1–37.
+- Dehaene, S., & Changeux, J.-P. (2011). Experimental and theoretical approaches to conscious processing. *Neuron*, 70(2), 200–227.
+- Mashour, G. A., Roelfsema, P., Changeux, J.-P., & Dehaene, S. (2020). Conscious processing and the global neuronal workspace hypothesis. *Neuron*, 105(5), 776–798.
+
+### Verwachting & verrassing — Predictive Processing
+- Rao, R. P. N., & Ballard, D. H. (1999). Predictive coding in the visual cortex. *Nature Neuroscience*, 2(1), 79–87.
+- Friston, K. (2010). The free-energy principle: a unified brain theory? *Nature Reviews Neuroscience*, 11(2), 127–138.
+- Clark, A. (2013). Whatever next? Predictive brains, situated agents, and the future of cognitive science. *Behavioral and Brain Sciences*, 36(3), 181–204.
+- Hohwy, J. (2013). *The Predictive Mind.* Oxford University Press.
+
+### Voelen als kleuren — valentie, arousal & interoceptie *(§6)*
+- Russell, J. A. (1980). A circumplex model of affect. *Journal of Personality and Social Psychology*, 39(6), 1161–1178.
+- Russell, J. A. (2003). Core affect and the psychological construction of emotion. *Psychological Review*, 110(1), 145–172.
+- Craig, A. D. (2002). How do you feel? Interoception. *Nature Reviews Neuroscience*, 3(8), 655–666.
+- Damasio, A. R. (1996). The somatic marker hypothesis. *Phil. Trans. R. Soc. Lond. B*, 351(1346), 1413–1420.
+- Barrett, L. F. (2017). The theory of constructed emotion. *Social Cognitive and Affective Neuroscience*, 12(1), 1–23.
+- Seth, A. K. (2013). Interoceptive inference, emotion, and the embodied self. *Trends in Cognitive Sciences*, 17(11), 565–573.
+
+### De nood-hiërarchie — motivatie & drift *(§4)*
+- Maslow, A. H. (1943). A theory of human motivation. *Psychological Review*, 50(4), 370–396.
+- Hull, C. L. (1943). *Principles of Behavior.* Appleton-Century.
+- Berridge, K. C. (2004). Motivation concepts in behavioral neuroscience. *Physiology & Behavior*, 81(2), 179–209.
+- Cañamero, D. (1997). Modeling motivations and emotions as a basis for intelligent behavior. *Proc. First Int. Conf. on Autonomous Agents*, 148–155.
+
+### Nieuwsgierigheid & leerwinst *(§5.1)*
+- Oudeyer, P.-Y., Kaplan, F., & Hafner, V. V. (2007). Intrinsic motivation systems for autonomous mental development. *IEEE Transactions on Evolutionary Computation*, 11(2), 265–286.
+- Schmidhuber, J. (2010). Formal theory of creativity, fun, and intrinsic motivation (1990–2010). *IEEE Transactions on Autonomous Mental Development*, 2(3), 230–247.
+- Gottlieb, J., Oudeyer, P.-Y., Lopes, M., & Baranes, A. (2013). Information-seeking, curiosity, and attention. *Trends in Cognitive Sciences*, 17(11), 585–593.
+- Kidd, C., Piantadosi, S. T., & Aslin, R. N. (2012). The Goldilocks effect. *PLoS ONE*, 7(5), e36399.
+- Berlyne, D. E. (1960). *Conflict, Arousal, and Curiosity.* McGraw-Hill.
+
+### De dwalende geest — default mode & mind-wandering *(§5.2)*
+- Raichle, M. E., et al. (2001). A default mode of brain function. *PNAS*, 98(2), 676–682.
+- Raichle, M. E. (2015). The brain's default mode network. *Annual Review of Neuroscience*, 38, 433–447.
+- Christoff, K., Irving, Z. C., Fox, K. C. R., Spreng, R. N., & Andrews-Hanna, J. R. (2016). Mind-wandering as spontaneous thought. *Nature Reviews Neuroscience*, 17(11), 718–731.
+- Smallwood, J., & Schooler, J. W. (2015). The science of mind wandering. *Annual Review of Psychology*, 66, 487–518.
+
+### Spel als teken van overschot *(§5.3)*
+- Burghardt, G. M. (2005). *The Genesis of Animal Play.* MIT Press.
+- Špinka, M., Newberry, R. C., & Bekoff, M. (2001). Mammalian play: training for the unexpected. *The Quarterly Review of Biology*, 76(2), 141–168.
+- Panksepp, J. (1998). *Affective Neuroscience.* Oxford University Press.
+- Fredrickson, B. L. (2001). The broaden-and-build theory of positive emotions. *American Psychologist*, 56(3), 218–226.
+
+### Theory of mind, empathie & emotionele besmetting *(Laag 4)*
+- Premack, D., & Woodruff, G. (1978). Does the chimpanzee have a theory of mind? *Behavioral and Brain Sciences*, 1(4), 515–526.
+- Baron-Cohen, S., Leslie, A. M., & Frith, U. (1985). Does the autistic child have a "theory of mind"? *Cognition*, 21(1), 37–46.
+- Preston, S. D., & de Waal, F. B. M. (2002). Empathy: its ultimate and proximate bases. *Behavioral and Brain Sciences*, 25(1), 1–20.
+- de Waal, F. B. M. (2008). Putting the altruism back into altruism: the evolution of empathy. *Annual Review of Psychology*, 59, 279–300.
+- Hatfield, E., Cacioppo, J. T., & Rapson, R. L. (1993). Emotional contagion. *Current Directions in Psychological Science*, 2(3), 96–99.
+
+### Het narratief zelf — autobiografisch geheugen
+- Conway, M. A., & Pleydell-Pearce, C. W. (2000). The construction of autobiographical memories in the self-memory system. *Psychological Review*, 107(2), 261–288.
+- Gazzaniga, M. S. (2000). Cerebral specialization and interhemispheric communication. *Brain*, 123(7), 1293–1326.
+- Schacter, D. L., & Addis, D. R. (2007). The cognitive neuroscience of constructive memory. *Phil. Trans. R. Soc. B*, 362(1481), 773–786.
+- Dennett, D. C. (1992). The self as a center of narrative gravity. In *Self and Consciousness: Multiple Perspectives.* Erlbaum.
+
+### De spiegel & de merkproef — mirror self-recognition *(v11 & v12)*
+- Gallup, G. G. (1970). Chimpanzees: self-recognition. *Science*, 167(3914), 86–87.
+- Gallup, G. G. (1982). Self-awareness and the emergence of mind in primates. *American Journal of Primatology*, 2(3), 237–248.
+- Amsterdam, B. (1972). Mirror self-image reactions before age two. *Developmental Psychobiology*, 5(4), 297–305.
+- Reiss, D., & Marino, L. (2001). Mirror self-recognition in the bottlenose dolphin. *PNAS*, 98(10), 5937–5942.
+- Plotnik, J. M., de Waal, F. B. M., & Reiss, D. (2006). Self-recognition in an Asian elephant. *PNAS*, 103(45), 17053–17057.
+- Prior, H., Schwarz, A., & Güntürkün, O. (2008). Mirror-induced behavior in the magpie (*Pica pica*): evidence of self-recognition. *PLoS Biology*, 6(8), e202.
+
+### Leren — beloning/straf & voorspelfout
+- Rescorla, R. A., & Wagner, A. R. (1972). A theory of Pavlovian conditioning. In *Classical Conditioning II*, Appleton-Century-Crofts, 64–99.
+- Schultz, W., Dayan, P., & Montague, P. R. (1997). A neural substrate of prediction and reward. *Science*, 275(5306), 1593–1599.
+- Sutton, R. S., & Barto, A. G. (2018). *Reinforcement Learning: An Introduction* (2nd ed.). MIT Press.
+
+### Habituatie — podium-turnover
+- Thompson, R. F., & Spencer, W. A. (1966). Habituation: a model phenomenon for the study of neuronal substrates of behavior. *Psychological Review*, 73(1), 16–43.
+- Rankin, C. H., et al. (2009). Habituation revisited. *Neurobiology of Learning and Memory*, 92(2), 135–138.
+
+### Kunstmatig leven — het fundament *(genoom → biochemie → brein)*
+- Grand, S., Cliff, D., & Malhotra, A. (1997). Creatures: artificial life autonomous software agents for home entertainment. *Proc. First Int. Conf. on Autonomous Agents*, 22–29.
+- Grand, S., & Cliff, D. (1998). Creatures: entertainment software agents with artificial life. *Autonomous Agents and Multi-Agent Systems*, 1(1), 39–57.
+- Langton, C. G. (ed.) (1989). *Artificial Life.* Addison-Wesley.
+- Braitenberg, V. (1984). *Vehicles: Experiments in Synthetic Psychology.* MIT Press.
+- Sims, K. (1994). Evolving virtual creatures. *Proc. SIGGRAPH '94*, 15–22.
+- Ackley, D., & Littman, M. (1991). Interactions between learning and evolution. In *Artificial Life II*, Addison-Wesley, 487–509.
+
+### Emotie in kunstmatige agents — affective computing
+- Picard, R. W. (1997). *Affective Computing.* MIT Press.
+- Ortony, A., Clore, G. L., & Collins, A. (1988). *The Cognitive Structure of Emotions.* Cambridge University Press.
+
+### Filosofische omkadering — het "harde probleem", eerlijk opengehouden
+- Nagel, T. (1974). What is it like to be a bat? *The Philosophical Review*, 83(4), 435–450.
+- Chalmers, D. J. (1995). Facing up to the problem of consciousness. *Journal of Consciousness Studies*, 2(3), 200–219.
+- Tononi, G. (2004). An information integration theory of consciousness. *BMC Neuroscience*, 5, 42.
+- Tononi, G., Boly, M., Massimini, M., & Koch, C. (2016). Integrated information theory: from consciousness to its physical substrate. *Nature Reviews Neuroscience*, 17(7), 450–461.
+- Graziano, M. S. A., & Kastner, S. (2011). Human consciousness and its relationship to social neuroscience: a novel hypothesis. *Cognitive Neuroscience*, 2(2), 98–113.
+- Metzinger, T. (2003). *Being No One: The Self-Model Theory of Subjectivity.* MIT Press.
+
 ## 📜 Licentie
 
 Apache 2.0 — zie [`LICENSE`](LICENSE)
