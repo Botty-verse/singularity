@@ -120,6 +120,9 @@
   .kit-sub{font-size:.75rem;color:#b89a6a;margin-top:.1rem;}
   .kit-gedachte{margin-top:.45rem;font-size:.82rem;color:#e6d2a8;font-style:italic;line-height:1.4;
                 background:#14100a;border:1px solid #4a3a28;border-radius:10px;padding:.4rem .6rem;}
+  .kit-zelfbeeld{margin-top:.25rem;font-size:.78rem;color:#d9c39a;}
+  .kit-zelfbeeld b{color:#ffe6a8;font-weight:800;}
+  .kit-stroom .sd.observed{color:#9fd6ff;font-style:italic;}
   /* Gedachtenstroom (bewustzijn.md stap 5): het podium + de rollende innerlijke stem */
   .kit-podium{margin-top:.5rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;}
   .kit-podium .pd-ico{font-size:1.05rem;line-height:1;}
@@ -212,7 +215,7 @@
 </head>
 <body>
 <header>
-  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 9 — Tred: de Botty's lopen nu écht">⬡ v9 · Tred</span></h1>
+  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 10 — Spiegel: de Botty's kennen zichzelf en merken dat ze bekeken worden">⬡ v10 · Spiegel</span></h1>
   <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
     hebben het lokaal voor zichzelf. Ze <strong>redden zichzelf</strong>: nieuwsgierig <strong>speuren</strong> (🔎) ze
     naar een object, ze <strong>ruiken</strong> (👃) en <strong>zien</strong> (👁️) het, en al doende leren ze wat hun
@@ -319,6 +322,7 @@
       <div class="kit-info">
         <div class="kit-naam" id="kit-naam"></div>
         <div class="kit-sub" id="kit-sub"></div>
+        <div class="kit-zelfbeeld" id="kit-zelfbeeld" hidden></div>
         <div class="kit-gedachte" id="kit-gedachte">…</div>
         <div class="kit-podium" id="kit-podium" hidden>
           <span class="pd-ico" id="pd-ico">💭</span>
@@ -1425,8 +1429,29 @@
   // stroom van de innerlijke stem. Per Botty; reset bij een nieuwe selectie.
   var stroomNaam = null, stroomItems = [], stroomLaatste = "";
   var BRON_ICO = { drive:"🫀", sociaal:"👥", dwaling:"💭", lichaam:"😴" };
+  function renderStroom(){
+    document.getElementById("kit-stroom").innerHTML = stroomItems.map(function(it){
+      return '<div class="sd'+(it.obs?' observed':'')+'">“' + esc(it.t) + '”</div>';
+    }).join("");
+  }
   function updateStroom(b){
-    if(stroomNaam !== b.naam){ stroomNaam = b.naam; stroomItems = []; stroomLaatste = ""; document.getElementById("kit-stroom").innerHTML = ""; }
+    if(stroomNaam !== b.naam){
+      stroomNaam = b.naam; stroomItems = []; stroomLaatste = ""; renderStroom();
+      // v10 "Spiegel" — besef bekeken te worden: een moment nadat jij een Botty
+      // uitkiest, mérkt ze je aandacht. Het sterkste "er is iemand thuis"-moment.
+      var wie = b.naam;
+      setTimeout(function(){
+        if(sel === wie){
+          stroomItems.unshift({ t: kies2(["…word ik bekeken?","iemand let op me","voel ik ogen op me?","er kijkt iemand naar me…"]), obs:true });
+          if(stroomItems.length > 6) stroomItems.pop();
+          renderStroom();
+        }
+      }, 1400);
+    }
+    // zelfbeeld tonen
+    var zb = document.getElementById("kit-zelfbeeld");
+    if(b.zelfbeeld){ zb.hidden = false; zb.innerHTML = '🪞 Zelfbeeld: <b>' + esc(b.zelfbeeld) + '</b>'; }
+    else zb.hidden = true;
     var pod = b.podium || {};
     var podEl = document.getElementById("kit-podium");
     podEl.hidden = !pod.focus;
@@ -1439,8 +1464,8 @@
     }
     var g = b.gedachte || "";
     if(g && g !== stroomLaatste){
-      stroomLaatste = g; stroomItems.unshift(g); if(stroomItems.length > 6) stroomItems.pop();
-      document.getElementById("kit-stroom").innerHTML = stroomItems.map(function(t){ return '<div class="sd">“' + esc(t) + '”</div>'; }).join("");
+      stroomLaatste = g; stroomItems.unshift({ t:g }); if(stroomItems.length > 6) stroomItems.pop();
+      renderStroom();
     }
   }
   function updateKitLive(){

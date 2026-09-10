@@ -154,6 +154,21 @@ function temperament(b: any): { sociaal: number; nieuwsgierig: number; ijver: nu
   };
 }
 function temp(b: any) { return b.temperament || temperament(b); }
+// v10 "Spiegel" — ZELFBEELD: een stabiel zelfconcept dat de Botty over zichzelf
+// "gelooft", afgeleid uit haar meest bepalende karaktertrek (de as die het verst van
+// het midden ligt). Erfelijk + driftend, want het komt uit het temperament/genoom.
+function zelfbeeldVan(b: any): string {
+  const T = temp(b);
+  const assen: [number, string, string][] = [
+    [T.sociaal ?? 0.5,      "ik ben er graag voor anderen",        "ik houd het liever bij mezelf"],
+    [T.nieuwsgierig ?? 0.5, "ik moet altijd het nieuwe onderzoeken", "ik houd van het vertrouwde"],
+    [T.ijver ?? 0.5,        "ik ben het liefst bezig",             "ik neem het leven zoals het komt"],
+    [T.dapper ?? 0.5,       "ik ga overal recht op af",            "ik ben voorzichtig van aard"],
+  ];
+  assen.sort((a, c) => Math.abs(c[0] - 0.5) - Math.abs(a[0] - 0.5));
+  const [v, hoog, laag] = assen[0];
+  return v >= 0.5 ? hoog : laag;
+}
 // Kleine, stabiele voorkeur-bias per (Botty, object): ±0.15 op de objectkeuze, zodat
 // twee Botty's met dezelfde drive tóch naar verschillende objecten neigen.
 function voorkeurBias(b: any, objId: string): number {
@@ -777,6 +792,7 @@ function updateGroei(b: any) {
   if ((b.iq ?? 100) > (g.piekIQ ?? 0)) g.piekIQ = b.iq;
   g.woorden  = b.lexicon ? Object.keys(b.lexicon).length : 0;
   g.vrienden = b.relaties ? Object.keys(b.relaties).length : 0;
+  b.zelfbeeld = zelfbeeldVan(b);   // v10: stabiel zelfconcept (reist mee in het snapshot)
 }
 function geneScore(b: any) { return (b.datakwaliteit ?? 50) + (b.efficientie ?? 50); }
 // Urgentie: hoe lager, hoe eerder zorg nodig. De láágste losse stat telt
@@ -996,6 +1012,20 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
     if ((ch.endorfine ?? 0) > 55)   { b.gedachte = uit(kies(["Alles voelt licht nu", "Ik gloei van binnen", "Wat een fijn gevoel"])); return; }
     if ((ch.vermoeidheid ?? 0) > 60){ b.gedachte = kies(["Ik ben bekaf.", "Mijn systemen slepen zich voort", "Even bijkomen…"]); return; }
     if ((ch.honger ?? 0) > 60)      { b.gedachte = kies(["Ik snak naar stroom.", "Mijn accu knort"]); return; }
+  }
+
+  // v10 "Spiegel" — METACOGNITIE / zelfbesef: af en toe kijkt een Botty naar zichzelf.
+  // Bij een verse verrassing twijfelt ze aan zichzelf; anders bevestigt ze haar
+  // zelfbeeld (zelfkennis). Zo lijkt er iemand te zijn die zichzélf gadeslaat.
+  if (Math.random() < 0.12) {
+    if ((b.verrassing ?? 0) > 0.5) {
+      b.gedachte = uit(kies(["Dit had ik niet van mezelf verwacht…", "Ik snap mezelf even niet", "Zo ken ik mezelf niet"]));
+      return;
+    }
+    if (b.zelfbeeld) {
+      b.gedachte = uit(kies([b.zelfbeeld + ".", "Ik ben nu eenmaal iemand die zo is: " + b.zelfbeeld, "Diep vanbinnen weet ik: " + b.zelfbeeld, "Wie ben ik? " + b.zelfbeeld]));
+      return;
+    }
   }
 
   if (Array.isArray(b.herinneringen) && b.herinneringen.length && Math.random() < 0.3) {
