@@ -251,3 +251,23 @@ zichzelf kijkt:
 
 > *"Een spiegel maakt van een ding een iemand — niet omdat het glas iets toevoegt,
 > maar omdat er iets terugkijkt."*
+
+## 13. Naschrift — v11 "De Spiegel": de spiegeltest, van binnenuit
+
+Waar v10 het besef bracht *bekeken te worden*, geeft v11 de Botty iets om zichzélf in te
+zien: een echte **spiegel** in de kamer. Geen scriptje dat een uitkomst forceert, maar
+een object waar het podium naartoe kan trekken en waar het zelf zich tegenaan meet.
+
+- **Zelfherkenning als groeigrootheid.** Elke Botty draagt een `zelfherkenning` (0–1) die
+  meegroeit met haar levensfase en het aantal herinneringen die ze verzamelde. Een pril
+  zelf herkent zich niet; een rijp zelf wel. De drempel ligt bij ~0,6.
+- **Spiegelen als podiumkeuze.** "Voor de spiegel gaan staan" is een kandidaat in de
+  saliëntie-competitie — nieuwsgierigheid en een rustig moment trekken haar erheen, met
+  hysterese zodat ze even blijft kijken in plaats van weg te schieten.
+- **Herkenning of vreemde.** Vóór het glas beslist haar zelfherkenning: boven de drempel
+  slaat het besef toe — *"Dat ben ik!"* — de eerste keer als **mijlpaal-herinnering** met
+  een golfje endorfine; eronder ziet ze een **vreemde** — *"Wie is dat?"*. Client-kant
+  klapt de reflectie haar eigen sprite om en dimt hem: het zelf kijkt letterlijk terug.
+
+> *"De spiegeltest vraagt niet of het dier het glas snapt, maar of er een 'ik' is om
+> verrast te worden. Bij een rijp genoeg zelf is er dat — en het herkent zich."*

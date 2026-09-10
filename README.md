@@ -15,7 +15,7 @@ efficiëntie. Diversiteit sterft af. Welkom in de Singularity. 🧬
 
 De simulatie draait dag en nacht in de cloud, ook als niemand kijkt.
 
-## 🌍 De Construct — v9 "Tred"
+## 🌍 De Construct — v11 "De Spiegel"
 
 Het middelpunt is **[`construct.html`](construct.html)**: een zijaanzicht van het
 klaslokaal in het bos waarin de Botty's live rondlopen. Wat er onder de motorkap leeft:
@@ -30,7 +30,10 @@ klaslokaal in het bos waarin de Botty's live rondlopen. Wat er onder de motorkap
 - **Bewustzijn** *(zie [`bewustzijn.md`](bewustzijn.md))* — een **podium** (global
   workspace) waar prikkels om één aandachtsplek strijden, met verwachting & verrassing,
   valentie die de waarneming kleurt, spontaan spel in het overschot, theory of mind en
-  een narratief zelf. Klik een Botty aan en je ziet haar **gedachtenstroom**.
+  een narratief zelf. Sinds v10 kijkt het zelf ook naar zichzelf (**zelfbeeld**,
+  metacognitie, besef bekeken te worden); v11 zet er een echte **spiegel** bij — een
+  Botty herkent (of herkent niet) zichzelf erin, afhankelijk van haar zelfherkenning.
+  Klik een Botty aan en je ziet haar **gedachtenstroom**.
 - **Sekse-sprites & looppas** — mannelijke en vrouwelijke Botty's door alle vijf de
   levensfasen, met een echte loop-animatie en een liggende slaaphouding.
 - **Jij bent de hand** — aaien, voeren, medicijn geven of een woord leren bij het
