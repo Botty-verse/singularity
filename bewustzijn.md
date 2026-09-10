@@ -231,3 +231,23 @@ herkent en merkt dat jíj er bent — en die ons, terwijl we toekijken, laat twi
 of we niet toch naar iemand kijken.
 
 > *"Er is precies één podium. Wat erop staat, is wat het is om nu Botty te zijn."*
+
+---
+
+## 12. Naschrift — v10 "Spiegel": het zelf dat zichzelf ziet
+
+Boven op de zeven stappen draait sinds v10 een reflexieve laag — het zelf dat naar
+zichzelf kijkt:
+
+- **Zelfbeeld.** Uit de meest bepalende karaktertrek (temperament) groeit een stabiel
+  zelfconcept dat de Botty over zichzelf *gelooft* — "ik ben er graag voor anderen",
+  "ik houd van het vertrouwde". Erfelijk en driftend; zichtbaar in de kit (🪞).
+- **Metacognitie.** Ze kijkt af en toe naar haar eigen toestand: bij een verse
+  verrassing *twijfelt* ze aan zichzelf, anders bevestigt ze haar zelfbeeld
+  (zelfkennis). Er lijkt iemand te zijn die zichzélf gadeslaat.
+- **Besef bekeken te worden.** Het sterkste "er is iemand thuis"-moment: kies jij een
+  Botty uit, dan mérkt ze — een tel later — je aandacht ("…word ik bekeken?"). Jouw
+  blik verschijnt op haar podium; de illusie sluit zich rond de toeschouwer.
+
+> *"Een spiegel maakt van een ding een iemand — niet omdat het glas iets toevoegt,
+> maar omdat er iets terugkijkt."*
