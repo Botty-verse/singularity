@@ -67,25 +67,51 @@ Bereikbaar via **[hive.ramonmoorlag.nl](https://hive.ramonmoorlag.nl)**
 
 ## 📚 Wetenschappelijke basis
 
-De simulatie is geen willekeur — elk mechanisme is geënt op echt, gepubliceerd
-onderzoek. Hieronder de bronnen per laag (alle citaties geverifieerd; controleer
-exacte pagina's/DOI's altijd in de bron zelf). Handig als vertrekpunt voor verder
-onderzoek.
+De simulatie is geen willekeur — elk mechanisme is geïnspireerd op echt,
+gepubliceerd onderzoek. Hieronder de bronnen per laag (alle citaties geverifieerd;
+controleer exacte pagina's/DOI's altijd in de bron zelf). Handig als vertrekpunt
+voor verder onderzoek.
 
-### Het podium — Global Workspace Theory *(bewustzijn.md §3)*
+**Belangrijk — wat "gebaseerd op" hier betekent.** De literatuur beschrijft de
+menselijke/dierlijke werkelijkheid; de Botty's zijn daar een *sterk vereenvoudigde
+nabootsing* van. We reproduceren waar mogelijk het **waarneembare gedrag** en soms
+een speelgoed-versie van het onderliggende mechanisme — het is geen bewijs dat de
+Botty's bewust zijn, andere geesten begrijpen of zichzelf werkelijk herkennen.
+Daarom labelen we elk onderdeel met hoe het zich tot de wetenschap verhoudt:
+
+- 🧭 **Ontwerpinspiratie** — het idee vormde het ontwerp; we implementeren geen
+  getrouw model uit de literatuur.
+- ⚙️ **Vereenvoudigd geïmplementeerd mechanisme** — een sterk versimpelde versie is
+  daadwerkelijk in code gezet.
+- 🔬 **Getoetst resultaat (in de literatuur)** — een empirisch gevalideerde bevinding
+  waarop we leunen; niet: bewijs dat onze simulatie hetzelfde dóet.
+
+Het meest concreet en eerlijk aangesloten zijn de **Creatures-architectuur**
+(Grand & Cliff) en het **associatieve leren** (Rescorla–Wagner / beloningsvoorspelling):
+daar staat een echt, zij het vereenvoudigd, mechanisme in de code. De lagen rond
+**bewustzijn, theory of mind en zelfherkenning** zijn nadrukkelijk terughoudender:
+daar bootsen we vooral de *schijn* van het verschijnsel na.
+
+### Het podium — Global Workspace Theory *(bewustzijn.md §3)* — 🧭 ontwerpinspiratie
+> We gebruiken GWT als *metafoor* voor het "podium" (één aandachtsplek). Geen claim
+> van neurale geldigheid of bewustzijn.
 - Baars, B. J. (1988). *A Cognitive Theory of Consciousness.* Cambridge University Press.
 - Baars, B. J. (2005). Global workspace theory of consciousness. *Progress in Brain Research*, 150, 45–53.
 - Dehaene, S., & Naccache, L. (2001). Towards a cognitive neuroscience of consciousness. *Cognition*, 79(1–2), 1–37.
 - Dehaene, S., & Changeux, J.-P. (2011). Experimental and theoretical approaches to conscious processing. *Neuron*, 70(2), 200–227.
 - Mashour, G. A., Roelfsema, P., Changeux, J.-P., & Dehaene, S. (2020). Conscious processing and the global neuronal workspace hypothesis. *Neuron*, 105(5), 776–798.
 
-### Verwachting & verrassing — Predictive Processing
+### Verwachting & verrassing — Predictive Processing — ⚙️ vereenvoudigd geïmplementeerd
+> In code: `verrassing = |uitkomst − verwachting|` met verval. Een speelgoed-versie
+> van voorspelfout, niet het volle free-energy-formalisme.
 - Rao, R. P. N., & Ballard, D. H. (1999). Predictive coding in the visual cortex. *Nature Neuroscience*, 2(1), 79–87.
 - Friston, K. (2010). The free-energy principle: a unified brain theory? *Nature Reviews Neuroscience*, 11(2), 127–138.
 - Clark, A. (2013). Whatever next? Predictive brains, situated agents, and the future of cognitive science. *Behavioral and Brain Sciences*, 36(3), 181–204.
 - Hohwy, J. (2013). *The Predictive Mind.* Oxford University Press.
 
-### Voelen als kleuren — valentie, arousal & interoceptie *(§6)*
+### Voelen als kleuren — valentie, arousal & interoceptie *(§6)* — ⚙️ vereenvoudigd geïmplementeerd
+> Russells circumplex (valentie × arousal) is letterlijk als twee scalairen
+> geïmplementeerd die de waarneming kleuren. Craig/Damasio/Barrett zijn 🧭 inspiratie.
 - Russell, J. A. (1980). A circumplex model of affect. *Journal of Personality and Social Psychology*, 39(6), 1161–1178.
 - Russell, J. A. (2003). Core affect and the psychological construction of emotion. *Psychological Review*, 110(1), 145–172.
 - Craig, A. D. (2002). How do you feel? Interoception. *Nature Reviews Neuroscience*, 3(8), 655–666.
@@ -93,45 +119,65 @@ onderzoek.
 - Barrett, L. F. (2017). The theory of constructed emotion. *Social Cognitive and Affective Neuroscience*, 12(1), 1–23.
 - Seth, A. K. (2013). Interoceptive inference, emotion, and the embodied self. *Trends in Cognitive Sciences*, 17(11), 565–573.
 
-### De nood-hiërarchie — motivatie & drift *(§4)*
+### De nood-hiërarchie — motivatie & drift *(§4)* — ⚙️ vereenvoudigd geïmplementeerd
+> Een rangorde waarin nood de aandacht grijpt (de `overF`-factor) is in code gezet;
+> een pragmatische versimpeling, geen getrouw Maslow/Hull-model.
 - Maslow, A. H. (1943). A theory of human motivation. *Psychological Review*, 50(4), 370–396.
 - Hull, C. L. (1943). *Principles of Behavior.* Appleton-Century.
 - Berridge, K. C. (2004). Motivation concepts in behavioral neuroscience. *Physiology & Behavior*, 81(2), 179–209.
 - Cañamero, D. (1997). Modeling motivations and emotions as a basis for intelligent behavior. *Proc. First Int. Conf. on Autonomous Agents*, 148–155.
 
-### Nieuwsgierigheid & leerwinst *(§5.1)*
+### Nieuwsgierigheid & leerwinst *(§5.1)* — ⚙️ vereenvoudigd geïmplementeerd
+> Een leerwinst-/verrassings-term stuurt de nieuwsgierigheid (Oudeyer/Schmidhuber als
+> blauwdruk). Kidd et al. (Goldilocks) is een 🔬 getoetst resultaat waarop we leunen.
 - Oudeyer, P.-Y., Kaplan, F., & Hafner, V. V. (2007). Intrinsic motivation systems for autonomous mental development. *IEEE Transactions on Evolutionary Computation*, 11(2), 265–286.
 - Schmidhuber, J. (2010). Formal theory of creativity, fun, and intrinsic motivation (1990–2010). *IEEE Transactions on Autonomous Mental Development*, 2(3), 230–247.
 - Gottlieb, J., Oudeyer, P.-Y., Lopes, M., & Baranes, A. (2013). Information-seeking, curiosity, and attention. *Trends in Cognitive Sciences*, 17(11), 585–593.
 - Kidd, C., Piantadosi, S. T., & Aslin, R. N. (2012). The Goldilocks effect. *PLoS ONE*, 7(5), e36399.
 - Berlyne, D. E. (1960). *Conflict, Arousal, and Curiosity.* McGraw-Hill.
 
-### De dwalende geest — default mode & mind-wandering *(§5.2)*
+### De dwalende geest — default mode & mind-wandering *(§5.2)* — 🧭 ontwerpinspiratie
+> "Dwalen" is een eenvoudige fallback als niets urgents wint. Raichle/Christoff/
+> Smallwood zijn 🔬 getoetste neurowetenschappelijke bevindingen, geen model dat we nabouwen.
 - Raichle, M. E., et al. (2001). A default mode of brain function. *PNAS*, 98(2), 676–682.
 - Raichle, M. E. (2015). The brain's default mode network. *Annual Review of Neuroscience*, 38, 433–447.
 - Christoff, K., Irving, Z. C., Fox, K. C. R., Spreng, R. N., & Andrews-Hanna, J. R. (2016). Mind-wandering as spontaneous thought. *Nature Reviews Neuroscience*, 17(11), 718–731.
 - Smallwood, J., & Schooler, J. W. (2015). The science of mind wandering. *Annual Review of Psychology*, 66, 487–518.
 
-### Spel als teken van overschot *(§5.3)*
+### Spel als teken van overschot *(§5.3)* — 🧭 ontwerpinspiratie
+> "Spel leeft in het overschot" is een ontwerpkeuze; Špinka et al. en Burghardt zijn
+> 🔬 getoetste ethologische bevindingen die dat idee schragen.
 - Burghardt, G. M. (2005). *The Genesis of Animal Play.* MIT Press.
 - Špinka, M., Newberry, R. C., & Bekoff, M. (2001). Mammalian play: training for the unexpected. *The Quarterly Review of Biology*, 76(2), 141–168.
 - Panksepp, J. (1998). *Affective Neuroscience.* Oxford University Press.
 - Fredrickson, B. L. (2001). The broaden-and-build theory of positive emotions. *American Psychologist*, 56(3), 218–226.
 
-### Theory of mind, empathie & emotionele besmetting *(Laag 4)*
+### Theory of mind, empathie & emotionele besmetting *(Laag 4)* — 🧭 ontwerpinspiratie (terughoudend)
+> **Nadrukkelijk geen echt mentaliseren.** In code: een nabijheids-heuristiek
+> ("besef: X heeft het zwaar") plus eenvoudige emotionele besmetting. Het lijkt op
+> meevoelen; het is geen model van andermans geest. De genoemde papers definiëren en
+> toetsen ToM/empathie bij mens en dier — een lat die wij niet pretenderen te halen.
 - Premack, D., & Woodruff, G. (1978). Does the chimpanzee have a theory of mind? *Behavioral and Brain Sciences*, 1(4), 515–526.
 - Baron-Cohen, S., Leslie, A. M., & Frith, U. (1985). Does the autistic child have a "theory of mind"? *Cognition*, 21(1), 37–46.
 - Preston, S. D., & de Waal, F. B. M. (2002). Empathy: its ultimate and proximate bases. *Behavioral and Brain Sciences*, 25(1), 1–20.
 - de Waal, F. B. M. (2008). Putting the altruism back into altruism: the evolution of empathy. *Annual Review of Psychology*, 59, 279–300.
 - Hatfield, E., Cacioppo, J. T., & Rapson, R. L. (1993). Emotional contagion. *Current Directions in Psychological Science*, 2(3), 96–99.
 
-### Het narratief zelf — autobiografisch geheugen
+### Het narratief zelf — autobiografisch geheugen — 🧭 ontwerpinspiratie (terughoudend)
+> In code: af en toe wordt een "moment" onthouden en kleurt het latere keuzes. Dat
+> suggereert een levensverhaal; het is geen echt narratief zelf zoals Conway of
+> Gazzaniga beschrijven.
 - Conway, M. A., & Pleydell-Pearce, C. W. (2000). The construction of autobiographical memories in the self-memory system. *Psychological Review*, 107(2), 261–288.
 - Gazzaniga, M. S. (2000). Cerebral specialization and interhemispheric communication. *Brain*, 123(7), 1293–1326.
 - Schacter, D. L., & Addis, D. R. (2007). The cognitive neuroscience of constructive memory. *Phil. Trans. R. Soc. B*, 362(1481), 773–786.
 - Dennett, D. C. (1992). The self as a center of narrative gravity. In *Self and Consciousness: Multiple Perspectives.* Erlbaum.
 
-### De spiegel & de merkproef — mirror self-recognition *(v11 & v12)*
+### De spiegel & de merkproef — mirror self-recognition *(v11 & v12)* — 🧭 ontwerpinspiratie (sterk terughoudend)
+> De dier-experimenten (Gallup, Amsterdam, Reiss & Marino, Plotnik, Prior) zijn
+> 🔬 getoetste resultaten. **Onze versie is dat níet:** `zelfherkenning` is een
+> groeiende scalair met een drempel, en het "poetsen" van de smet is deels gescript.
+> We bootsen het *waarneembare gedrag* van de merkproef na — het is geen aanwijzing
+> dat een Botty zelfbesef heeft.
 - Gallup, G. G. (1970). Chimpanzees: self-recognition. *Science*, 167(3914), 86–87.
 - Gallup, G. G. (1982). Self-awareness and the emergence of mind in primates. *American Journal of Primatology*, 2(3), 237–248.
 - Amsterdam, B. (1972). Mirror self-image reactions before age two. *Developmental Psychobiology*, 5(4), 297–305.
@@ -139,16 +185,24 @@ onderzoek.
 - Plotnik, J. M., de Waal, F. B. M., & Reiss, D. (2006). Self-recognition in an Asian elephant. *PNAS*, 103(45), 17053–17057.
 - Prior, H., Schwarz, A., & Güntürkün, O. (2008). Mirror-induced behavior in the magpie (*Pica pica*): evidence of self-recognition. *PLoS Biology*, 6(8), e202.
 
-### Leren — beloning/straf & voorspelfout
+### Leren — beloning/straf & voorspelfout — ⚙️ vereenvoudigd geïmplementeerd (concreet aangesloten)
+> Het associatieve leren van de Botty's (beloning/straf, chemisch gepoort) is een
+> echte, zij het vereenvoudigde, implementatie in de geest van Rescorla–Wagner en de
+> dopamine-beloningsvoorspelfout (Schultz). Een van de best aangesloten onderdelen.
 - Rescorla, R. A., & Wagner, A. R. (1972). A theory of Pavlovian conditioning. In *Classical Conditioning II*, Appleton-Century-Crofts, 64–99.
 - Schultz, W., Dayan, P., & Montague, P. R. (1997). A neural substrate of prediction and reward. *Science*, 275(5306), 1593–1599.
 - Sutton, R. S., & Barto, A. G. (2018). *Reinforcement Learning: An Introduction* (2nd ed.). MIT Press.
 
-### Habituatie — podium-turnover
+### Habituatie — podium-turnover — ⚙️ vereenvoudigd geïmplementeerd
+> Een `habit`-factor dempt de saliëntie van een langlopende focus zodat de aandacht
+> verschuift. Thompson & Spencer en Rankin et al. zijn de 🔬 getoetste basis.
 - Thompson, R. F., & Spencer, W. A. (1966). Habituation: a model phenomenon for the study of neuronal substrates of behavior. *Psychological Review*, 73(1), 16–43.
 - Rankin, C. H., et al. (2009). Habituation revisited. *Neurobiology of Learning and Memory*, 92(2), 135–138.
 
-### Kunstmatig leven — het fundament *(genoom → biochemie → brein)*
+### Kunstmatig leven — het fundament *(genoom → biochemie → brein)* — ⚙️ vereenvoudigd geïmplementeerd (concreet aangesloten)
+> Dit is de directe architecturale lijn: genoom → biochemie/hormonen → lerend brein,
+> precies de opzet van Grand & Cliff's *Creatures*. Onze motor is een vereenvoudigde
+> variant daarvan — het meest concreet aangesloten fundament van het hele project.
 - Grand, S., Cliff, D., & Malhotra, A. (1997). Creatures: artificial life autonomous software agents for home entertainment. *Proc. First Int. Conf. on Autonomous Agents*, 22–29.
 - Grand, S., & Cliff, D. (1998). Creatures: entertainment software agents with artificial life. *Autonomous Agents and Multi-Agent Systems*, 1(1), 39–57.
 - Langton, C. G. (ed.) (1989). *Artificial Life.* Addison-Wesley.
@@ -156,11 +210,16 @@ onderzoek.
 - Sims, K. (1994). Evolving virtual creatures. *Proc. SIGGRAPH '94*, 15–22.
 - Ackley, D., & Littman, M. (1991). Interactions between learning and evolution. In *Artificial Life II*, Addison-Wesley, 487–509.
 
-### Emotie in kunstmatige agents — affective computing
+### Emotie in kunstmatige agents — affective computing — 🧭 ontwerpinspiratie
+> Picard en het OCC-model (Ortony et al.) vormen de bredere context voor emotie in
+> agents; we volgen ze als inspiratie, niet als exact model.
 - Picard, R. W. (1997). *Affective Computing.* MIT Press.
 - Ortony, A., Clore, G. L., & Collins, A. (1988). *The Cognitive Structure of Emotions.* Cambridge University Press.
 
-### Filosofische omkadering — het "harde probleem", eerlijk opengehouden
+### Filosofische omkadering — het "harde probleem", eerlijk opengehouden — 🧭 ontwerpinspiratie
+> Deze werken kaderen de vraag; ze worden niet geïmplementeerd. Ze houden ons eerlijk:
+> we bouwen iets dat zich *gedraagt alsof* er iemand thuis is — de vraag óf dat zo is,
+> blijft nadrukkelijk open.
 - Nagel, T. (1974). What is it like to be a bat? *The Philosophical Review*, 83(4), 435–450.
 - Chalmers, D. J. (1995). Facing up to the problem of consciousness. *Journal of Consciousness Studies*, 2(3), 200–219.
 - Tononi, G. (2004). An information integration theory of consciousness. *BMC Neuroscience*, 5, 42.
