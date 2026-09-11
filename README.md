@@ -58,8 +58,10 @@ klaslokaal in het bos waarin de Botty's live rondlopen. Wat er onder de motorkap
 - **Cloud:** Supabase — een edge function `hive-tick` (Deno/TypeScript) draait de
   simulatie via pg_cron, met realtime-broadcast naar de kijkers en slanke RPC's
   (`hive_slim`, `hive_detail`) om de egress laag te houden.
-- **Ontwerpdocumenten:** [`fable.md`](fable.md) (Creatures-completion-roadmap) en
-  [`bewustzijn.md`](bewustzijn.md) (het podium / bewustzijn).
+- **Ontwerpdocumenten:** [`fable.md`](fable.md) (Creatures-completion-roadmap),
+  [`bewustzijn.md`](bewustzijn.md) (het podium / bewustzijn) en
+  [`v13.md`](v13.md) (roadmap "De Leerling" — van gescripte schijn naar geleerde,
+  toetsbare mechanismen).
 
 ## 🌍 Live
 
