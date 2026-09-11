@@ -298,3 +298,10 @@ ik kan het verzorgen"* — een concreter, lijfelijker ik.
 
 > *"Het merk zit niet in de spiegel en niet op het glas — het zit op jou. Wie zijn
 > hand naar zijn eigen hoofd brengt, heeft de sprong al gemaakt: er is een 'mij'."*
+
+> **Naschrift bij het naschrift (v13 §4).** Bovenstaande beschrijft de v12-uitvoering,
+> waarin `zelfherkenning` nog een tabel op levensfase was en de proef dus haar eigen
+> uitkomst kende. In `v13.md` §4 is dat vervangen: de Botty **leert** aan de spiegel
+> dat het beeld met haar meebeweegt, en een merk stuurt haar gedrag alleen wanneer ze
+> het via een toegestane waarneming kon zien. Zie `v13.md` voor de vier
+> controlecondities.
