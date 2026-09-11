@@ -164,6 +164,40 @@ function leerwinstUpdate(b: any, drive: string, objId: string, fout: number): nu
   b.leerfoutTraag[drive][objId] = +traag.toFixed(3);
   return Math.max(0, traag - snel);   // leerwinst: de fout daalt sneller dan de trage EMA volgt
 }
+
+// ── v13 §3 — Een geleerd lichaamsmodel (Bongard, Zykov & Lipson, 2006, Science) ──
+// Een robot die zijn eigen lijf modelleert uit actie↔waarneming kan zich aanpassen
+// als dat lijf verandert. Botty leert hetzelfde, maar klein: "hoe ver kom ik met één
+// volle pas?" Verandert haar lijf (trager, geblokkeerd), dan loopt de voorspelfout op,
+// mérkt ze dat, en stelt ze haar verwachting bij. Dat zelfmodel is ook de fundering
+// onder §4: pas wie z'n eigen lijf kent, kan een merk daarop als het zíjne herkennen.
+const LIJFMODEL   = true;   // v13 §3 aan (false = ablatie: geen geleerd lichaamsmodel)
+const LIJF_LR     = 0.25;   // leersnelheid van de staplengte-schatting
+const LIJF_FOUT_A = 0.20;   // EMA-snelheid van de voorspelfout
+const LIJF_SCHRIK = 12;     // fout (px) waarboven het lijf merkbaar "anders" voelt
+
+function lijfVerwacht(b: any): number {
+  return b.lijf?.stap ?? WERELD_STAP;
+}
+// Leert uit één volle pas hoe ver dit lijf komt; levert de voorspelfout terug.
+function lijfLeer(b: any, werkelijk: number): number {
+  b.lijf = b.lijf || { stap: WERELD_STAP, fout: 0, n: 0 };
+  const verwacht = b.lijf.stap;
+  const fout = Math.abs(werkelijk - verwacht);
+  b.lijf.stap = +(verwacht + LIJF_LR * (werkelijk - verwacht)).toFixed(2);
+  b.lijf.fout = +(b.lijf.fout + LIJF_FOUT_A * (fout - b.lijf.fout)).toFixed(2);
+  b.lijf.n = (b.lijf.n || 0) + 1;
+  return fout;
+}
+// Het zelfmodel maakt een doel "bereikbaar" of niet: met een kortere pas kost een ver
+// doel meer tikken. Dempt alléén vrijwillige doelen — de nood wint altijd
+// (bewustzijn.md §4), dus honger stuurt haar ook naar een ver object.
+function bereikbaar(b: any, px: number, py: number): number {
+  if (!LIJFMODEL || !b.pos) return 1;
+  const p = plekVan(b);
+  const tikken = Math.hypot(px - p.x, py - p.y) / Math.max(8, lijfVerwacht(b));
+  return 1 / (1 + tikken * 0.06);
+}
 // Leren = drive-reductie, CHEMISCH GEPOORT (Creatures): de beloningsstof endorfine
 // zet de plasticiteit open. Een bezoeker die aait geeft endorfine → versterkt precies
 // datgene wat de Botty op dat moment leert. Naast versterking: atrofie van de rest.
@@ -1039,6 +1073,17 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
   const expressief = by[14] > 150;
   const uit = (s: string) => expressief ? s + "!" : s;
 
+  // v13 §3: het lijf voelde anders dan verwacht (lichaamsmodel-voorspelfout). Dit is
+  // een LICHAMELIJK zelfbesef: niet "wie ben ik", maar "dit lichaam doet niet wat ik dacht".
+  if (b.lijfAnders) {
+    b.lijfAnders = false;
+    if (Math.random() < 0.5) {
+      b.gedachte = uit(kies(["Ik loop anders dan ik dacht", "Mijn benen doen het niet zoals net",
+                             "Dit lijf gaat trager", "Er klopt iets niet aan mijn pas"]));
+      return;
+    }
+  }
+
   // Taal fase A: bij een sterke ervaring munt een Botty (stil) een woord voor het
   // concept — niet alleen objecten, maar ook drives/emoties, acties en de naam van
   // een goede vriend. Ze verspreiden zich daarna vanzelf in de sociale ronde.
@@ -1263,7 +1308,8 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
     : (b.verrassing ?? 0) * 10;
   kand.push({ doel: { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst },
     focus: "kijken naar " + poi.tekst, bron: "dwaling",
-    sal: (8 + 34 * T.nieuwsgierig) * overF * gevoelF + nieuwsgier + (b.chem?.verveling ?? 0) * 0.15, val: 0.5 });
+    sal: ((8 + 34 * T.nieuwsgierig) * overF * gevoelF + nieuwsgier + (b.chem?.verveling ?? 0) * 0.15)
+         * bereikbaar(b, poi.x, poi.y), val: 0.5 });
 
   // SPEL / dwalende geest (stap 4): in overschot én met een goed gevoel keert een
   // Botty spontaan terug naar een object dat ze ZELF ooit ontdekte — niet uit nood,
@@ -1275,7 +1321,8 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
     if (geleerd.length) {
       const o = OBJECTEN.find(z => z.id === geleerd[Math.floor(Math.random() * geleerd.length)]);
       if (o) kand.push({ doel: { soort: "zelfzorg", stat: o.stat, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0, spel: true },
-        focus: "spelen met " + o.kort, bron: "dwaling", sal: (10 + 22 * T.nieuwsgierig) * overF * gevoelF, val: 0.6 });
+        focus: "spelen met " + o.kort, bron: "dwaling",
+        sal: (10 + 22 * T.nieuwsgierig) * overF * gevoelF * bereikbaar(b, o.x, o.y), val: 0.6 });
     }
   }
 
@@ -1286,7 +1333,9 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // ze pas dat er iets op háár zit (de merkproef laat zich zo van binnenuit uitlokken).
   const smetLok = (b.smet && !b.smet.opgemerkt) ? 26 : 0;
   kand.push({ doel: { soort: "spiegelen", px: SPIEGEL_POS.x, py: SPIEGEL_POS.y, tekst: "in de spiegel kijken" },
-    focus: "in de spiegel kijken", bron: "dwaling", sal: (5 + smetLok + 22 * T.nieuwsgierig) * overF * gevoelF, val: 0.2 });
+    focus: "in de spiegel kijken", bron: "dwaling",
+    sal: (5 + smetLok + 22 * T.nieuwsgierig) * overF * gevoelF
+         * bereikbaar(b, SPIEGEL_POS.x, SPIEGEL_POS.y), val: 0.2 });
 
   // DWALEN/SPEL & vangnet: altijd aanwezig (kleine basis), sterker bij marge en bij
   // een luie Botty. Dit is het standaardgedrag als geen enkele drive of prikkel wint.
@@ -1357,8 +1406,20 @@ function beweeg(bottys: any[]) {
     const wens = (soort === "gezelschap" || soort === "voortplanting") ? Math.max(0, d - WERELD_NABIJ * 0.7) : d;
     const stap = Math.min(WERELD_STAP, wens) + (Math.random() - 0.5) * 6;
     b.richting = Math.atan2(dy, dx);
+    const voorX = p.x, voorY = p.y;
     p.x = Math.max(12, Math.min(WERELD_B - 12, p.x + (dx / d) * stap));
     p.y = Math.max(12, Math.min(WERELD_H - 12, p.y + (dy / d) * stap));
+    // v13 §3: lichaamsmodel bijwerken. Alleen leren als ze een VOLLE pas wilde maken —
+    // het afremmen vlak vóór een doel zegt niets over wat dit lijf kan, en zou de
+    // schatting omlaag trekken. De wereldrand knijpt de pas wél echt af: dát hoort
+    // de Botty te merken (haar route is geblokkeerd), dus dat telt gewoon mee.
+    if (LIJFMODEL && wens >= WERELD_STAP) {
+      const fout = lijfLeer(b, Math.hypot(p.x - voorX, p.y - voorY));
+      if (fout > LIJF_SCHRIK) {
+        b.verrassing = Math.max(b.verrassing ?? 0, Math.min(1, fout / WERELD_STAP));
+        b.lijfAnders = true;   // opgepikt door denkBewust: "ik loop anders dan ik dacht"
+      }
+    }
   }
 }
 function afstand2(a: { x: number; y: number }, b: { x: number; y: number }) {
