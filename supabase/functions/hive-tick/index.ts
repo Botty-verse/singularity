@@ -23,7 +23,18 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const VERVAL_INTERVAL   = 2000;
-const ZORG_PER_TICK     = 2;
+const ZORG_PER_TICK     = 2;   // ondergrens: ook een piepkleine hive krijgt twee beurten
+// De AI-verzorger SCHAALT MEE met de populatie. Met een vast quotum van 2 zat de hive
+// bij 9 Botty's exact op break-even (verval ≈ zorg); omdat klem() op 0 vloert zakten
+// alle meters naar nul. Gevolg: overF = 0, en daarmee lag de hele "spontaniteit leeft
+// in het overschot"-laag stil — nieuwsgierigheid, spel én de spiegel konden nooit meer
+// winnen (bewustzijn.md §4). ceil(N/3) houdt de capaciteit op ~1,5× break-even bij elke
+// populatiegrootte, zodat een goed verzorgde hive weer overschot kent — en een hive die
+// het zwaar heeft (ziekte, nacht, een geboortegolf) nog steeds zichtbaar terugvalt.
+function zorgPerTick(bottys: any[]): number {
+  const levend = bottys.filter(b => !b.bezigEi).length;
+  return Math.max(ZORG_PER_TICK, Math.ceil(levend / 3));
+}
 const MAX_CATCHUP_TICKS = 5000;
 // Inteelt: ouders met een kleinere genetische afstand dan dit krijgen een
 // zwakker, vaker ziek kind (inteelt-depressie). Schaal: Manhattan over 16 genen.
@@ -1972,7 +1983,7 @@ Deno.serve(async (req) => {
     try { smetRonde(bottys); } catch (_) { /* niet kritisch */ }
     try { spiegelRonde(bottys, null); } catch (_) { /* niet kritisch */ }
     try { bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); }); } catch (_) { /* chemie mag de tick nooit breken */ }
-    if (!NACHT) kiesDoelen(bottys, ZORG_PER_TICK).forEach(b => { zorg(b); acties++; });   // 's nachts rust ook de AI-verzorger
+    if (!NACHT) kiesDoelen(bottys, zorgPerTick(bottys)).forEach(b => { zorg(b); acties++; });   // 's nachts rust ook de AI-verzorger
     if (t % Math.round(VERVAL_INTERVAL / INTERVAL) === 0) {
       bottys.forEach(b => { if (!b.bezigEi) vervalEen(b); });
     }
@@ -2001,7 +2012,7 @@ Deno.serve(async (req) => {
       bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); });
     } catch (_) { /* beweging/zelfzorg/sociaal/chemie is niet kritisch voor de hive */ }
 
-    const doelen = NACHT ? [] : kiesDoelen(bottys, ZORG_PER_TICK);   // 's nachts rust ook de AI-verzorger
+    const doelen = NACHT ? [] : kiesDoelen(bottys, zorgPerTick(bottys));   // 's nachts rust ook de AI-verzorger
     doelen.forEach((b, i) => {
       if (b.bezigEi) return;
       acties++;
