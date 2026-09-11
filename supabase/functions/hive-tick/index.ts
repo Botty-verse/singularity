@@ -142,6 +142,28 @@ function tekortKost(waarde: number): number {
 function homeoBeloning(voor: number, na: number): number {
   return Math.max(0, tekortKost(voor) - tekortKost(na));
 }
+
+// ── v13 §2 — Eerlijke nieuwsgierigheid: leerprogressie, niet louter verrassing ────
+// Oudeyer/Kaplan/Hafner (2007), Graves et al. (2017), Burda et al. (2019): een grote
+// voorspelfout (verrassing) is géén bewijs dat een ervaring leerzaam is — een
+// willekeurig ("noisy-TV") object blijft eeuwig verrassen zonder dat je iets leert.
+// Daarom meten we LEERPROGRESSIE = daalt mijn voorspelfout over de tijd? We houden per
+// (drive, object) twee EMA's van de fout bij: een snelle en een trage. Zakt de fout,
+// dan loopt de snelle EMA onder de trage → positieve leerwinst. Bij ruis zitten beide
+// op hetzelfde hoge niveau → leerwinst ≈ 0. Precies de "noisy-TV"-controle.
+const LEERWINST_NIEUWSGIER = true;  // v13 §2 aan (false = ablatie: nieuwsgierigheid op verrassing)
+const LP_SNEL = 0.35, LP_TRAAG = 0.10;   // EMA-snelheden van de snelle/trage foutschatting
+function leerwinstUpdate(b: any, drive: string, objId: string, fout: number): number {
+  b.leerfoutSnel = b.leerfoutSnel || {};   b.leerfoutSnel[drive]  = b.leerfoutSnel[drive]  || {};
+  b.leerfoutTraag = b.leerfoutTraag || {}; b.leerfoutTraag[drive] = b.leerfoutTraag[drive] || {};
+  const snelOud  = b.leerfoutSnel[drive][objId]  ?? fout;
+  const traagOud = b.leerfoutTraag[drive][objId] ?? fout;
+  const snel  = snelOud  + LP_SNEL  * (fout - snelOud);
+  const traag = traagOud + LP_TRAAG * (fout - traagOud);
+  b.leerfoutSnel[drive][objId]  = +snel.toFixed(3);
+  b.leerfoutTraag[drive][objId] = +traag.toFixed(3);
+  return Math.max(0, traag - snel);   // leerwinst: de fout daalt sneller dan de trage EMA volgt
+}
 // Leren = drive-reductie, CHEMISCH GEPOORT (Creatures): de beloningsstof endorfine
 // zet de plasticiteit open. Een bezoeker die aait geeft endorfine → versterkt precies
 // datgene wat de Botty op dat moment leert. Naast versterking: atrofie van de rest.
@@ -303,6 +325,9 @@ function biochemie(b: any, bottys: any[]) {
   // bewustzijn.md stap 2 — de verrassing (voorspelfout) is een korte arousal-piek
   // die per tick weer wegebt; zonder verse verrassing zakt ze snel terug naar rust.
   b.verrassing = +(((b.verrassing ?? 0) * 0.55)).toFixed(3);
+  // v13 §2: het leerwinst-piek ebt trager weg dan de verrassing — leerprogressie is een
+  // aanhoudender signaal dan een losse voorspelfout, dus stuurt het gedrag langer.
+  b.leerwinstPiek = +(((b.leerwinstPiek ?? 0) * 0.80)).toFixed(3);
   // Leeftijd weegt mee in de biochemie: een ouder lijf werkt trager (traag metabolisme,
   // sneller moe, trager herstel) en houdt stress langer vast; een jong lijf herstelt
   // vlot. born/young = jong (−), adult = neutraal, elder/sage = oud (+).
@@ -1227,10 +1252,18 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // onverwachte trekt de aandacht, ook als er weinig marge is (stap 2 → podium).
   // Leerwinst-honger (stap 4): verveling door voorspelbaarheid duwt richting het
   // nieuwe — een verveelde Botty gaat juist méér onderzoeken (novelty-seeking).
+  // v13 §2: de aanhoudende nieuwsgierigheid volgt LEERPROGRESSIE (b.leerwinstPiek),
+  // niet louter de losse voorspelfout. Verrassing blijft een kórte oriëntatiereflex
+  // (een piek trekt even de aandacht); leerwinst is de motor die haar naar het
+  // leerbare trekt en van een ruis-object wegleidt. Met de vlag uit valt het terug op
+  // pure verrassing (ablatie — vatbaar voor de noisy-TV-val).
   const poi = kies(POIS);
+  const nieuwsgier = LEERWINST_NIEUWSGIER
+    ? (b.verrassing ?? 0) * 4 + (b.leerwinstPiek ?? 0) * 30
+    : (b.verrassing ?? 0) * 10;
   kand.push({ doel: { soort: "nieuwsgierig", poi: poi.id, px: poi.x, py: poi.y, tekst: "kijken naar " + poi.tekst },
     focus: "kijken naar " + poi.tekst, bron: "dwaling",
-    sal: (8 + 34 * T.nieuwsgierig) * overF * gevoelF + (b.verrassing ?? 0) * 10 + (b.chem?.verveling ?? 0) * 0.15, val: 0.5 });
+    sal: (8 + 34 * T.nieuwsgierig) * overF * gevoelF + nieuwsgier + (b.chem?.verveling ?? 0) * 0.15, val: 0.5 });
 
   // SPEL / dwalende geest (stap 4): in overschot én met een goed gevoel keert een
   // Botty spontaan terug naar een object dat ze ZELF ooit ontdekte — niet uit nood,
@@ -1363,6 +1396,11 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
       const verrassing = Math.abs((beloond ? 1 : 0) - verwacht); // 0..1
       b.verrassing = Math.max(b.verrassing ?? 0, verrassing);    // korte arousal-piek (decay in biochemie)
       b.chem = b.chem || {};
+      // v13 §2: leerprogressie bijhouden (fout-EMA's) → een scalair leerwinst-piek dat
+      // de nieuwsgierigheid op het podium voedt. Een ruis-object levert hoge verrassing
+      // maar ~0 leerwinst, dus het trekt niet blijvend de aandacht.
+      const lw = leerwinstUpdate(b, drive, obj.id, verrassing);
+      b.leerwinstPiek = +Math.max(b.leerwinstPiek ?? 0, lw).toFixed(3);   // decay in biochemie
       // Voorspelbaar (lage verrassing) verveelt; het onverwachte prikkelt juist.
       b.chem.verveling = Math.max(0, (b.chem.verveling ?? 0) + (verrassing < 0.15 ? 1.4 : -Math.min(4, verrassing * 5)));
 
@@ -1717,7 +1755,7 @@ async function broadcast(payload: object) {
 // Zware leer-/geheugenvelden: alleen het construct-breinpaneel gebruikt deze, en
 // dan nog enkel voor de geselecteerde Botty. Ze vormen ~80% van elke rij, dus we
 // laten ze wég uit de live-broadcast en laten de client ze on-demand ophalen.
-const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei"];
+const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag"];
 function slankeBottys(bottys: any[]): any[] {
   return bottys.map((b) => { const s: any = { ...b }; for (const k of ZWARE_VELDEN) delete s[k]; return s; });
 }
