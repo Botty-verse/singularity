@@ -51,6 +51,7 @@ klaslokaal in het bos waarin de Botty's live rondlopen. Wat er onder de motorkap
 | [`populatie.html`](populatie.html) | 🧬 Populatie & inteelt |
 | [`genoom.html`](genoom.html) | 🗺️ Genoom-kaart |
 | [`kaarten.html`](kaarten.html) | 🃏 Verzamelkaarten |
+| [`factsheet.html`](factsheet.html) | 🐝 One-pager over het project (Engels, printbaar A4 + PDF) |
 
 ## 🛠️ Onder de motorkap
 
