@@ -124,6 +124,18 @@
   .kit-zelfbeeld b{color:#ffe6a8;font-weight:800;}
   .kit-stroom .sd.observed{color:#9fd6ff;font-style:italic;}
   /* Gedachtenstroom (bewustzijn.md stap 5): het podium + de rollende innerlijke stem */
+  /* v13 "De Leerling" — wat een Botty over zichzélf geleerd heeft. Drie kleine
+     meters: zelfherkenning (spiegel), lichaamsmodel (§3) en leerwinst (§2). */
+  .kit-leerling{margin-top:.5rem;border-top:1px solid #4a3a28;padding-top:.45rem;}
+  .kit-leerling-kop{font-weight:700;color:#d9c39a;font-size:.8rem;margin-bottom:.3rem;overflow-wrap:anywhere;}
+  .kit-leerling-kop span{color:#b89a6a;font-weight:400;font-size:.72rem;}
+  .ll-rij{display:grid;grid-template-columns:6.6rem 1fr auto;gap:.45rem;align-items:center;
+          font-size:.72rem;color:#b89a6a;margin-bottom:.22rem;}
+  .ll-bar{position:relative;height:.42rem;background:#14100a;border:1px solid #4a3a28;border-radius:99px;overflow:hidden;}
+  .ll-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;transition:width .6s ease;}
+  .ll-bar .ll-drempel{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffe6a8;opacity:.75;}
+  .ll-waarde{color:#e6d2a8;font-family:monospace;font-size:.7rem;font-variant-numeric:tabular-nums;}
+  .ll-uit{color:#6b5a44;font-style:italic;}
   .kit-podium{margin-top:.5rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;}
   .kit-podium .pd-ico{font-size:1.05rem;line-height:1;}
   .kit-podium .pd-label{color:#7fb89a;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;}
@@ -215,7 +227,7 @@
 </head>
 <body>
 <header>
-  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 12 — De Merkproef: een Botty ontdekt via de spiegel een smetje op haar eigen lijf en poetst het weg — de gouden standaard van zelfherkenning">⬡ v12 · De Merkproef</span></h1>
+  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 13 — De Leerling: zelfherkenning, lichaamsbesef en nieuwsgierigheid zijn niet langer gescript maar geleerd — en zichtbaar in de kit">⬡ v13 · De Leerling</span></h1>
   <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
     hebben het lokaal voor zichzelf. Ze <strong>redden zichzelf</strong>: nieuwsgierig <strong>speuren</strong> (🔎) ze
     naar een object, ze <strong>ruiken</strong> (👃) en <strong>zien</strong> (👁️) het, en al doende leren ze wat hun
@@ -341,6 +353,25 @@
         <div class="kit-naam" id="kit-naam"></div>
         <div class="kit-sub" id="kit-sub"></div>
         <div class="kit-zelfbeeld" id="kit-zelfbeeld" hidden></div>
+        <!-- v13: de geleerde binnenwereld (zelfherkenning, lichaamsmodel, leerwinst) -->
+        <div class="kit-leerling" id="kit-leerling" hidden>
+          <div class="kit-leerling-kop">🎓 Geleerd over zichzelf <span id="ll-sub"></span></div>
+          <div class="ll-rij" title="Contingentie die ze aan de spiegel leerde: 'dat beeld beweegt zoals ik beweeg'. Boven de streep schrijft ze het spiegelbeeld aan zichzelf toe.">
+            <span>🪞 zelfherkenning</span>
+            <span class="ll-bar"><i id="ll-zh"></i><span class="ll-drempel" style="left:60%"></span></span>
+            <span class="ll-waarde" id="ll-zh-v">—</span>
+          </div>
+          <div class="ll-rij" title="Hoe goed ze haar eigen lijf kent: de geleerde staplengte en de voorspelfout daarop (§3).">
+            <span>🦿 lichaamsmodel</span>
+            <span class="ll-bar"><i id="ll-lijf"></i></span>
+            <span class="ll-waarde" id="ll-lijf-v">—</span>
+          </div>
+          <div class="ll-rij" title="Leerprogressie: daalt haar voorspelfout? Dit stuurt haar nieuwsgierigheid, niet de kale verrassing (§2).">
+            <span>📈 leerwinst</span>
+            <span class="ll-bar"><i id="ll-lw"></i></span>
+            <span class="ll-waarde" id="ll-lw-v">—</span>
+          </div>
+        </div>
         <div class="kit-gedachte" id="kit-gedachte">…</div>
         <div class="kit-podium" id="kit-podium" hidden>
           <span class="pd-ico" id="pd-ico">💭</span>
@@ -1536,6 +1567,40 @@
     var zb = document.getElementById("kit-zelfbeeld");
     if(b.zelfbeeld){ zb.hidden = false; zb.innerHTML = '🪞 Zelfbeeld: <b>' + esc(b.zelfbeeld) + '</b>'; }
     else zb.hidden = true;
+
+    // v13 "De Leerling": toon wat ze over zichzélf geleerd heeft. Alles hier is
+    // verdiend, niet toegekend — daarom staat er een streepje zolang er nog niets is.
+    var ll = document.getElementById("kit-leerling");
+    var sp = b.spiegel || null, lijf = b.lijf || null;
+    var lw = typeof b.leerwinstPiek === "number" ? b.leerwinstPiek : 0;
+    if(ll){
+      ll.hidden = false;
+      // 1) zelfherkenning — contingentie richting de drempel van 0.6
+      var zhv = sp ? (sp.cont || 0) : 0, blikken = sp ? (sp.n || 0) : 0;
+      var zhEl = document.getElementById("ll-zh"), zhV = document.getElementById("ll-zh-v");
+      zhEl.style.width = Math.round(Math.max(0, Math.min(1, zhv)) * 100) + "%";
+      zhEl.style.background = zhv > 0.6 ? "linear-gradient(90deg,#ffd35c,#fff0b8)" : "#7a6a4a";
+      zhV.textContent = sp ? zhv.toFixed(2) : "—";
+      zhV.classList.toggle("ll-uit", !sp);
+      document.getElementById("ll-sub").textContent = sp
+        ? (zhv > 0.6 ? "· herkent zichzelf" : "· " + blikken + "× gekeken")
+        : "· nog nooit gekeken";
+      // 2) lichaamsmodel — vol naarmate de voorspelfout klein is
+      var lEl = document.getElementById("ll-lijf"), lV = document.getElementById("ll-lijf-v");
+      if(lijf && (lijf.n || 0) > 0){
+        var scherp = Math.max(0, Math.min(1, 1 - (lijf.fout || 0) / 12));
+        lEl.style.width = Math.round(scherp * 100) + "%";
+        lEl.style.background = "#6bb6ff";
+        lV.textContent = (lijf.stap != null ? Math.round(lijf.stap) : "?") + "px ±" + (lijf.fout != null ? lijf.fout.toFixed(1) : "?");
+        lV.classList.remove("ll-uit");
+      } else { lEl.style.width = "0%"; lV.textContent = "—"; lV.classList.add("ll-uit"); }
+      // 3) leerwinst — het signaal dat haar nieuwsgierigheid stuurt
+      var wEl = document.getElementById("ll-lw"), wV = document.getElementById("ll-lw-v");
+      wEl.style.width = Math.round(Math.max(0, Math.min(1, lw * 4)) * 100) + "%";
+      wEl.style.background = "#7fd06f";
+      wV.textContent = lw > 0 ? lw.toFixed(3) : "—";
+      wV.classList.toggle("ll-uit", !(lw > 0));
+    }
     var pod = b.podium || {};
     var podEl = document.getElementById("kit-podium");
     podEl.hidden = !pod.focus;
