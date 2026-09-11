@@ -1380,10 +1380,19 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // klassieke merkproef wordt het merk juist onder narcose aangebracht, zodat het
   // níet voelbaar is — precies om dat confound uit te sluiten. De zet is eruit: ze
   // gaat uit nieuwsgierigheid kijken, en ontdekt de smet pas als ze er tóch staat.
+  // De spiegel is een intrinsiek interessant object en krijgt dus dezelfde
+  // nieuwsgierigheids-basis als elk ander bezienswaardig punt. In v12 was ze alléén
+  // competitief dankzij de smet-lokzet (+26); toen die (terecht) verdween als
+  // perceptielek, zakte de spiegel naar de laagste saliëntie van álle vrijwillige
+  // doelen en werd ze in de praktijk nooit meer bezocht — §4 werkte wel, maar was
+  // onzichtbaar. HABITUATIE op het aantal eerdere blikken (b.spiegel.n) dempt dit,
+  // met een bodem zodat een volwassen Botty af en toe blijft kijken en een nieuwe
+  // smet alsnog ontdekt kan worden. Gebruikt geen enkele informatie over de smet.
+  const spiegelNieuwheid = 0.45 + 0.55 / (1 + (b.spiegel?.n ?? 0) * 0.2);
   kand.push({ doel: { soort: "spiegelen", px: SPIEGEL_POS.x, py: SPIEGEL_POS.y, tekst: "in de spiegel kijken" },
     focus: "in de spiegel kijken", bron: "dwaling",
-    sal: (5 + 22 * T.nieuwsgierig) * overF * gevoelF
-         * bereikbaar(b, SPIEGEL_POS.x, SPIEGEL_POS.y), val: 0.2 });
+    sal: (8 + 34 * T.nieuwsgierig) * overF * gevoelF
+         * bereikbaar(b, SPIEGEL_POS.x, SPIEGEL_POS.y) * spiegelNieuwheid, val: 0.2 });
 
   // DWALEN/SPEL & vangnet: altijd aanwezig (kleine basis), sterker bij marge en bij
   // een luie Botty. Dit is het standaardgedrag als geen enkele drive of prikkel wint.
