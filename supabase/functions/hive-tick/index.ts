@@ -123,6 +123,25 @@ const BREIN_ATROFIE  = 0.012; // ongebruikte overtuigingen zakken langzaam terug
 function breinGeloof(b: any, drive: string, objId: string): number {
   return b.brein?.[drive]?.[objId] ?? BREIN_NEUTRAAL;
 }
+
+// ── v13 §1 — Homeostatische beloning (Keramati & Gutkin, 2014, eLife) ────────────
+// De WAARDE van een uitkomst = de daling van het (convex gewogen) tekort tot de
+// streefwaarde. Diep tekort verlichten is veel waard; een bijna-volle bar aanvullen
+// bijna niets. Zo stuurt de behoefte niet alleen de KEUZE (welk object) maar ook de
+// WAARDE van het resultaat — en, via de endorfine→plasticiteitspoort, hoe hard er
+// van geleerd wordt. Met de vlag uit valt het terug op de oude vaste beloning
+// (alleen succes/mislukking), zodat we de twee kunnen vergelijken (ablatie, v13 §8).
+const HOMEO_BELONING = true;   // v13 §1 aan (false = ablatie: toestand-onafhankelijk)
+const HOMEO_DOEL = 100;        // streefwaarde per drive-bar
+const HOMEO_VLAK = 0.10;       // vaste waarde in de ablatie-variant (toestand-onafhankelijk)
+function tekortKost(waarde: number): number {
+  const t = Math.max(0, Math.min(1, (HOMEO_DOEL - waarde) / 100));  // 0..1 afstand tot streefwaarde
+  return t * t;                                                     // convex: diep tekort weegt zwaarder
+}
+// 0..1: hoeveel dichter bij de streefwaarde deze uitkomst de Botty bracht (gewogen).
+function homeoBeloning(voor: number, na: number): number {
+  return Math.max(0, tekortKost(voor) - tekortKost(na));
+}
 // Leren = drive-reductie, CHEMISCH GEPOORT (Creatures): de beloningsstof endorfine
 // zet de plasticiteit open. Een bezoeker die aait geeft endorfine → versterkt precies
 // datgene wat de Botty op dat moment leert. Naast versterking: atrofie van de rest.
@@ -1351,8 +1370,12 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
       b.stemming = klem((b.stemming ?? 50) + (beloond ? 1.5 : 0.2));
       if (beloond) {
         b.doel.mislukt = 0;
-        // Onverwacht succes = een meevaller → extra endorfine bovenop de basis-zet.
-        b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 8 + Math.round(verrassing * 14));
+        // v13 §1: de endorfine-meevaller schaalt met de HOMEOSTATISCHE waarde —
+        // een diep tekort verlichten voelt beter dan een bijna-volle bar aanvullen —
+        // plus een verrassings-component. Omdat endorfine de plasticiteitspoort opent
+        // (breinLeer), leert de Botty vanzelf harder van het lenigen van een echte nood.
+        const homeo = HOMEO_BELONING ? homeoBeloning(voor, na) : HOMEO_VLAK;
+        b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 4 + Math.round(homeo * 120) + Math.round(verrassing * 10));
         if (verrassing > 0.5 && events && !gemeld && Math.random() < 0.6) {
           events.push({ soort: "zelfzorg", naam: b.naam, label: "❗", kleur: "#ffd54a", animeer: true,
             tekst: "❗ <b>" + b.naam + "</b> is verrast dat " + obj.actie + " tóch hielp" });
