@@ -1952,8 +1952,6 @@ Deno.serve(async (req) => {
   const nu = Date.now();
   NACHT = isNacht(nu);   // dag/nacht op Nederlandse kloktijd
   const gemist = Math.min(Math.floor((nu - (state.last_updated_at || nu)) / INTERVAL), MAX_CATCHUP_TICKS);
-  const vervalTicks = Math.floor(gemist * INTERVAL / VERVAL_INTERVAL);
-
   const cutoff = new Date(nu - 30000).toISOString();
   const { count: bezoekersCount } = await supabase
     .from("bezoeker_pings").select("*", { count: "exact", head: true }).gte("ts", cutoff);
@@ -2021,9 +2019,10 @@ Deno.serve(async (req) => {
       else         events.push({ soort: "zorg", naam: b.naam, label: d.label, kleur: d.kleur, animeer: d.animeer });
     });
 
-    for (let t = 0; t < vervalTicks; t++) {
-      bottys.forEach(b => { if (!b.bezigEi) vervalEen(b); });
-    }
+    // DUBBEL VERVAL VERWIJDERD: de catch-up-lus hierboven past verval al toe voor de
+    // hele verstreken tijd (elke 2 sim-tikken). Deze burst deed dat er nóg eens
+    // bovenop, waardoor verval ~2x zo vaak draaide als bedoeld — de hive kon nooit
+    // uit de min komen en overF bleef 0, dus geen spel/nieuwsgierigheid/spiegel.
     bottys.forEach(b => {
       const s = huidigeStage(b); if (s !== b.stage) b.stage = s;
       updateStemming(b, bezoekers);
