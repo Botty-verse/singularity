@@ -198,6 +198,42 @@ function bereikbaar(b: any, px: number, py: number): number {
   const tikken = Math.hypot(px - p.x, py - p.y) / Math.max(8, lijfVerwacht(b));
   return 1 / (1 + tikken * 0.06);
 }
+
+// ── v13 §4 — De spiegeltest, van gescript naar geleerd (Hoffmann et al., 2021) ───
+// v11/v12 kende de uitkomst al: zelfherkenning was een tabel op levensfase. Dat is
+// de schijn van de proef. Hoffmann ontleedt spiegel-zelfherkenning in (a) een
+// geleerde verwachting over het eigen beeld, (b) detectie van een visuele afwijking,
+// (c) een actie gericht op de eigen lichaamsplek. Hier leert een Botty (a) zelf:
+// aan de spiegel valt haar op dat het beeld precies meebeweegt met wat ZIJ verwacht
+// te bewegen — en hoe scherp ze dat ziet, hangt af van hoe goed ze haar eigen lijf
+// kent (§3). Rijpheid bepaalt alleen hoe SNEL ze dit oppikt, niet de uitkomst.
+// Wie nooit in de spiegel kijkt, leert het dus ook nooit — precies zoals het hoort.
+const SPIEGEL_GELEERD = true;   // v13 §4 aan (false = ablatie: oude gescripte tabel)
+const SPIEGEL_LR      = 0.30;   // basis-leersnelheid van de contingentie
+const ZH_DREMPEL      = 0.6;    // hierboven schrijft ze het spiegelbeeld aan zichzelf toe
+
+// Alleen te leren mét een lichaamsmodel: de contingentie ("dat beweegt zoals ík
+// beweeg") valt op bij een scherp model en gaat verloren bij een vaag model.
+function spiegelContingentie(b: any): number {
+  b.spiegel = b.spiegel || { cont: 0, n: 0 };
+  const lijfScherp = (b.lijf && (b.lijf.n ?? 0) >= 2)
+    ? Math.max(0, 1 - (b.lijf.fout ?? LIJF_SCHRIK) / LIJF_SCHRIK)
+    : 0;
+  const rijp = (({ born: 0.25, young: 0.4, teen: 0.6, adult: 0.9, elder: 1, sage: 1 }) as Record<string, number>)[b.stage] ?? 0.7;
+  const cont = b.spiegel.cont + SPIEGEL_LR * rijp * (lijfScherp - b.spiegel.cont);
+  b.spiegel.cont = +Math.max(0, Math.min(1, cont)).toFixed(3);
+  b.spiegel.n = (b.spiegel.n || 0) + 1;
+  return b.spiegel.cont;
+}
+// Zelfherkenning is nu een GELEERDE grootheid, geen levensfase-tabel.
+function zelfherkenningVan(b: any): number {
+  if (!SPIEGEL_GELEERD) {   // ablatie: het oude, gescripte v11/v12-gedrag
+    const zhBasis = (({ born: 0, young: 0.15, teen: 0.4, adult: 0.72, elder: 0.88, sage: 0.95 }) as Record<string, number>)[b.stage] ?? 0.5;
+    const ervaring = Math.min(0.12, (Array.isArray(b.herinneringen) ? b.herinneringen.length : 0) * 0.012);
+    return +Math.min(1, zhBasis + ervaring).toFixed(2);
+  }
+  return b.spiegel?.cont ?? 0;
+}
 // Leren = drive-reductie, CHEMISCH GEPOORT (Creatures): de beloningsstof endorfine
 // zet de plasticiteit open. Een bezoeker die aait geeft endorfine → versterkt precies
 // datgene wat de Botty op dat moment leert. Naast versterking: atrofie van de rest.
@@ -882,11 +918,9 @@ function updateGroei(b: any) {
   g.woorden  = b.lexicon ? Object.keys(b.lexicon).length : 0;
   g.vrienden = b.relaties ? Object.keys(b.relaties).length : 0;
   b.zelfbeeld = zelfbeeldVan(b);   // v10: stabiel zelfconcept (reist mee in het snapshot)
-  // v11: zelfherkenning groeit met rijpheid (levensfase) + wat geleefde ervaring.
-  // Onder ~0.6 ziet een Botty in de spiegel een vreemde; daarboven herkent ze zichzelf.
-  const zhBasis = (({ born: 0, young: 0.15, teen: 0.4, adult: 0.72, elder: 0.88, sage: 0.95 }) as Record<string, number>)[b.stage] ?? 0.5;
-  const ervaring = Math.min(0.12, (Array.isArray(b.herinneringen) ? b.herinneringen.length : 0) * 0.012);
-  b.zelfherkenning = +Math.min(1, zhBasis + ervaring).toFixed(2);
+  // v13 §4: zelfherkenning is niet langer een tabel op levensfase, maar wat ze aan de
+  // spiegel geléérd heeft (b.spiegel.cont). Wie nooit kijkt, leert het nooit.
+  b.zelfherkenning = zelfherkenningVan(b);
 }
 function geneScore(b: any) { return (b.datakwaliteit ?? 50) + (b.efficientie ?? 50); }
 // Urgentie: hoe lager, hoe eerder zorg nodig. De láágste losse stat telt
@@ -1329,12 +1363,15 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
   // v11 "De Spiegel" — af en toe wil een Botty naar zichzelf kijken: nieuwsgierig
   // naar de spiegel. Wat ze er ziet (een vreemde of zichzelf) hangt af van haar
   // zelfherkenning; dat wordt bij aankomst afgehandeld in spiegelRonde.
-  // v12: een nog niet opgemerkte smet trekt extra naar de spiegel — daar ontdekt
-  // ze pas dat er iets op háár zit (de merkproef laat zich zo van binnenuit uitlokken).
-  const smetLok = (b.smet && !b.smet.opgemerkt) ? 26 : 0;
+  // v13 §4 — PERCEPTIEPOORT. v12 gaf een nog niet opgemerkte smet hier een flinke
+  // zet richting de spiegel (+26 saliëntie). Dat was een lek: ze werd naar het glas
+  // getrokken dóór een merk dat ze per definitie nog niet kon waarnemen. In de
+  // klassieke merkproef wordt het merk juist onder narcose aangebracht, zodat het
+  // níet voelbaar is — precies om dat confound uit te sluiten. De zet is eruit: ze
+  // gaat uit nieuwsgierigheid kijken, en ontdekt de smet pas als ze er tóch staat.
   kand.push({ doel: { soort: "spiegelen", px: SPIEGEL_POS.x, py: SPIEGEL_POS.y, tekst: "in de spiegel kijken" },
     focus: "in de spiegel kijken", bron: "dwaling",
-    sal: (5 + smetLok + 22 * T.nieuwsgierig) * overF * gevoelF
+    sal: (5 + 22 * T.nieuwsgierig) * overF * gevoelF
          * bereikbaar(b, SPIEGEL_POS.x, SPIEGEL_POS.y), val: 0.2 });
 
   // DWALEN/SPEL & vangnet: altijd aanwezig (kleine basis), sterker bij marge en bij
@@ -1535,24 +1572,29 @@ function spiegelRonde(bottys: any[], events: object[] | null) {
   for (const b of bottys) {
     if (b.bezigEi || !b.pos || !b.doel || b.doel.soort !== "spiegelen") continue;
     if (afstand2(b.pos, SPIEGEL_POS) > GEBRUIK_AFSTAND * GEBRUIK_AFSTAND) continue;
-    const zh = b.zelfherkenning ?? 0.5;
     b.chem = b.chem || {};
-    if (zh > 0.6) {
-      // v12: dé gouden standaard. Ziet ze een smet in het glas, dan beseft een
-      // rijp zelf dat die op háár zit — merk-gericht: ze poetst hem van zichzelf.
+    // (a) Geleerde verwachting over het eigen beeld: elke blik in de spiegel levert
+    //     bewijs dat het beeld met haar meebeweegt. Dit gebeurt VÓÓR de beslissing,
+    //     zodat herkenning uit ervaring groeit in plaats van te worden toegekend.
+    const zh = SPIEGEL_GELEERD ? spiegelContingentie(b) : (b.zelfherkenning ?? 0.5);
+    b.zelfherkenning = SPIEGEL_GELEERD ? zh : b.zelfherkenning;
+
+    if (zh > ZH_DREMPEL) {
+      // (b+c) Zelftoeschrijving gelukt. PERCEPTIEPOORT: alleen hier — vóór het glas,
+      //       mét een aan zichzelf toegeschreven beeld — kan ze een smet op haar eigen
+      //       hoofd zíen. Nergens anders in de code wordt smet.opgemerkt gezet; zonder
+      //       spiegel blijft haar eigen hoofd voor haar onzichtbaar.
       if (b.smet && !b.smet.opgemerkt) {
-        b.smet.opgemerkt = true;
+        b.smet.opgemerkt = true;                     // = waargenomen via een toegestane waarneming
         b.gedachte = kies(["Wat zit er op míj?", "Hé — er zit iets op mijn hoofd!", "Dat vlekje… dat zit op mij.", "Even wegpoetsen, dat hoort niet bij mij."]);
         b.chem.endorfine = Math.min(100, (b.chem.endorfine || 0) + 4);
         b.zelfBevestigd = (b.zelfBevestigd || 0) + 1;
-        // Consolidatie: wie de merkproef doorstaat, verankert het zelf een tikje sterker.
-        b.zelfherkenning = +Math.min(1, (b.zelfherkenning ?? 0.6) + 0.02).toFixed(2);
         onthoud(b, "merkproef", "ik zag een smet in de spiegel en besefte dat die op míj zat — en poetste hem weg");
         if (events && !gemeld) {
           events.push({ soort: "spiegel", naam: b.naam, tekst: "🪞✨ <b>" + b.naam + "</b> ziet een vlek in de spiegel en poetst hem van zíchzélf — de merkproef geslaagd" });
           gemeld = true;
         }
-        b.doel = null;   // eerst poetsen (smet verdwijnt in smetRonde), niet opnieuw kijken
+        b.doel = null;
         continue;
       }
       b.gedachte = kies(["Dat ben ik!", "Kijk — dat ben ik.", "Ik herken mezelf.", "Hallo, ik.", "Dat gezicht… dat is van mij."]);
@@ -1566,9 +1608,10 @@ function spiegelRonde(bottys: any[], events: object[] | null) {
         }
       }
     } else {
-      // v12: een jong zelf schrijft de smet toe aan "die ander" in het glas en
-      // raakt zichzelf nooit aan — de klassieke gezakte merkproef.
-      if (b.smet && !b.smet.opgemerkt) {
+      // Nog geen zelftoeschrijving: ze ziet een vreemde. Een smet schrijft ze dan aan
+      // DIE ANDER toe en ze raakt zichzelf nooit aan — de klassiek gezakte merkproef.
+      // smet.opgemerkt blijft hier bewust ongemoeid.
+      if (b.smet) {
         b.gedachte = kies(["Die ander is vies…", "Wat heeft die daar op z'n kop?", "Bah, een vlek — op hém."]);
       } else {
         b.gedachte = kies(["Wie is dat?", "Hallo? Wie ben jij?", "Er zit iemand in de muur…", "Een ander! …of niet?", "Doet die ander mij na?"]);
@@ -1576,6 +1619,22 @@ function spiegelRonde(bottys: any[], events: object[] | null) {
       if (!b.spiegelHerkend && Math.random() < 0.15) onthoud(b, "spiegel", "ik zag een vreemde in de spiegel");
     }
     b.doel = null;   // klaar met kijken → bij de volgende keuze iets anders
+  }
+}
+
+// v13 §4, conditie 4: een merk op een ÁNDER. Ze reageert dan op die ander en nooit op
+// zichzelf — de smet van de buur mag haar eigen perceptiepoort niet openen.
+function merkBijAnderRonde(bottys: any[], events: object[] | null) {
+  const wakker = bottys.filter(b => !b.bezigEi && b.pos && !slaapt(b));
+  for (const b of wakker) {
+    if (b.gedachte) continue;                       // niet overschrijven
+    const ander = wakker.find(o => o !== b && o.smet && afstand2(b.pos, o.pos) < ZICHT * ZICHT);
+    if (!ander || Math.random() > 0.25) continue;
+    b.gedachte = kies(["Er zit iets op " + ander.naam + "'s hoofd", "Hé " + ander.naam + ", je hebt een vlek",
+                       ander.naam + " is vies geworden"]);
+    if (events && Math.random() < 0.2) {
+      events.push({ soort: "spiegel", naam: b.naam, tekst: "👀 <b>" + b.naam + "</b> ziet een vlek op <b>" + ander.naam + "</b> — niet op zichzelf" });
+    }
   }
 }
 
@@ -1937,6 +1996,7 @@ Deno.serve(async (req) => {
       zelfzorgRonde(bottys, events);
       smetRonde(bottys);
       spiegelRonde(bottys, events);
+      merkBijAnderRonde(bottys, events);
       socialeRonde(bottys, events);
       bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); });
     } catch (_) { /* beweging/zelfzorg/sociaal/chemie is niet kritisch voor de hive */ }

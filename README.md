@@ -175,12 +175,15 @@ daar bootsen we vooral de *schijn* van het verschijnsel na.
 - Schacter, D. L., & Addis, D. R. (2007). The cognitive neuroscience of constructive memory. *Phil. Trans. R. Soc. B*, 362(1481), 773–786.
 - Dennett, D. C. (1992). The self as a center of narrative gravity. In *Self and Consciousness: Multiple Perspectives.* Erlbaum.
 
-### De spiegel & de merkproef — mirror self-recognition *(v11 & v12)* — 🧭 ontwerpinspiratie (sterk terughoudend)
+### De spiegel & de merkproef — mirror self-recognition *(v11–v13 §4)* — ⚙️ vereenvoudigd geïmplementeerd (terughoudend)
 > De dier-experimenten (Gallup, Amsterdam, Reiss & Marino, Plotnik, Prior) zijn
-> 🔬 getoetste resultaten. **Onze versie is dat níet:** `zelfherkenning` is een
-> groeiende scalair met een drempel, en het "poetsen" van de smet is deels gescript.
-> We bootsen het *waarneembare gedrag* van de merkproef na — het is geen aanwijzing
-> dat een Botty zelfbesef heeft.
+> 🔬 getoetste resultaten. Onze versie was in v11/v12 grotendeels **gescript**
+> (zelfherkenning was een tabel op levensfase). Sinds **v13 §4** is het een *geleerd*
+> mechanisme naar Hoffmann et al. (2021): aan de spiegel bouwt een Botty zelf
+> contingentie-bewijs op, en een merk stuurt haar gedrag alléén als ze het via een
+> toegestane waarneming kón zien. De vier condities uit de literatuur zijn als
+> controle ingebouwd. **Maar:** technisch slagen voor een merkproef is nog steeds
+> geen meting van subjectief zelfbesef — we tonen geleerd *gedrag*, niet bewustzijn.
 - Gallup, G. G. (1970). Chimpanzees: self-recognition. *Science*, 167(3914), 86–87.
 - Gallup, G. G. (1982). Self-awareness and the emergence of mind in primates. *American Journal of Primatology*, 2(3), 237–248.
 - Amsterdam, B. (1972). Mirror self-image reactions before age two. *Developmental Psychobiology*, 5(4), 297–305.
