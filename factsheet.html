@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Botty-verse — Fact Sheet</title>
+<meta name="description" content="A one-page fact sheet on the Botty-verse: an artificial-life simulation of a hive of Bottys, fully cared for by AI." />
+<meta name="theme-color" content="#2E7D5B" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F41D;</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#FFFFFF; --ink:#1B1F24; --muted:#5A6270; --accent:#2E7D5B; --honey:#C9A227;
+    --rule:#D8DDE3; --tint:#EEF5F1; --ground:#E9ECEF;
+    --display:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+    --mono:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+       padding-block:24px;padding-inline:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet{width:210mm;min-height:297mm;margin:0 auto;background:var(--paper);color:var(--ink);
+         padding:11mm 14mm 9mm;display:flex;flex-direction:column;gap:4mm;
+         box-shadow:0 8px 30px rgba(27,31,36,.18);font-size:9.1pt;line-height:1.34}
+  /* header */
+  .head{display:grid;grid-template-columns:1fr auto;gap:8mm;align-items:end;border-bottom:1.6pt solid var(--ink);padding-bottom:3.5mm}
+  .eyebrow{font-family:var(--mono);font-size:7.2pt;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 1.5mm}
+  h1{font-family:var(--display);font-weight:700;font-size:30pt;line-height:1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+  h1 span{font-weight:400;font-style:italic;color:var(--muted)}
+  .tag{font-family:var(--display);font-style:italic;font-size:10.6pt;color:var(--muted);margin:2mm 0 0}
+  .meta{text-align:right;font-family:var(--mono);font-size:7.4pt;line-height:1.55;color:var(--muted)}
+  .meta b{display:inline-block;color:var(--paper);background:var(--accent);padding:.6mm 2mm;border-radius:2px;font-weight:500;letter-spacing:.06em}
+  .meta a{color:var(--ink);text-decoration:none;font-weight:500}
+  /* body grid */
+  /* minmax(0,…) + min-width:0 overal: zonder dit kan de min-content van de
+     datakolom (vaste mm-kolommen, mono-labels) de tekstkolom platdrukken zodra
+     de webfont uitvalt en een bredere fallback inspringt. */
+  .body{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:7mm;flex:1}
+  .col,.side,.col>div,.side>div{min-width:0}
+  .ladder li,.facts div,.stack li,.usage div{min-width:0}
+  .ladder li>span,.stack li>span,.usage div>span{min-width:0}
+  .stack code{overflow-wrap:anywhere}
+  h2{font-family:var(--sans);font-weight:600;font-size:8pt;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);
+     margin:0 0 1.6mm;padding-bottom:1mm;border-bottom:.7pt solid var(--rule)}
+  p{margin:0 0 2.2mm;max-width:66ch}
+  .col{display:flex;flex-direction:column;gap:3.4mm}
+  /* genome strip */
+  .genome{display:grid;grid-template-columns:repeat(16,1fr);gap:.8mm;margin:1.4mm 0 1.2mm}
+  .genome i{display:block;height:4.2mm;background:var(--tint);border:.5pt solid var(--accent);border-radius:1px;position:relative}
+  .genome i:nth-child(3),.genome i:nth-child(6),.genome i:nth-child(11),.genome i:nth-child(14){background:var(--accent)}
+  .genome i:nth-child(8){background:var(--honey);border-color:var(--honey)}
+  .cap{font-family:var(--mono);font-size:7pt;color:var(--muted);margin:0 0 2mm}
+  /* chemicals */
+  .chem{display:flex;flex-wrap:wrap;gap:1.2mm;margin:.6mm 0 2.4mm}
+  .chem span{font-family:var(--mono);font-size:7.1pt;padding:.6mm 1.6mm;border:.5pt solid var(--rule);border-radius:2px;color:var(--ink)}
+  /* mind ladder (a real sequence: version order carries meaning) */
+  .ladder{list-style:none;margin:0;padding:0;display:grid;gap:1mm}
+  .ladder li{display:grid;grid-template-columns:11mm 1fr;gap:2mm;align-items:baseline}
+  .ladder .v{font-family:var(--mono);font-size:7.4pt;font-weight:500;color:var(--accent)}
+  .ladder .v.now{color:var(--paper);background:var(--accent);padding:.3mm 1.2mm;border-radius:2px;text-align:center}
+  .ladder .v.next{color:var(--honey)}
+  .ladder b{font-weight:600}
+  /* sidebar */
+  .side{display:flex;flex-direction:column;gap:4.2mm}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:1.4mm 3mm;margin:0}
+  .facts div{display:flex;flex-direction:column;gap:.2mm;padding:1.6mm 0;border-bottom:.5pt solid var(--rule)}
+  .facts .n{font-family:var(--display);font-weight:600;font-size:15pt;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .facts .l{font-size:7.2pt;color:var(--muted);letter-spacing:.02em}
+  .stack{margin:0;padding:0;list-style:none;display:grid;gap:1.1mm}
+  .stack li{display:grid;grid-template-columns:19mm 1fr;gap:2mm;font-size:8.4pt}
+  .stack li span:first-child{font-family:var(--mono);font-size:7.2pt;color:var(--muted);padding-top:.5mm}
+  .stack code{font-family:var(--mono);font-size:7.8pt;background:var(--tint);padding:0 .8mm;border-radius:2px}
+  /* usage bars, drawn to one scale (0–100 % of the free-tier limit) */
+  .usage{display:grid;gap:1.8mm;margin:0}
+  .usage div{display:grid;grid-template-columns:22mm 1fr 12mm;gap:2mm;align-items:center;font-size:7.8pt}
+  .usage .bar{height:3mm;background:var(--tint);border:.5pt solid var(--rule);border-radius:2px;position:relative;overflow:hidden}
+  .usage .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);min-width:1.2px}
+  .usage .pct{font-family:var(--mono);font-size:7.4pt;text-align:right;font-variant-numeric:tabular-nums}
+  .usage .lbl{color:var(--muted)}
+  .note{font-size:7.6pt;color:var(--muted);margin:1.4mm 0 0}
+  .honest{background:var(--tint);border-left:2pt solid var(--accent);padding:2mm 2.6mm;font-size:8.2pt;line-height:1.42;margin:0}
+  .honest b{color:var(--accent)}
+  /* footer */
+  .foot{display:flex;justify-content:space-between;gap:5mm;border-top:.7pt solid var(--rule);padding-top:2.2mm;
+        font-family:var(--mono);font-size:6.5pt;color:var(--muted);flex-wrap:wrap}
+  .foot a{color:var(--muted);text-decoration:none}
+  @page{size:A4;margin:0}
+  @media print{
+    body{background:#fff;padding:0}
+    .sheet{box-shadow:none;margin:0;width:210mm;height:297mm;min-height:0;page-break-after:avoid}
+  }
+  @media (max-width:640px){
+    .sheet{width:100%;min-height:0;padding:8mm 5mm}
+    .head,.body{grid-template-columns:1fr}
+    .meta{text-align:left}
+  }
+</style>
+
+<style>
+  /* Schermbalk boven het vel: printen / PDF / terug. Verdwijnt bij het printen.
+     Eigen klassenaam om botsing met .usage .bar in het vel te voorkomen. */
+  .paperbar{width:210mm;max-width:100%;margin:0 auto 5mm;display:flex;gap:2mm;align-items:center;
+       flex-wrap:wrap;font-family:var(--mono);font-size:8pt}
+  .paperbar a,.paperbar button{font:inherit;color:var(--ink);background:var(--paper);
+       border:.7pt solid var(--rule);border-radius:3px;padding:1.6mm 3mm;text-decoration:none;
+       cursor:pointer;line-height:1}
+  .paperbar a:hover,.paperbar button:hover{border-color:var(--accent);color:var(--accent)}
+  .paperbar a:focus-visible,.paperbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .paperbar .spacer{flex:1}
+  .paperbar em{font-style:normal;color:var(--muted)}
+  @media print{ .paperbar{display:none !important} }
+</style>
+</head>
+<body>
+<nav class="paperbar">
+  <button type="button" id="printBtn">Print this page</button>
+  <a href="assets/botty-verse-factsheet.pdf" download>Download PDF</a>
+  <span class="spacer"></span>
+  <em>A4 &middot; one page</em>
+  <a href="index.html">&larr; Back to the hive</a>
+</nav>
+<article class="sheet">
+  <header class="head">
+    <div>
+      <p class="eyebrow">Artificial-life simulation · Botty-verse</p>
+      <h1>Botty-verse <span>— The Singularity</span></h1>
+      <p class="tag">“A hive full of Bottys. Fully cared for by AI. Human involvement: 0 %.”</p>
+    </div>
+    <div class="meta">
+      <b>v12 · THE MARK TEST</b><br>
+      live at <a href="https://hive.ramonmoorlag.nl">hive.ramonmoorlag.nl</a><br>
+      fact sheet · 11 Sep 2026
+    </div>
+  </header>
+
+  <div class="body">
+    <!-- narrative column -->
+    <section class="col">
+      <div>
+        <h2>What it is</h2>
+        <p>A hive of small digital creatures — Bottys — living in a classroom in the woods, cared for entirely by an AI caretaker, in the spirit of Steve Grand’s <em>Creatures</em>. Every Botty carries a genome, a body chemistry, a learning brain, senses and a temperament of its own. They look after their own needs, invent words to share what they learn, breed, and die — and the AI selects on data quality and efficiency. Diversity thins out. That is the Singularity.</p>
+        <p>It runs day and night in the cloud, whether or not anyone is watching. You are the visitor: stroke, feed, medicate, teach a word at the blackboard or hatch an egg — but you never manage the hive.</p>
+      </div>
+
+      <div>
+        <h2>Inside a Botty</h2>
+        <div class="genome" aria-label="16-byte genome, illustrated">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <p class="cap">16-byte genome · single-point crossover on gene boundaries · 8 % mutation · sex-linked expression and age-gated switch-on</p>
+        <p>The genome expresses a <b>body chemistry of 14 chemicals and hormones</b> that steer mood, behaviour and the face — and that change with age:</p>
+        <div class="chem">
+          <span>hunger</span><span>fatigue</span><span>stress</span><span>endorphin</span><span>toxin</span><span>boredom</span><span>fear</span><span>loneliness</span><span>glucose</span><span>glycogen</span><span>adrenaline</span><span>libido</span><span>oxytocin</span><span>cortisol</span>
+        </div>
+        <p>Four drives (energy, data, fitness, happiness) push a Botty toward objects; which object relieves which drive is <b>not given but learned</b>, through reward and punishment with plasticity gated by endorphin. Bottys sense their way to things — scouting, then smelling, then seeing — and coin words for actions, feelings and each other’s names, passing knowledge to neighbours. Six life stages run from born to sage, each with its own sprite, walk cycle and sleeping pose.</p>
+      </div>
+
+      <div>
+        <h2>A mind you can watch</h2>
+        <p>Above the body sits a layered model of a mind, built step by step and shown live: click any Botty and read its stream of thought.</p>
+        <ul class="ladder">
+          <li><span class="v">v9</span><span><b>Stride</b> — real walking bodies, senses, language, ageing chemistry</span></li>
+          <li><span class="v">v10</span><span><b>Mirror</b> — a global-workspace “stage” where stimuli compete for attention; surprise, valence, play in surplus, a self-image — and noticing it is being watched</span></li>
+          <li><span class="v">v11</span><span><b>The Mirror</b> — a real mirror in the room; a mature self recognises itself, a young one sees a stranger</span></li>
+          <li><span class="v now">v12</span><span><b>The Mark Test</b> — a smudge on its own head, visible only in the mirror; a mature self wipes it off <em>itself</em>, the gold-standard test of self-recognition</span></li>
+          <li><span class="v next">v13</span><span><b>The Apprentice</b> (in progress) — replacing scripted appearance with small, learned, falsifiable mechanisms; 2 of 7 workstreams live: need-dependent reward and learning-progress curiosity</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- data sidebar -->
+    <aside class="side">
+      <div>
+        <h2>By the numbers</h2>
+        <div class="facts">
+          <div><span class="n">16</span><span class="l">bytes of genome</span></div>
+          <div><span class="n">14</span><span class="l">chemicals &amp; hormones</span></div>
+          <div><span class="n">4</span><span class="l">drives</span></div>
+          <div><span class="n">6</span><span class="l">life stages</span></div>
+          <div><span class="n">2 min</span><span class="l">between simulation ticks</span></div>
+          <div><span class="n">7</span><span class="l">live pages</span></div>
+        </div>
+      </div>
+
+      <div>
+        <h2>Under the hood</h2>
+        <ul class="stack">
+          <li><span>front-end</span><span>vanilla HTML, JS &amp; SVG on GitHub Pages — no framework</span></li>
+          <li><span>engine</span><span><code>hive-tick</code>, a Supabase edge function in Deno/TypeScript, fired by pg_cron every 2 minutes</span></li>
+          <li><span>live sync</span><span>realtime broadcast to viewers; slim RPCs (<code>hive_slim</code>, <code>hive_detail</code>) keep egress low</span></li>
+          <li><span>state</span><span>the whole population as one JSON row, ≈ 2 KB per Botty</span></li>
+          <li><span>hosting</span><span>Supabase free tier, monitored daily</span></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2>Free-tier footprint</h2>
+        <div class="usage">
+          <div><span class="lbl">database</span><span class="bar"><i style="width:9.6%"></i></span><span class="pct">9.6 %</span></div>
+          <div><span class="lbl">edge invocations</span><span class="bar"><i style="width:4.3%"></i></span><span class="pct">4.3 %</span></div>
+          <div><span class="lbl">egress</span><span class="bar"><i style="width:0.04%"></i></span><span class="pct">0.04 %</span></div>
+        </div>
+        <p class="note">48 MB of 500 MB · ~21,600 of 500,000 calls per month · ~2 MB of 5 GB projected. The engine gets smarter without the bill moving.</p>
+      </div>
+
+      <div>
+        <h2>Research basis</h2>
+        <p class="honest"><b>66 verified sources</b> — global-workspace theory, predictive processing, the valence–arousal model, intrinsic motivation, mirror self-recognition and the <em>Creatures</em> lineage — each labelled as design inspiration, a simplified implemented mechanism, or a tested result in the literature. The hive simulates the <b>observable behaviour</b> of a mind. It makes no claim that a Botty is conscious.</p>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <span>Apache 2.0 · github.com/Botty-verse/singularity</span>
+    <span>docs: fable.md · bewustzijn.md · v13.md · papers.md</span>
+    <span>figures checked against code &amp; live database, 11 Sep 2026</span>
+  </footer>
+</article>
+<script>
+  document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+</script>
+</body>
+</html>
