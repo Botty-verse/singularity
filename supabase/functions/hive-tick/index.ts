@@ -236,6 +236,49 @@ function spiegelContingentie(b: any): number {
   b.spiegel.n = (b.spiegel.n || 0) + 1;
   return b.spiegel.cont;
 }
+// ── v13 §5 — Theory of mind: een model van wat een ánder gelooft ─────────────────
+// Rabinowitz et al. (2018, ToMnet): modelleer een andere agent door haar GEDRAG te
+// observeren en daaruit haar overtuigingen af te leiden. De objecten hier staan vast,
+// dus "het voedsel is verplaatst terwijl zij weg was" bestaat niet — maar
+// b.brein[drive][obj] verschilt wél per individu. Een Botty houdt daarom bij welk
+// object een buur kennelijk gelooft voor welke drive, puur uit wat ze haar zag doen.
+// De valstrik die dit moet vermijden is de EGOCENTRISCHE FOUT: voorspellen vanuit je
+// eigen (juiste) kennis in plaats van vanuit de hare. Daarom valt voorspelBuur
+// bewust NIET terug op het eigen geloof: zonder waarneming weet ze het simpelweg niet.
+const TOM_MODEL = true;   // v13 §5 aan (false = ablatie: egocentrisch voorspellen)
+
+// b ziet c naar een object lopen voor een drive → bewijs over wat c gelooft.
+function tomZie(b: any, c: any) {
+  if (!TOM_MODEL || !c.doel || c.doel.soort !== "zelfzorg" || !c.doel.stat || !c.doel.obj) return;
+  b.tom = b.tom || {};
+  b.tom[c.bid] = b.tom[c.bid] || {};
+  b.tom[c.bid][c.doel.stat] = c.doel.obj;
+}
+// Wat denkt b dat c zal kiezen voor deze drive? null = "ik heb haar dat nooit zien doen".
+// Mét ablatie (TOM_MODEL=false) voorspelt ze egocentrisch: vanuit haar eigen geloof.
+function voorspelBuur(b: any, c: any, drive: string): string | null {
+  if (!TOM_MODEL) return kiesObjectVoor(b, drive)?.id ?? null;
+  return b.tom?.[c.bid]?.[drive] ?? null;
+}
+// Gerichte kennisoverdracht: geef precies één overtuiging door (i.p.v. een willekeurige
+// zoals deelKennis doet). Dit is het gereedschap waarmee een Botty een ander uit de
+// brand helpt: niet troosten, maar het obstakel — de verkeerde overtuiging — wegnemen.
+function deelKennisGericht(spreker: any, luisteraar: any, drive: string, obj: string): boolean {
+  const w = spreker.brein?.[drive]?.[obj];
+  if (w == null) return false;
+  if (spreker.lexicon?.[obj]) {
+    luisteraar.lexicon = luisteraar.lexicon || {};
+    if (luisteraar.lexicon[obj] !== spreker.lexicon[obj]) luisteraar.lexicon[obj] = spreker.lexicon[obj];
+  }
+  luisteraar.brein = luisteraar.brein || {};
+  luisteraar.brein[drive] = luisteraar.brein[drive] || {};
+  const oud = luisteraar.brein[drive][obj] ?? 0.5;
+  luisteraar.brein[drive][obj] = +Math.max(0, Math.min(1, oud + (w - oud) * KENNIS_TEMPO)).toFixed(3);
+  luisteraar.breinN = luisteraar.breinN || {};
+  luisteraar.breinN[drive] = (luisteraar.breinN[drive] || 0) + 1;
+  return true;
+}
+
 // Zelfherkenning is nu een GELEERDE grootheid, geen levensfase-tabel.
 function zelfherkenningVan(b: any): number {
   if (!SPIEGEL_GELEERD) {   // ablatie: het oude, gescripte v11/v12-gedrag
@@ -1701,6 +1744,7 @@ function socialeRonde(bottys: any[], events: object[]) {
       n++; som += (c.stemming ?? 50);
       b.relaties = b.relaties || {};
       b.relaties[c.bid] = Math.min(100, (b.relaties[c.bid] || 0) + 1); // samen zijn schept band
+      tomZie(b, c);   // v13 §5: zien wat zij doet = bewijs over wat zij gelooft
       // Taal: af en toe zegt b een woord tegen buur c, die het overneemt.
       if (Math.random() < 0.25) {
         const p = praat(b, c);
@@ -1742,6 +1786,40 @@ function socialeRonde(bottys: any[], events: object[]) {
     hulp.relaties[b.bid] = Math.min(100, (hulp.relaties[b.bid] || 0) + 5);
     onthoud(hulp, "troost", "ik werd getroost door " + b.naam);
     if (!getroost) { events.push({ soort: "troost", naamA: b.naam, naamB: hulp.naam, tekst: "💞 <b>" + b.naam + "</b> troost <b>" + hulp.naam + "</b>" }); getroost = true; }
+  }
+
+  // v13 §5 — DOELGERICHT HELPEN (Warneken & Tomasello, 2006). Nadrukkelijk iets anders
+  // dan het troosten hierboven: dat reageert op een stémming, dit op een vastgelopen
+  // DOEL. Een buur die keer op keer hetzelfde object probeert zonder resultaat heeft
+  // een obstakel — een verkeerde overtuiging — en dat obstakel kan een ander wegnemen
+  // door precies díé kennis over te dragen. Stemming speelt hier geen enkele rol.
+  let geholpen = false;
+  for (const b of actief) {
+    const vast = actief.find(c => c !== b && afstand2(b.pos, c.pos) < ZICHT * ZICHT
+      && c.doel && c.doel.soort === "zelfzorg" && (c.doel.mislukt || 0) >= BREIN_OPGEVEN);
+    if (!vast) continue;
+    const drive = vast.doel.stat as string, mis = vast.doel.obj as string;
+    // Weet ík beter? Alleen helpen als ik geloof dat háár object niet werkt én ik een
+    // beter alternatief ken. Zonder dat verschil valt er niets te helpen.
+    if (breinGeloof(b, drive, mis) >= 0.4) continue;
+    const beter = OBJECTEN.filter(o => breinGeloof(b, drive, o.id) > 0.6)
+      .sort((x, y) => breinGeloof(b, drive, y.id) - breinGeloof(b, drive, x.id))[0];
+    if (!beter) continue;
+    if (!deelKennisGericht(b, vast, drive, beter.id)) continue;
+    vast.doel.mislukt = 0;                       // het obstakel is weg: opnieuw proberen
+    b.relaties = b.relaties || {}; vast.relaties = vast.relaties || {};
+    b.relaties[vast.bid] = Math.min(100, (b.relaties[vast.bid] || 0) + 4);
+    vast.relaties[b.bid] = Math.min(100, (vast.relaties[b.bid] || 0) + 4);
+    onthoud(vast, "hulp", "ik liep vast en " + b.naam + " wees me " + beter.kort);
+    // Belief-attributie in woorden: ze benoemt wat de ánder gelooft, niet wat zíj weet.
+    if (!b.gedachte && Math.random() < 0.5) {
+      b.gedachte = vast.naam + " denkt dat " + (OBJECTEN.find(o => o.id === mis)?.kort || mis) + " helpt — maar dat werkt niet";
+    }
+    if (!geholpen) {
+      events.push({ soort: "troost", naamA: b.naam, naamB: vast.naam,
+        tekst: "🤝 <b>" + b.naam + "</b> ziet <b>" + vast.naam + "</b> vastlopen en wijst haar " + beter.kort });
+      geholpen = true;
+    }
   }
 }
 
@@ -1895,7 +1973,7 @@ async function broadcast(payload: object) {
 // Zware leer-/geheugenvelden: alleen het construct-breinpaneel gebruikt deze, en
 // dan nog enkel voor de geselecteerde Botty. Ze vormen ~80% van elke rij, dus we
 // laten ze wég uit de live-broadcast en laten de client ze on-demand ophalen.
-const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag"];
+const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag", "tom"];
 function slankeBottys(bottys: any[]): any[] {
   return bottys.map((b) => { const s: any = { ...b }; for (const k of ZWARE_VELDEN) delete s[k]; return s; });
 }
