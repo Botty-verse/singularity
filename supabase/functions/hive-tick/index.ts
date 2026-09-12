@@ -2014,7 +2014,21 @@ Deno.serve(async (req) => {
   // Lees alleen de kolommen die de tick echt gebruikt (i.p.v. select *).
   const { data: row, error } = await supabase.from("hive_state")
     .select("bottys,eieren,acties,first_opened,ia_bucket,last_updated_at").eq("id", "main").single();
-  const rijBestond = !(error || !row);
+  // KRITIEK — onderscheid "de rij bestaat écht niet" van "de leesactie mislukte".
+  // Voorheen gold ELKE fout als 'rij bestaat niet', waarna maakNieuweHive() negen
+  // verse Botty's maakte die de bestaande hive vervolgens OVERSCHREVEN. Eén tijdelijke
+  // leesfout (timeout, verbroken verbinding, PostgREST-hik) wiste zo de hele populatie
+  // met alles wat ze ooit geleerd had — en zonder grafschrift, want de oude Botty's
+  // werden nooit als dood verwerkt. Alleen PGRST116 ("geen rij gevonden") rechtvaardigt
+  // een nieuwe hive; elke andere fout breekt de tick af, zodat de volgende het opnieuw
+  // probeert. Liever een tick overslaan dan een populatie verliezen.
+  const geenRij = (!!error && (error as any).code === "PGRST116") || (!error && !row);
+  if (error && !geenRij) {
+    console.error("hive_state onleesbaar, tick overgeslagen (hive NIET overschreven):", error);
+    return new Response(JSON.stringify({ ok: false, skipped: true, reden: "hive_state onleesbaar" }),
+      { status: 503, headers: { ...CORS, "Content-Type": "application/json" } });
+  }
+  const rijBestond = !geenRij;
   let state = rijBestond ? row : maakNieuweHive();
   let bottys: any[] = state.bottys || [];
   const eieren: any[] = Array.isArray(state.eieren) ? state.eieren : [];
