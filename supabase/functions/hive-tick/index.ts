@@ -31,6 +31,17 @@ const ZORG_PER_TICK     = 2;   // ondergrens: ook een piepkleine hive krijgt twe
 // winnen (bewustzijn.md §4). ceil(N/3) houdt de capaciteit op ~1,5× break-even bij elke
 // populatiegrootte, zodat een goed verzorgde hive weer overschot kent — en een hive die
 // het zwaar heeft (ziekte, nacht, een geboortegolf) nog steeds zichtbaar terugvalt.
+// Tot hoever vult de AI-verzorger bij. Stond op 90 — en dat bleek te gul: de meters
+// bleven daar hangen, ruim boven de comfortdrempel (60) waaronder een Botty zichzelf
+// gaat verzorgen. Geen zelfzorg betekent geen breinLeer, dus ook geen homeostatische
+// beloning (§1), geen leerprogressie (§2) en geen gedrag om een buur aan af te lezen
+// (§5). In productie stond het aantal geleerde ervaringen hive-breed op NUL.
+// Met 58 werkt de verzorger als VANGNET in plaats van als kindermeisje: hij vangt wie
+// wegzakt, maar het dagelijks onderhoud doen de Botty's zelf — precies waar het leren
+// gebeurt. Model (N=11): meters stabiel rond 61, overF 0,52 (dus ruim overschot voor
+// nieuwsgierigheid, spel en de spiegel) en zelfzorg op ~76% van de tikken.
+const ZORG_PLAFOND = 58;
+
 function zorgPerTick(bottys: any[]): number {
   const levend = bottys.filter(b => !b.bezigEi).length;
   return Math.max(ZORG_PER_TICK, Math.ceil(levend / 3));
@@ -1028,7 +1039,7 @@ function zorg(b: any) {
     { v: b.data,    doe: () => { b.data    = klem(b.data    + (14 + dataBonus) * G.zorg.data); }, label: "+💾", kleur: "#3a9d94", animeer: true,  tekst: "AI traint <b>" + b.naam + "</b>" },
     { v: b.fit,     doe: () => { b.fit     = klem(b.fit     + 16 * G.zorg.fit); },  label: "+🏃", kleur: "#7fd06f", animeer: true,  tekst: "AI laat <b>" + b.naam + "</b> sporten" },
     { v: b.geluk,   doe: () => { b.geluk   = klem(b.geluk   + 14 * G.zorg.geluk); }, label: "+😊", kleur: "#f6a623", animeer: false, tekst: "AI houdt <b>" + b.naam + "</b> blij (maar geen band)" },
-  ].filter(o => o.v < 90).sort((x, y) => x.v - y.v);
+  ].filter(o => o.v < ZORG_PLAFOND).sort((x, y) => x.v - y.v);
 
   if (opties.length) {
     const o = opties[0];
