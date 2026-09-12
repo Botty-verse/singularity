@@ -15,7 +15,7 @@ efficiëntie. Diversiteit sterft af. Welkom in de Singularity. 🧬
 
 De simulatie draait dag en nacht in de cloud, ook als niemand kijkt.
 
-## 🌍 De Construct — v12 "De Merkproef"
+## 🌍 De Construct — v13 "De Leerling"
 
 Het middelpunt is **[`construct.html`](construct.html)**: een zijaanzicht van het
 klaslokaal in het bos waarin de Botty's live rondlopen. Wat er onder de motorkap leeft:
@@ -31,10 +31,14 @@ klaslokaal in het bos waarin de Botty's live rondlopen. Wat er onder de motorkap
   workspace) waar prikkels om één aandachtsplek strijden, met verwachting & verrassing,
   valentie die de waarneming kleurt, spontaan spel in het overschot, theory of mind en
   een narratief zelf. Sinds v10 kijkt het zelf ook naar zichzelf (**zelfbeeld**,
-  metacognitie, besef bekeken te worden); v11 zet er een echte **spiegel** bij — een
-  Botty herkent (of herkent niet) zichzelf erin — en v12 voegt de **merkproef** toe:
-  ze ontdekt via de spiegel een smetje op haar eigen lijf en poetst het weg (de gouden
-  standaard van zelfherkenning). Klik een Botty aan en je ziet haar **gedachtenstroom**.
+  metacognitie, besef bekeken te worden); v11 zet er een echte **spiegel** bij en v12 de
+  **merkproef**. In **v13 "De Leerling"** *(zie [`v13.md`](v13.md))* is dat alles niet
+  langer toegekend maar **geleerd**: ze leert haar eigen lijf kennen, bouwt aan de
+  spiegel blik voor blik zelfherkenning op, volgt haar nieuwsgierigheid op
+  **leerprogressie** in plaats van kale verrassing, houdt bij wat een buur gelooft,
+  beslist bij weinig ervaring op één concrete herinnering, en schat haar eigen kunnen
+  **gekalibreerd** in. Elke laag heeft een controleconditie die hem kan weerleggen.
+  Klik een Botty aan en je ziet haar **gedachtenstroom** — en wat ze over zichzelf leerde.
 - **Sekse-sprites & looppas** — mannelijke en vrouwelijke Botty's door alle vijf de
   levensfasen, met een echte loop-animatie en een liggende slaaphouding.
 - **Jij bent de hand** — aaien, voeren, medicijn geven of een woord leren bij het
