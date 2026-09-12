@@ -247,6 +247,27 @@ function spiegelContingentie(b: any): number {
   b.spiegel.n = (b.spiegel.n || 0) + 1;
   return b.spiegel.cont;
 }
+// ── v13 §7b — Metacognitie: weten wat je kunt (Gaven et al., 2025, MAGELLAN) ─────
+// MAGELLAN laat een agent haar EIGEN competentie voorspellen en die schatting gebruiken
+// om doelen te kiezen. v10 had hier alleen een tekstregel over twijfel — dat was de
+// schíjn van metacognitie. Nu is het een echte, bijgestelde schatting per drive, en de
+// toets is KALIBRATIE: wie zegt "dit lukt me meestal" moet dat ook waarmaken.
+// Functioneel gevolg: wie zichzelf laag inschat zoekt eerder een ander op in plaats
+// van alleen door te modderen — waar het doelgerichte helpen uit §5 haar opvangt.
+const METACOGNITIE = true;   // v13 §7b aan (false = ablatie: geen zelfinschatting)
+const META_LR      = 0.25;   // hoe hard één uitkomst de schatting bijstelt
+
+function competentieVan(b: any, drive: string): number {
+  if (!METACOGNITIE) return 0.5;
+  return b.competentie?.[drive] ?? 0.5;   // nog onbekend = eerlijk in het midden
+}
+function competentieUpdate(b: any, drive: string, gelukt: boolean) {
+  if (!METACOGNITIE) return;
+  b.competentie = b.competentie || {};
+  const oud = b.competentie[drive] ?? 0.5;
+  b.competentie[drive] = +Math.max(0, Math.min(1, oud + META_LR * ((gelukt ? 1 : 0) - oud))).toFixed(3);
+}
+
 // ── v13 §6 — Episodisch geheugen dat keuzes stuurt (Lengyel & Dayan, NIPS 20) ────
 // Naast de langzame, statistische leerder (breinLeer) bestaat er een "derde weg":
 // episodische controle. Eén concrete, geslaagde herinnering kan direct een keuze
@@ -1260,6 +1281,16 @@ function denkBewust(b: any, ctx: { getallen?: number[]; anderen: any[] }) {
       b.gedachte = uit(kies(["Dit had ik niet van mezelf verwacht…", "Ik snap mezelf even niet", "Zo ken ik mezelf niet"]));
       return;
     }
+    // v13 §7b: een uitspraak over eigen kunnen die op een ECHTE, bijgestelde schatting
+    // leunt — geen loze twijfel meer. Alleen als ze er ervaring mee heeft.
+    if (METACOGNITIE && b.competentie) {
+      const dr = DRIVE_STATS.map(s2 => ({ s: s2, v: b[s2] ?? 100 })).sort((p, q) => p.v - q.v)[0];
+      const k = dr && b.competentie[dr.s];
+      if (typeof k === "number") {
+        if (k > 0.75)      { b.gedachte = uit(kies(["Dit lukt me meestal wel", "Hier ben ik goed in", "Dat krijg ik wel voor elkaar"])); return; }
+        if (k < 0.35)      { b.gedachte = uit(kies(["Ik weet niet of dit me gaat lukken", "Hier loop ik steeds op vast", "Dit kan ik blijkbaar niet alleen"])); return; }
+      }
+    }
     if (b.zelfbeeld) {
       b.gedachte = uit(kies([b.zelfbeeld + ".", "Ik ben nu eenmaal iemand die zo is: " + b.zelfbeeld, "Diep vanbinnen weet ik: " + b.zelfbeeld, "Wie ben ik? " + b.zelfbeeld]));
       return;
@@ -1383,6 +1414,16 @@ function kiesDoel(b: any, ctx: { anderen: any[] }) {
       const o = kiesObjectVoor(b, drive.s);
       kand.push({ doel: { soort: "zelfzorg", stat: drive.s, obj: o.id, px: o.x, py: o.y, tekst: o.doe, mislukt: 0 },
         focus: o.doe, bron: "drive", sal: 12 + tekort * 1.4, val: -0.3 - tekort / 150 });
+      // v13 §7b: schat ze zichzelf laag in voor déze drive, dan is een ander opzoeken
+      // verstandiger dan alleen doormodderen — daar vangt het helpen uit §5 haar op.
+      const kunnen = competentieVan(b, drive.s);
+      if (METACOGNITIE && kunnen < 0.4 && b.pos) {
+        const buur = (ctx.anderen || []).filter((x: any) => x !== b && !x.bezigEi && x.pos)
+          .sort((u: any, v: any) => afstand2(b.pos, u.pos) - afstand2(b.pos, v.pos))[0];
+        if (buur) kand.push({ doel: { soort: "gezelschap", naar: buur.naam, tekst: "naar " + buur.naam },
+          focus: "hulp zoeken bij " + buur.naam, bron: "sociaal",
+          sal: (8 + tekort * 0.9) * (1 - kunnen) * 2, val: -0.1 });
+      }
     }
   }
 
@@ -1612,6 +1653,7 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
 
       breinLeer(b, drive, obj.id, beloond);
       onthoudEpisode(b, drive, obj.id, beloond);   // v13 §6: de concrete ervaring zelf
+      competentieUpdate(b, drive, beloond);        // v13 §7b: en wat het zegt over haar kunnen
       b.stemming = klem((b.stemming ?? 50) + (beloond ? 1.5 : 0.2));
       if (beloond) {
         b.doel.mislukt = 0;
@@ -2019,7 +2061,7 @@ async function broadcast(payload: object) {
 // Zware leer-/geheugenvelden: alleen het construct-breinpaneel gebruikt deze, en
 // dan nog enkel voor de geselecteerde Botty. Ze vormen ~80% van elke rij, dus we
 // laten ze wég uit de live-broadcast en laten de client ze on-demand ophalen.
-const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag", "tom", "episodes"];
+const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag", "tom", "episodes", "competentie"];
 function slankeBottys(bottys: any[]): any[] {
   return bottys.map((b) => { const s: any = { ...b }; for (const k of ZWARE_VELDEN) delete s[k]; return s; });
 }
