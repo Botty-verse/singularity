@@ -93,11 +93,19 @@ Daarom labelen we elk onderdeel met hoe het zich tot de wetenschap verhoudt:
 - 🔬 **Getoetst resultaat (in de literatuur)** — een empirisch gevalideerde bevinding
   waarop we leunen; niet: bewijs dat onze simulatie hetzelfde dóet.
 
-Het meest concreet en eerlijk aangesloten zijn de **Creatures-architectuur**
-(Grand & Cliff) en het **associatieve leren** (Rescorla–Wagner / beloningsvoorspelling):
-daar staat een echt, zij het vereenvoudigd, mechanisme in de code. De lagen rond
-**bewustzijn, theory of mind en zelfherkenning** zijn nadrukkelijk terughoudender:
-daar bootsen we vooral de *schijn* van het verschijnsel na.
+Het meest concreet aangesloten zijn de **Creatures-architectuur** (Grand & Cliff) en
+het **associatieve leren** (Rescorla–Wagner / beloningsvoorspelling). Sinds **v13** zijn
+daar geleerde mechanismen bijgekomen met elk een controleconditie: een **lichaamsmodel**,
+**zelfherkenning** via contingentie aan de spiegel, **leerprogressie**-gedreven
+nieuwsgierigheid, een model van **wat een buur gelooft**, episodische controle en
+**gekalibreerde** zelfinschatting.
+
+Twee dingen blijven nadrukkelijk terughoudend. **Bewustzijn** is en blijft 🧭
+ontwerpinspiratie: het podium is een metafoor, en de gedeelde werkruimte uit de
+literatuur hebben we bewust *niet* geïmplementeerd omdat we er geen toets voor konden
+bedenken die hem kan weerleggen. En hoe geleerd de zelfherkenning en het buur-model ook
+zijn — het blijft **belief-tracking uit gedrag**, geen mentaliseren, en technisch slagen
+voor een merkproef is geen meting van subjectief zelfbesef.
 
 ### Het podium — Global Workspace Theory *(bewustzijn.md §3)* — 🧭 ontwerpinspiratie
 > We gebruiken GWT als *metafoor* voor het "podium" (één aandachtsplek). Geen claim
