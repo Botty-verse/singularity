@@ -247,6 +247,37 @@ function spiegelContingentie(b: any): number {
   b.spiegel.n = (b.spiegel.n || 0) + 1;
   return b.spiegel.cont;
 }
+// ── v13 §6 — Episodisch geheugen dat keuzes stuurt (Lengyel & Dayan, NIPS 20) ────
+// Naast de langzame, statistische leerder (breinLeer) bestaat er een "derde weg":
+// episodische controle. Eén concrete, geslaagde herinnering kan direct een keuze
+// sturen — en dat wint juist wanneer de ERVARING SCHAARS is, want de incrementele
+// leerder heeft dan nog te weinig data en exploreert bovendien 40% van de tijd weg
+// van wat ze net werkend zag. Naarmate de ervaring groeit neemt de statistiek het
+// over. Het eerlijke risico staat er meteen bij: een ooit-geslaagde oplossing kan
+// achterhaald raken, dus telt binnen een drive altijd de MEEST RECENTE episode —
+// één mislukking maakt de herinnering ongeldig.
+const EPISODISCH     = true;   // v13 §6 aan (false = ablatie: alleen incrementeel leren)
+const EPISODES_MAX   = 8;      // korte ringbuffer per Botty (payload blijft klein)
+const EPISODISCH_TOT = 8;      // zolang breinN hieronder ligt, mag de herinnering beslissen
+
+function onthoudEpisode(b: any, drive: string, objId: string, goed: boolean) {
+  if (!EPISODISCH) return;
+  b.episodes = Array.isArray(b.episodes) ? b.episodes : [];
+  b.episodes.push({ d: drive, o: objId, g: goed ? 1 : 0 });
+  if (b.episodes.length > EPISODES_MAX) b.episodes.splice(0, b.episodes.length - EPISODES_MAX);
+}
+// De meest recente episode voor deze drive. Liep die goed af, dan is dat de keuze;
+// liep hij slecht af, dan zwijgt het geheugen en beslist de statistiek weer.
+function episodischeKeus(b: any, drive: string) {
+  if (!EPISODISCH || !Array.isArray(b.episodes)) return null;
+  for (let i = b.episodes.length - 1; i >= 0; i--) {
+    const e = b.episodes[i];
+    if (e.d !== drive) continue;
+    return e.g ? (OBJECTEN.find(o => o.id === e.o) ?? null) : null;
+  }
+  return null;
+}
+
 // ── v13 §5 — Theory of mind: een model van wat een ánder gelooft ─────────────────
 // Rabinowitz et al. (2018, ToMnet): modelleer een andere agent door haar GEDRAG te
 // observeren en daaruit haar overtuigingen af te leiden. De objecten hier staan vast,
@@ -370,6 +401,9 @@ function voorkeurObject(b: any): string | null {
 
 function kiesObjectVoor(b: any, drive: string) {
   const n = b.breinN?.[drive] ?? 0;
+  // v13 §6: bij schaarse ervaring beslist één geslaagde herinnering, vóór de
+  // exploratie-loterij hieronder. Met genoeg ervaring neemt de statistiek het over.
+  if (n < EPISODISCH_TOT) { const ep = episodischeKeus(b, drive); if (ep) return ep; }
   const eps = Math.max(BREIN_EPS_MIN, BREIN_EPS_MAX - n * 0.03);
   if (Math.random() < eps) return OBJECTEN[Math.floor(Math.random() * OBJECTEN.length)]; // exploratie
   let best = OBJECTEN[0], bestW = -Infinity;                                             // exploitatie
@@ -1577,6 +1611,7 @@ function zelfzorgRonde(bottys: any[], events: object[] | null) {
       b.chem.verveling = Math.max(0, (b.chem.verveling ?? 0) + (verrassing < 0.15 ? 1.4 : -Math.min(4, verrassing * 5)));
 
       breinLeer(b, drive, obj.id, beloond);
+      onthoudEpisode(b, drive, obj.id, beloond);   // v13 §6: de concrete ervaring zelf
       b.stemming = klem((b.stemming ?? 50) + (beloond ? 1.5 : 0.2));
       if (beloond) {
         b.doel.mislukt = 0;
@@ -1984,7 +2019,7 @@ async function broadcast(payload: object) {
 // Zware leer-/geheugenvelden: alleen het construct-breinpaneel gebruikt deze, en
 // dan nog enkel voor de geselecteerde Botty. Ze vormen ~80% van elke rij, dus we
 // laten ze wég uit de live-broadcast en laten de client ze on-demand ophalen.
-const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag", "tom"];
+const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag", "tom", "episodes"];
 function slankeBottys(bottys: any[]): any[] {
   return bottys.map((b) => { const s: any = { ...b }; for (const k of ZWARE_VELDEN) delete s[k]; return s; });
 }
