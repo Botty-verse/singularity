@@ -19,7 +19,7 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PROJECT_REF: oblzouaapvdippyhxmpo
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Controleer of het secret aanwezig is
         id: guard
@@ -29,18 +29,21 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # setup-cli lost "latest" op via de GitHub API; die call kan zeldzaam
-      # rate-limiten ("Failed to resolve latest Supabase CLI release"). Daarom een
-      # eerste poging die mag falen, en na een korte wachttijd een tweede poging.
+      # Een vaste versie in plaats van "latest": setup-cli hoeft dan geen
+      # ongeauthenticeerde GitHub-API-call te doen om de laatste release op te
+      # zoeken. Die call liep tegen de rate limit aan ("Failed to resolve latest
+      # Supabase CLI release"), ook bij een tweede poging — een wachttijd helpt
+      # niet tegen een uitgeput uur-quotum van de runner.
+      # Versie bijwerken: https://github.com/supabase/cli/releases
       - name: Supabase CLI installeren
         id: cli1
         if: steps.guard.outputs.skip != 'true'
         continue-on-error: true
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
 
-      - name: Even wachten na een rate-limit
+      - name: Even wachten na een hapering
         if: steps.guard.outputs.skip != 'true' && steps.cli1.outcome == 'failure'
         run: sleep 30
 
@@ -48,7 +51,7 @@ jobs:
         if: steps.guard.outputs.skip != 'true' && steps.cli1.outcome == 'failure'
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.117.0
 
       - name: hive-tick deployen
         if: steps.guard.outputs.skip != 'true'
