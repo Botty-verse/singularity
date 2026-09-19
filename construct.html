@@ -215,6 +215,25 @@
   footer a{color:#b89a6a;text-decoration:none;font-weight:700;font-size:.9rem;}
   footer a:hover{color:#ffe6a8;}
 
+  /* ── Muziekpaneel: de soundtrack van de hive, linksonder ──────────────────
+     Bewust géén autoplay: browsers blokkeren geluid dat zonder klik begint, en
+     ongevraagde muziek over de Botty-stemmen heen is ook niet fijn. De bezoeker
+     zet 'm zelf aan; daarna blijft de speler staan zolang deze pagina open is. */
+  .muziekdok{position:fixed;left:14px;bottom:14px;z-index:60;font-family:inherit;}
+  .muziekknop{display:flex;align-items:center;gap:.45rem;cursor:pointer;
+       background:linear-gradient(180deg,#241a10,#1c130b);border:2px solid #6b4a2b;color:#f6c75a;
+       border-radius:14px;padding:.5rem .8rem;font-weight:900;font-size:.82rem;letter-spacing:.03em;
+       box-shadow:0 6px 20px rgba(0,0,0,.45);}
+  .muziekknop:hover{border-color:#a97b43;color:#ffe6a8;}
+  .muziekdok .paneel{display:none;margin-bottom:.5rem;width:320px;max-width:calc(100vw - 28px);
+       background:linear-gradient(180deg,#241a10,#1c130b);border:2px solid #6b4a2b;border-radius:16px;
+       padding:.6rem;box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  .muziekdok.open .paneel{display:block;}
+  .muziekdok .paneel iframe{display:block;width:100%;height:152px;border:0;border-radius:12px;}
+  .muziekdok .bijschrift{margin:.45rem .2rem 0;color:#b89a6a;font-size:.72rem;line-height:1.45;}
+  .muziekdok .bijschrift a{color:#f6c75a;}
+  @media (max-width:420px){ .muziekdok{left:10px;bottom:10px;} }
+
   /* ── Landschap-modus: op een liggend (mobiel) scherm alleen het speelveld ── */
   @media (orientation:landscape) and (max-height:600px){
     html,body{height:100%;overflow:hidden;background:#000;}
@@ -1657,6 +1676,48 @@
   setInterval(function(){ if(sel && !document.hidden) laadBreinDetail(); }, 30000);   // niet pollen op de achtergrond
   // Vangnet: alleen ná stilte (geen broadcast) de staat opnieuw ophalen.
   setInterval(function(){ if(!document.hidden && Date.now()-laatsteStaat > 15000) laad(); }, 15000);
+})();
+</script>
+
+<!-- De soundtrack van de hive. De iframe wordt pas ingeladen bij de eerste klik,
+     zodat een bezoeker die niets met muziek wil geen enkele byte naar Spotify stuurt. -->
+<div class="muziekdok" id="muziekdok">
+  <div class="paneel" id="muziekpaneel"></div>
+  <button type="button" class="muziekknop" id="muziekknop" aria-expanded="false" aria-controls="muziekpaneel"
+          title="De soundtrack van de hive">🎧 <span id="muziekknop-tekst">Muziek</span></button>
+</div>
+<script>
+(function(){
+  var dok = document.getElementById("muziekdok");
+  var knop = document.getElementById("muziekknop");
+  var tekst = document.getElementById("muziekknop-tekst");
+  var paneel = document.getElementById("muziekpaneel");
+  var geladen = false;
+
+  function vulPaneel(){
+    if(geladen) return;
+    geladen = true;
+    paneel.innerHTML =
+      '<iframe src="https://open.spotify.com/embed/playlist/1sRUrMj1kG9m9BaKmwrbaf?theme=0" ' +
+      'title="Spotify: de soundtrack van de hive" loading="lazy" ' +
+      'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>' +
+      '<p class="bijschrift">Vijfentwintig nummers die een Botty-leven volgen. Druk op play — ' +
+      'de muziek blijft spelen zolang je in het lokaal blijft.</p>';
+  }
+
+  function zet(open){
+    dok.classList.toggle("open", open);
+    knop.setAttribute("aria-expanded", open ? "true" : "false");
+    tekst.textContent = open ? "Verberg" : "Muziek";
+    if(open) vulPaneel();
+    try { localStorage.setItem("botty-muziek", open ? "1" : "0"); } catch(e){}
+  }
+
+  knop.addEventListener("click", function(){ zet(!dok.classList.contains("open")); });
+
+  // Onthoud of het paneel openstond. De muziek zelf start nooit vanzelf: een
+  // browser staat dat niet toe zonder klik, en dat is maar goed ook.
+  try { if(localStorage.getItem("botty-muziek") === "1") zet(true); } catch(e){}
 })();
 </script>
 </body>
