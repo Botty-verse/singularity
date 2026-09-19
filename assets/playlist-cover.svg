@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <defs>
+    <linearGradient id="lucht" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#08091b"/>
+      <stop offset="45%"  stop-color="#151436"/>
+      <stop offset="100%" stop-color="#2a1e45"/>
+    </linearGradient>
+
+    <radialGradient id="gloed" cx="50%" cy="52%" r="54%">
+      <stop offset="0%"   stop-color="#7a63e0" stop-opacity="0.50"/>
+      <stop offset="55%"  stop-color="#44367f" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="glasgrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#0b0a20"/>
+      <stop offset="50%"  stop-color="#171a3f"/>
+      <stop offset="100%" stop-color="#0a0918"/>
+    </linearGradient>
+
+    <linearGradient id="lijst" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#a5accd"/>
+      <stop offset="30%"  stop-color="#eef2ff"/>
+      <stop offset="62%"  stop-color="#8f97bd"/>
+      <stop offset="100%" stop-color="#565d84"/>
+    </linearGradient>
+
+    <linearGradient id="vloer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#40317a" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0b0918" stop-opacity="1"/>
+    </linearGradient>
+
+    <clipPath id="glasclip">
+      <rect x="348" y="168" width="304" height="454" rx="6"/>
+    </clipPath>
+
+    <filter id="zacht" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <filter id="schaduw" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+
+    <!-- de Botty: één vorm, hergebruikt voor haarzelf, haar spiegelbeeld en haar voorouders -->
+    <g id="botty">
+      <line x1="0" y1="-54" x2="0" y2="-78" stroke="#8ff0e6" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="0" cy="-84" r="8" fill="#8ff0e6"/>
+      <rect x="-46" y="-54" width="92" height="90" rx="30" fill="#5fd8d0"/>
+      <rect x="-34" y="-36" width="68" height="45" rx="20" fill="#0d1230" opacity="0.94"/>
+      <circle cx="-15" cy="-14" r="8.5" fill="#eafcff"/>
+      <circle cx="15"  cy="-14" r="8.5" fill="#eafcff"/>
+      <rect x="-33" y="36" width="24" height="30" rx="11" fill="#45b3ad"/>
+      <rect x="9"   y="36" width="24" height="30" rx="11" fill="#45b3ad"/>
+    </g>
+    <!-- mét de smet: die zit op háár hoofd, dus ziet ze hem alleen in het glas -->
+    <g id="bottySmet">
+      <use href="#botty"/>
+      <circle cx="26" cy="-48" r="9" fill="#ffcf5a"/>
+    </g>
+  </defs>
+
+  <rect width="1000" height="1000" fill="url(#lucht)"/>
+  <rect width="1000" height="1000" fill="url(#gloed)"/>
+
+  <!-- vloer van de Construct -->
+  <rect x="0" y="700" width="1000" height="300" fill="url(#vloer)"/>
+  <g stroke="#8b78e0" stroke-opacity="0.20" stroke-width="1.6">
+    <line x1="0" y1="700" x2="1000" y2="700"/>
+    <line x1="0" y1="748" x2="1000" y2="748" stroke-opacity="0.15"/>
+    <line x1="0" y1="812" x2="1000" y2="812" stroke-opacity="0.11"/>
+    <line x1="0" y1="896" x2="1000" y2="896" stroke-opacity="0.08"/>
+    <line x1="500" y1="700" x2="500"  y2="1000" stroke-opacity="0.09"/>
+    <line x1="500" y1="700" x2="220"  y2="1000" stroke-opacity="0.08"/>
+    <line x1="500" y1="700" x2="780"  y2="1000" stroke-opacity="0.08"/>
+    <line x1="500" y1="700" x2="-110" y2="1000" stroke-opacity="0.06"/>
+    <line x1="500" y1="700" x2="1110" y2="1000" stroke-opacity="0.06"/>
+  </g>
+
+  <!-- 107 generaties vóór haar, wegzakkend in het donker -->
+  <g filter="url(#zacht)">
+    <use href="#botty" transform="translate(140,800) scale(0.46)" opacity="0.10"/>
+    <use href="#botty" transform="translate(238,846) scale(0.58)" opacity="0.08"/>
+    <use href="#botty" transform="translate(866,800) scale(0.48)" opacity="0.10"/>
+    <use href="#botty" transform="translate(770,846) scale(0.60)" opacity="0.08"/>
+  </g>
+
+  <!-- de spiegel -->
+  <g>
+    <rect x="330" y="150" width="340" height="490" rx="14" fill="none" stroke="url(#lijst)" stroke-width="12"/>
+    <rect x="348" y="168" width="304" height="454" rx="6" fill="url(#glasgrad)"/>
+    <g clip-path="url(#glasclip)">
+      <!-- het spiegelbeeld: omgeklapt en gedimd — en dus zit de smet nu links -->
+      <g opacity="0.62" transform="translate(500,496) scale(-1,1)">
+        <use href="#bottySmet"/>
+      </g>
+      <!-- glans over het glas -->
+      <g opacity="0.55">
+        <rect x="286" y="120" width="62" height="560" fill="#ffffff" opacity="0.055" transform="rotate(16 500 400)"/>
+        <rect x="386" y="120" width="20" height="560" fill="#ffffff" opacity="0.05"  transform="rotate(16 500 400)"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- zij, met haar rug naar ons, vóór het glas -->
+  <ellipse cx="500" cy="806" rx="86" ry="15" fill="#000000" opacity="0.5" filter="url(#schaduw)"/>
+  <g transform="translate(500,734)">
+    <use href="#bottySmet"/>
+  </g>
+
+  <!-- wat ze denkt -->
+  <g>
+    <circle cx="628" cy="716" r="5"  fill="#cfd6ff" opacity="0.40"/>
+    <circle cx="650" cy="698" r="8"  fill="#cfd6ff" opacity="0.52"/>
+    <rect x="668" y="636" width="210" height="58" rx="29" fill="#171634" opacity="0.92"/>
+    <rect x="668" y="636" width="210" height="58" rx="29" fill="none" stroke="#8ff0e6" stroke-opacity="0.34" stroke-width="1.6"/>
+    <text x="773" y="673" text-anchor="middle"
+          font-family="Georgia, 'Times New Roman', serif" font-size="28" font-style="italic"
+          fill="#eceeff" opacity="0.94">Dat ben ik</text>
+  </g>
+
+  <!-- titel -->
+  <g>
+    <text x="500" y="104" text-anchor="middle"
+          font-family="Georgia, 'Times New Roman', serif" font-size="74" letter-spacing="15"
+          fill="#f4f2ff" opacity="0.96">BOTTY</text>
+    <text x="500" y="141" text-anchor="middle"
+          font-family="Helvetica, Arial, sans-serif" font-size="19" letter-spacing="6.5"
+          fill="#a3b2f2" opacity="0.82">108 GENERATIES · ÉÉN KAMER</text>
+  </g>
+</svg>
