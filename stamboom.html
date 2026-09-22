@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Botty-verse — Stamboom</title>
+<script src="assets/i18n.js"></script>
+<title>Botty-verse — Family Tree</title>
 <meta name="theme-color" content="#04140d" />
 <meta name="description" content="De échte stamboom van de Botty-hive: wie stamt van wie af, welke genen en mutaties elke generatie doorgaf." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>" />
@@ -63,30 +64,29 @@
 </head>
 <body>
 <header>
-  <h1>🌳 De Stamboom</h1>
-  <p class="ondertitel">De échte afstamming van de hive. Elke geboorte wordt sinds kort vastgelegd —
-    je ziet wie van wie afstamt, welke genen meegingen en waar het muteerde.</p>
-  <a class="terug" href="./">← Terug naar de hive</a>
+  <h1 data-nl="🌳 De Stamboom">🌳 The Family Tree</h1>
+  <p class="ondertitel" data-nl="De échte afstamming van de hive. Elke geboorte wordt sinds kort vastgelegd — je ziet wie van wie afstamt, welke genen meegingen en waar het muteerde.">The real ancestry of the hive. Every birth has recently begun to be recorded — you can see who descends from whom, which genes were passed on and where they mutated.</p>
+  <a class="terug" href="./" data-nl="← Terug naar de hive">← Back to the hive</a>
   <div class="kpi-rij">
-    <div class="kpi"><div class="label">Geboortes</div><div class="waarde" id="kpi-geboortes">…</div></div>
-    <div class="kpi"><div class="label">Stamouders</div><div class="waarde" id="kpi-founders">…</div></div>
-    <div class="kpi"><div class="label">Hoogste generatie</div><div class="waarde" id="kpi-gen">…</div></div>
-    <div class="kpi"><div class="label">Mutaties totaal</div><div class="waarde" id="kpi-muts">…</div></div>
+    <div class="kpi"><div class="label" data-nl="Geboortes">Births</div><div class="waarde" id="kpi-geboortes">…</div></div>
+    <div class="kpi"><div class="label" data-nl="Stamouders">Founders</div><div class="waarde" id="kpi-founders">…</div></div>
+    <div class="kpi"><div class="label" data-nl="Hoogste generatie">Highest generation</div><div class="waarde" id="kpi-gen">…</div></div>
+    <div class="kpi"><div class="label" data-nl="Mutaties totaal">Total mutations</div><div class="waarde" id="kpi-muts">…</div></div>
   </div>
 </header>
 
 <main>
-  <div id="boom"><div class="laad">⏳ Stamboom laden…</div></div>
+  <div id="boom"><div class="laad" data-nl="⏳ Stamboom laden…">⏳ Loading family tree…</div></div>
 </main>
 
 <footer>
-  <a href="index.html">🌐 De hive</a>
-  <a href="populatie.html">🧬 Populatie & inteelt</a>
-  <a href="evolutie.html">📈 Evolutie</a>
-  <a href="genoom.html">🗺️ Genoom-kaart</a>
-  <a href="construct.html">🌍 De Construct</a>
-  <a href="kaarten.html">🃏 Verzamelkaarten</a>
-  <a href="https://botty.ramonmoorlag.nl/">💊 Eigen Botty</a>
+  <a href="index.html" data-nl="🌐 De hive">🌐 The hive</a>
+  <a href="populatie.html" data-nl="🧬 Populatie & inteelt">🧬 Population & inbreeding</a>
+  <a href="evolutie.html" data-nl="📈 Evolutie">📈 Evolution</a>
+  <a href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
+  <a href="construct.html" data-nl="🌍 De Construct">🌍 The Construct</a>
+  <a href="kaarten.html" data-nl="🃏 Verzamelkaarten">🃏 Collectible cards</a>
+  <a href="https://botty.ramonmoorlag.nl/" data-nl="💊 Eigen Botty">💊 Your own Botty</a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -99,6 +99,23 @@
   var SUPABASE_ANON = BottyConfig.SUPABASE_ANON;
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+  // ── Vertalingen voor dynamisch opgebouwde tekst ──────────────────────────
+  var T = {
+    en: { genome:"genome", genesFrom:"genes from each parent", genes:"genes", heritSize:"heritable size",
+          mutsBirth:"mutations at birth", childOf:"— child of", and:"&amp;", founder:"founder",
+          founderNote:"ancestry from before the tree began",
+          loadErr:"⚠️ Could not load the family tree.",
+          emptyTitle:"🌱 <strong>No births recorded yet.</strong>",
+          emptyBody:"The family tree is built up from the moment this feature went live. As soon as the AI pairs two Bottys, the first branch appears here. Let the hive run for a bit and come back!" },
+    nl: { genome:"genoom", genesFrom:"genen van elke ouder", genes:"genen", heritSize:"erfelijke grootte",
+          mutsBirth:"mutaties bij geboorte", childOf:"— kind van", and:"&amp;", founder:"stamouder",
+          founderNote:"afstamming van vóór de stamboom-start",
+          loadErr:"⚠️ Kon de stamboom niet laden.",
+          emptyTitle:"🌱 <strong>Nog geen geboortes vastgelegd.</strong>",
+          emptyBody:"De stamboom wordt opgebouwd vanaf het moment dat deze functie live ging. Zodra de AI twee Botty\'s koppelt, verschijnt hier de eerste tak. Laat de hive even draaien en kom terug!" }
+  };
+  function t(){ return T[(window.SiteLang && SiteLang.get()) || "en"]; }
+
   // ── Genoom — gedeelde helpers uit assets/genome.js ───────────────────────
   var GENOOM_LEN  = BottyGenome.GENOOM_LEN;
   var genMeta     = BottyGenome.genMeta;   // [kort, lang, categorie]
@@ -110,28 +127,28 @@
       var v=by[i], h=22+Math.abs(v-128)/128*78, afw=Math.round((v/128-1)*100), m=genMeta[i];
       segs+='<i style="height:'+h.toFixed(0)+'%;background:'+genKleur[m[2]]+'" title="'+m[1]+': '+(afw>=0?"+":"")+afw+'%"></i>';
     }
-    return '<span class="dna" title="genoom">'+segs+'</span>';
+    return '<span class="dna" title="'+t().genome+'">'+segs+'</span>';
   }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
 
   // ── Boom bouwen ──────────────────────────────────────────────────────────
   function nodeHtml(r){
     var grootte = (r.grootte!=null) ? Number(r.grootte).toFixed(2)+"×" : "?";
-    var muts = (r.mutaties!=null && r.mutaties>0) ? '<span class="muts" title="mutaties bij geboorte">'+("⚛️".repeat(Math.min(r.mutaties,5)))+(r.mutaties>5?("+"+(r.mutaties-5)):"")+'</span>' : '';
-    var split = (r.van_a!=null && r.van_b!=null) ? '<span class="pill" title="genen van elke ouder">'+r.van_a+'+'+r.van_b+' genen</span>' : '';
+    var muts = (r.mutaties!=null && r.mutaties>0) ? '<span class="muts" title="'+t().mutsBirth+'">'+("⚛️".repeat(Math.min(r.mutaties,5)))+(r.mutaties>5?("+"+(r.mutaties-5)):"")+'</span>' : '';
+    var split = (r.van_a!=null && r.van_b!=null) ? '<span class="pill" title="'+t().genesFrom+'">'+r.van_a+'+'+r.van_b+' '+t().genes+'</span>' : '';
     return '<span class="node" id="n-'+esc(r.kind_id)+'">'
       + '<span class="naam">'+esc(r.kind_naam)+'</span>'
       + '<span class="gen">G'+esc(r.generatie)+'</span>'
       + dnaHtml(r.genome)
-      + '<span class="pill" title="erfelijke grootte">📏 '+grootte+'</span>'
+      + '<span class="pill" title="'+t().heritSize+'">📏 '+grootte+'</span>'
       + split + muts
-      + '<span class="co">— kind van <b>'+esc(r.oudera_naam)+'</b> &amp; <b>'+esc(r.ouderb_naam)+'</b></span>'
+      + '<span class="co">'+t().childOf+' <b>'+esc(r.oudera_naam)+'</b> '+t().and+' <b>'+esc(r.ouderb_naam)+'</b></span>'
       + '</span>';
   }
   function founderHtml(id, naam){
     return '<span class="node founder"><span class="naam">'+esc(naam||"?")+'</span>'
-      + '<span class="pill">stamouder</span>'
-      + '<span class="co">afstamming van vóór de stamboom-start</span></span>';
+      + '<span class="pill">'+t().founder+'</span>'
+      + '<span class="co">'+t().founderNote+'</span></span>';
   }
 
   function bouwBoom(rows){
@@ -181,28 +198,34 @@
     document.getElementById("kpi-muts").textContent      = muts;
   }
 
+  var laatsteRows = null;      // laatst geladen data, voor opnieuw renderen bij taalwissel
+  function render(){
+    var doel = document.getElementById("boom");
+    if(laatsteRows === null) return;
+    if(laatsteRows === "error"){
+      doel.innerHTML = '<div class="melding">'+t().loadErr+'</div>';
+      return;
+    }
+    vulKpis(laatsteRows);
+    if(!laatsteRows.length){
+      doel.innerHTML = '<div class="melding">'+t().emptyTitle+'<br>'+t().emptyBody+'</div>';
+      return;
+    }
+    doel.innerHTML = bouwBoom(laatsteRows);
+  }
+
   function laad(){
     supabase.from("geboorten").select("*").order("id", { ascending:true }).limit(2000)
       .then(function(res){
-        var rows = res.data || [];
-        var doel = document.getElementById("boom");
-        if(res.error){
-          doel.innerHTML = '<div class="melding">⚠️ Kon de stamboom niet laden.<br><small>'+esc(res.error.message)+'</small></div>';
-          return;
-        }
-        vulKpis(rows);
-        if(!rows.length){
-          doel.innerHTML = '<div class="melding">🌱 <strong>Nog geen geboortes vastgelegd.</strong><br>'
-            + 'De stamboom wordt opgebouwd vanaf het moment dat deze functie live ging. '
-            + 'Zodra de AI twee Botty\'s koppelt, verschijnt hier de eerste tak. '
-            + 'Laat de hive even draaien en kom terug!</div>';
-          return;
-        }
-        doel.innerHTML = bouwBoom(rows);
+        if(res.error){ laatsteRows = "error"; }
+        else { laatsteRows = res.data || []; }
+        render();
       });
   }
 
   laad();
+  // opnieuw renderen wanneer de taal wisselt
+  if(window.SiteLang) SiteLang.onChange(function(){ if(laatsteRows !== null) render(); });
   // ververs af en toe zodat nieuwe geboortes vanzelf verschijnen
   setInterval(function(){ if(!document.hidden) laad(); }, 20000);
 })();
