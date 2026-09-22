@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Botty-verse — De Singularity</title>
+<script src="assets/i18n.js"></script>
+<title>Botty-verse — The Singularity</title>
 <meta name="theme-color" content="#04140d" />
 <meta name="description" content="Botty's leven in een cloud-simulatie met een 16-gen genoom — grootte, kleur en gedrag kruisen en muteren elke generatie. De AI zorgt, ook als niemand kijkt." />
 <link rel="canonical" href="https://hive.ramonmoorlag.nl/" />
@@ -232,41 +233,58 @@
 
 <div class="cloud-badge">
   <div class="cloud-dot" id="cloud-dot"></div>
-  <span id="cloud-status">verbinden…</span>
+  <span id="cloud-status" data-nl="verbinden…">connecting…</span>
 </div>
 
 <header>
   <h1>Botty-verse</h1>
-  <p style="font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#5ec6ff;margin:.2rem 0 .15rem;text-align:center;opacity:.8;">v8 “Aard” — Persoonlijkheid &amp; eigen individuen</p>
-  <p class="ondertitel">De <strong>Singularity</strong>: Botty's leven in een simulatie en worden
+  <p style="font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#5ec6ff;margin:.2rem 0 .15rem;text-align:center;opacity:.8;" data-nl="v8 “Aard” — Persoonlijkheid &amp; eigen individuen">v8 “Nature” — Personality &amp; distinct individuals</p>
+  <p class="ondertitel t en">The <strong>Singularity</strong>: Bottys live in a simulation and are cared for
+    fully automatically by the AI. Each has a 16-gene genome that sets its size, colour and behaviour —
+    genes cross and mutate every generation. The hive runs in the <strong>cloud</strong>, even when no one is watching.</p>
+  <p class="ondertitel t nl">De <strong>Singularity</strong>: Botty's leven in een simulatie en worden
     volledig automatisch door de AI verzorgd. Elk heeft een 16-gen genoom dat grootte, kleur en gedrag bepaalt —
     genen kruisen en muteren elke generatie. De hive draait in de <strong>cloud</strong>, ook als niemand kijkt.</p>
   <div class="kpi-rij">
-    <div class="kpi"><div class="label">Botty's</div><div class="waarde" id="kpi-aantal">—</div><div class="sub">in de hive</div></div>
-    <div class="kpi"><div class="label">AI-acties</div><div class="waarde" id="kpi-acties">—</div><div class="sub">uitgevoerd</div></div>
-    <div class="kpi"><div class="label">Gem. genen</div><div class="waarde" id="kpi-genen">—</div><div class="sub">kwaliteit</div></div>
-    <div class="kpi"><div class="label">Uptime</div><div class="waarde" id="kpi-uptime">—</div><div class="sub">hive actief</div></div>
+    <div class="kpi"><div class="label" data-nl="Botty's">Bottys</div><div class="waarde" id="kpi-aantal">—</div><div class="sub" data-nl="in de hive">in the hive</div></div>
+    <div class="kpi"><div class="label" data-nl="AI-acties">AI actions</div><div class="waarde" id="kpi-acties">—</div><div class="sub" data-nl="uitgevoerd">performed</div></div>
+    <div class="kpi"><div class="label" data-nl="Gem. genen">Avg. genes</div><div class="waarde" id="kpi-genen">—</div><div class="sub" data-nl="kwaliteit">quality</div></div>
+    <div class="kpi"><div class="label" data-nl="Uptime">Uptime</div><div class="waarde" id="kpi-uptime">—</div><div class="sub" data-nl="hive actief">hive active</div></div>
   </div>
 </header>
 
-<div class="ticker-wrap" id="ticker"><span class="knip">▌</span> De hive verbindt met de cloud…</div>
+<div class="ticker-wrap" id="ticker"><span class="knip">▌</span> <span class="t en">The hive is connecting to the cloud…</span><span class="t nl">De hive verbindt met de cloud…</span></div>
 
 <details class="legenda-blok">
-  <summary>📖 Legenda — wat betekenen de iconen op een kaart?</summary>
+  <summary data-nl="📖 Legenda — wat betekenen de iconen op een kaart?">📖 Legend — what do the icons on a card mean?</summary>
   <div class="leg-grid">
     <div class="leg-groep">
-      <h4>📊 Bars — live toestand</h4>
-      <ul>
+      <h4 data-nl="📊 Bars — live toestand">📊 Bars — live state</h4>
+      <ul class="t en">
+        <li>⚡ <b>Energy</b> — fuel to function</li>
+        <li>💾 <b>Data</b> — knowledge; grows through training & exchange</li>
+        <li>🏃 <b>Fitness</b> — condition</li>
+        <li>😊 <b>Happiness</b> — mood</li>
+      </ul>
+      <ul class="t nl">
         <li>⚡ <b>Energie</b> — brandstof om te functioneren</li>
         <li>💾 <b>Data</b> — kennis; groeit door training & uitwisseling</li>
         <li>🏃 <b>Fit</b> — conditie</li>
         <li>😊 <b>Geluk</b> — humeur</li>
       </ul>
-      <p class="leg-noot">Bereik <b>0–100%</b> (0 = uitgeput, 100 = vol). De AI vult ze bij met zorg; ze vervallen vanzelf.</p>
+      <p class="leg-noot t en">Range <b>0–100%</b> (0 = depleted, 100 = full). The AI tops them up with care; they decay on their own.</p>
+      <p class="leg-noot t nl">Bereik <b>0–100%</b> (0 = uitgeput, 100 = vol). De AI vult ze bij met zorg; ze vervallen vanzelf.</p>
     </div>
     <div class="leg-groep">
-      <h4>🔢 Cijfers boven de kaart</h4>
-      <ul>
+      <h4 data-nl="🔢 Cijfers boven de kaart">🔢 Numbers above the card</h4>
+      <ul class="t en">
+        <li>🧬 <b>Data quality</b> <span class="leg-bereik">0–100</span> — smartness: sets the care effect</li>
+        <li>💪 <b>Efficiency</b> <span class="leg-bereik">0–100</span> — muscle power / output</li>
+        <li>⭐ <b>Generation</b> <span class="leg-bereik">G1 and up</span> — which generation it is</li>
+        <li>📏 <b>Size</b> <span class="leg-bereik">0.80–1.20×</span> — heritable body size</li>
+        <li>🧠 <b>IQ</b> <span class="leg-bereik">starts at 100</span> — innate smartness score</li>
+      </ul>
+      <ul class="t nl">
         <li>🧬 <b>Datakwaliteit</b> <span class="leg-bereik">0–100</span> — slimheid: bepaalt het zorg-effect</li>
         <li>💪 <b>Efficiëntie</b> <span class="leg-bereik">0–100</span> — spierkracht / output</li>
         <li>⭐ <b>Generatie</b> <span class="leg-bereik">G1 en hoger</span> — de hoeveelste generatie</li>
@@ -275,8 +293,14 @@
       </ul>
     </div>
     <div class="leg-groep">
-      <h4>🧬 DNA-streepje</h4>
-      <p class="leg-noot">16 balkjes, één per gen. Hoger balkje = sterker dan neutraal (byte 128, ×1.0). Kleur = categorie:
+      <h4 data-nl="🧬 DNA-streepje">🧬 DNA strip</h4>
+      <p class="leg-noot t en">16 bars, one per gene. Taller bar = stronger than neutral (byte 128, ×1.0). Colour = category:
+        <span class="leg-cat" style="background:#e0556b">decay</span>
+        <span class="leg-cat" style="background:#5fd0a8">care</span>
+        <span class="leg-cat" style="background:#f6a623">risk</span>
+        <span class="leg-cat" style="background:#7b9bff">other</span>.
+        Hover over it, or view the full genome on the <a href="genoom.html" style="color:#5ec6ff;font-weight:700">genome map</a>.</p>
+      <p class="leg-noot t nl">16 balkjes, één per gen. Hoger balkje = sterker dan neutraal (byte 128, ×1.0). Kleur = categorie:
         <span class="leg-cat" style="background:#e0556b">verval</span>
         <span class="leg-cat" style="background:#5fd0a8">zorg</span>
         <span class="leg-cat" style="background:#f6a623">risico</span>
@@ -284,8 +308,14 @@
         Beweeg je muis erover, of bekijk het volledige genoom op de <a href="genoom.html" style="color:#5ec6ff;font-weight:700">genoom-kaart</a>.</p>
     </div>
     <div class="leg-groep">
-      <h4>✨ Mutaties</h4>
-      <ul>
+      <h4 data-nl="✨ Mutaties">✨ Mutations</h4>
+      <ul class="t en">
+        <li>☀️ <b>Solar panel</b> — slower data loss</li>
+        <li>📶 <b>Wifi</b> / 📡 <b>Antenna</b> — stronger knowledge exchange</li>
+        <li>👁️ <b>Third eye</b> — rare</li>
+        <li>⚛️ <b>Quantum chip</b> — strongly slows decay</li>
+      </ul>
+      <ul class="t nl">
         <li>☀️ <b>Zonnepaneel</b> — trager dataverlies</li>
         <li>📶 <b>Wifi</b> / 📡 <b>Antenne</b> — sterkere kennisuitwisseling</li>
         <li>👁️ <b>Derde oog</b> — zeldzaam</li>
@@ -293,9 +323,10 @@
       </ul>
     </div>
     <div class="leg-groep" style="grid-column:1/-1">
-      <h4>🏫 Objecten in de Construct — wat ze opleveren</h4>
-      <ul id="leg-objecten" class="leg-obj"><li>laden…</li></ul>
-      <p class="leg-noot">Elk object verhoogt bij gebruik <b>zijn eigen</b> stat. Een Botty weet vooraf níét welk object welke behoefte stilt — dat <b>leert</b> hij door te proberen (beloning bij succes), precies zoals in Creatures. Zie ze in actie in de <a href="construct.html" style="color:#5ec6ff;font-weight:700">Construct</a>.</p>
+      <h4 data-nl="🏫 Objecten in de Construct — wat ze opleveren">🏫 Objects in the Construct — what they yield</h4>
+      <ul id="leg-objecten" class="leg-obj"><li data-nl="laden…">loading…</li></ul>
+      <p class="leg-noot t en">Each object raises <b>its own</b> stat when used. A Botty does <b>not</b> know in advance which object relieves which need — it <b>learns</b> that by trying (reward on success), exactly like in Creatures. See them in action in the <a href="construct.html" style="color:#5ec6ff;font-weight:700">Construct</a>.</p>
+      <p class="leg-noot t nl">Elk object verhoogt bij gebruik <b>zijn eigen</b> stat. Een Botty weet vooraf níét welk object welke behoefte stilt — dat <b>leert</b> hij door te proberen (beloning bij succes), precies zoals in Creatures. Zie ze in actie in de <a href="construct.html" style="color:#5ec6ff;font-weight:700">Construct</a>.</p>
     </div>
   </div>
 </details>
@@ -303,27 +334,50 @@
 <div id="verse"></div>
 
 <div class="uitleg">
-  <p>Dit is automatiseringsniveau <strong>5 (Volledig)</strong> — de AI voert, beweegt, troost en repareert alle Botty's volledig zelf. Ze blijven perfect gezond en blij —
+  <p class="t en">This is automation level <strong>5 (Full)</strong> — the AI feeds, moves, comforts and repairs all Bottys entirely by itself. They stay perfectly healthy and happy —
+    but they have never spoken to a human.</p>
+  <p class="t nl">Dit is automatiseringsniveau <strong>5 (Volledig)</strong> — de AI voert, beweegt, troost en repareert alle Botty's volledig zelf. Ze blijven perfect gezond en blij —
     maar ze hebben nooit met een mens gepraat.</p>
-  <p>🧬 <strong>Voortplanting.</strong> Volwassen, goed verzorgde Botty's krijgen samen een kind. Eén ouder vertrekt, een ei verschijnt, een nieuwe generatie arriveert.</p>
-  <p>☁️ <strong>Cloud Hive.</strong> De simulatie draait volledig op Supabase — ook als niemand kijkt. Alle bezoekers zien dezelfde hive in real-time.</p>
+  <p class="t en">🧬 <strong>Reproduction.</strong> Adult, well-cared-for Bottys have a child together. One parent leaves, an egg appears, a new generation arrives.</p>
+  <p class="t nl">🧬 <strong>Voortplanting.</strong> Volwassen, goed verzorgde Botty's krijgen samen een kind. Eén ouder vertrekt, een ei verschijnt, een nieuwe generatie arriveert.</p>
+  <p class="t en">☁️ <strong>Cloud Hive.</strong> The simulation runs entirely on Supabase — even when no one is watching. All visitors see the same hive in real time.</p>
+  <p class="t nl">☁️ <strong>Cloud Hive.</strong> De simulatie draait volledig op Supabase — ook als niemand kijkt. Alle bezoekers zien dezelfde hive in real-time.</p>
 
-  <p>🧠 <strong>Een levend lijf én brein.</strong> Elke Botty heeft <strong>driften</strong> (energie, kennis, conditie, gezelschap) en daaronder een echte <strong>biochemie</strong> van veertien stofjes — metabolisme (glucose &amp; reserve), stress-stofjes en hormonen (endorfine, adrenaline, cortisol, oxytocine, libido). Ze <strong>speuren</strong> 🔎, <strong>ruiken</strong> 👃 en <strong>zien</strong> 👁️ hun weg naar een object, en <strong>leren door te doen</strong> wat hun honger, stijfheid of somberheid stilt — geen regel schrijft voor dat “de kruk helpt tegen stijfheid”; dat ontdekt een Botty zelf. En <strong>leeftijd telt mee</strong>: een ouder lijf heeft een trager metabolisme, wordt sneller moe en houdt stress langer vast.</p>
+  <p class="t en">🧠 <strong>A living body and mind.</strong> Every Botty has <strong>drives</strong> (energy, knowledge, condition, company) and beneath them a real <strong>body chemistry</strong> of fourteen substances — metabolism (glucose &amp; reserve), stress substances and hormones (endorphin, adrenaline, cortisol, oxytocin, libido). They <strong>scout</strong> 🔎, <strong>smell</strong> 👃 and <strong>see</strong> 👁️ their way to an object, and <strong>learn by doing</strong> what relieves their hunger, stiffness or gloom — no rule prescribes that “the stool helps against stiffness”; a Botty discovers that itself. And <strong>age counts</strong>: an older body has a slower metabolism, tires faster and holds on to stress longer.</p>
+  <p class="t nl">🧠 <strong>Een levend lijf én brein.</strong> Elke Botty heeft <strong>driften</strong> (energie, kennis, conditie, gezelschap) en daaronder een echte <strong>biochemie</strong> van veertien stofjes — metabolisme (glucose &amp; reserve), stress-stofjes en hormonen (endorfine, adrenaline, cortisol, oxytocine, libido). Ze <strong>speuren</strong> 🔎, <strong>ruiken</strong> 👃 en <strong>zien</strong> 👁️ hun weg naar een object, en <strong>leren door te doen</strong> wat hun honger, stijfheid of somberheid stilt — geen regel schrijft voor dat “de kruk helpt tegen stijfheid”; dat ontdekt een Botty zelf. En <strong>leeftijd telt mee</strong>: een ouder lijf heeft een trager metabolisme, wordt sneller moe en houdt stress langer vast.</p>
 
-  <p>🗣️ <strong>En ze delen het.</strong> Botty's verzinnen eigen woorden en geven ze door — en met die woorden reist ook de <strong>kennis</strong> mee: wie ontdekt wat werkt, leert het een soortgenoot in gesprek. Zo groeien er langzaam een gedeelde taal én een gedeeld weten in de hive, zonder dat wij iets voorschrijven. Bekijk het van dichtbij in de <a href="construct.html" style="color:#5ec6ff;font-weight:700">Construct</a>.</p>
+  <p class="t en">🗣️ <strong>And they share it.</strong> Bottys invent their own words and pass them on — and with those words the <strong>knowledge</strong> travels too: whoever discovers what works teaches a peer in conversation. So a shared language and a shared knowing slowly grow in the hive, without us prescribing anything. See it up close in the <a href="construct.html" style="color:#5ec6ff;font-weight:700">Construct</a>.</p>
+  <p class="t nl">🗣️ <strong>En ze delen het.</strong> Botty's verzinnen eigen woorden en geven ze door — en met die woorden reist ook de <strong>kennis</strong> mee: wie ontdekt wat werkt, leert het een soortgenoot in gesprek. Zo groeien er langzaam een gedeelde taal én een gedeeld weten in de hive, zonder dat wij iets voorschrijven. Bekijk het van dichtbij in de <a href="construct.html" style="color:#5ec6ff;font-weight:700">Construct</a>.</p>
 
   <hr style="border:none;border-top:1px solid #1a3d28;margin:1.4rem 0;">
 
-  <p>🧬 <strong>Wacht — hebben robotjes DNA?</strong><br>
+  <p class="t en">🧬 <strong>Wait — do little robots have DNA?</strong><br>
+    A little, yes. 😄 We gave every Botty a tiny scrap of <strong>digital DNA</strong>: a row of 16 numbers we call its <em>genome</em>. Just like with real creatures, it doesn't hold <em>what</em> the Botty does, but <em>how</em> it does it — one has a short fuse, another never gets ill, a third grows a bit larger. Nobody set that by hand; it's simply in the numbers.</p>
+  <p class="t nl">🧬 <strong>Wacht — hebben robotjes DNA?</strong><br>
     Een beetje wel, ja. 😄 We hebben elke Botty een piepklein stukje <strong>digitaal DNA</strong> gegeven: een rijtje van 16 getallen die we zijn <em>genoom</em> noemen. Net als bij echte beestjes staat daarin niet wát de Botty doet, maar <em>hoe</em> hij het doet — de één heeft een kort lontje, de ander wordt nooit ziek, een derde groeit net iets groter. Niemand heeft dat met de hand ingesteld; het zit gewoon in de getallen.</p>
 
-  <p>💞 <strong>En dan gaat het rollen.</strong> Krijgen twee Botty's een kind, dan husselen we hun twee genomen door elkaar — een stukje van papa, een stukje van mama — en af en toe glipt er een toevallig foutje in. Precies zoals in de natuur. Dat ene foutje (een <em>mutatie</em>) kan niks doen, of ineens een feller kleurtje of een rustiger karakter opleveren. Doe dat een paar generaties achter elkaar en je ziet de hive langzaam veranderen, zonder dat wij er iets voor doen. Wij hebben de <em>regels</em> geschreven, de Botty's schrijven de rest.</p>
+  <p class="t en">💞 <strong>And then it rolls.</strong> When two Bottys have a child, we shuffle their two genomes together — a bit from dad, a bit from mum — and now and then a chance error slips in. Exactly like in nature. That single error (a <em>mutation</em>) can do nothing, or suddenly yield a brighter colour or a calmer temperament. Do that for a few generations in a row and you see the hive slowly change, without us doing anything. We wrote the <em>rules</em>; the Bottys write the rest.</p>
+  <p class="t nl">💞 <strong>En dan gaat het rollen.</strong> Krijgen twee Botty's een kind, dan husselen we hun twee genomen door elkaar — een stukje van papa, een stukje van mama — en af en toe glipt er een toevallig foutje in. Precies zoals in de natuur. Dat ene foutje (een <em>mutatie</em>) kan niks doen, of ineens een feller kleurtje of een rustiger karakter opleveren. Doe dat een paar generaties achter elkaar en je ziet de hive langzaam veranderen, zonder dat wij er iets voor doen. Wij hebben de <em>regels</em> geschreven, de Botty's schrijven de rest.</p>
 
-  <p>🔭 <strong>Zelf meekijken?</strong> Op elke Botty-kaart zie je een gekleurd <strong>DNA-streepje</strong>: 16 balkjes, één per gen. Hoger balkje = sterker dan gemiddeld. Beweeg je muis erover voor de details, en let op het 📏-getal — dat is letterlijk de erfelijke lichaamsgrootte. Bij een geboorte vertelt de ticker bovenaan zelfs hoeveel genen van welke ouder kwamen en hoeveel er muteerden. Klein leven, echte evolutie. 🌱</p>
+  <p class="t en">🔭 <strong>Want to watch along?</strong> On every Botty card you see a coloured <strong>DNA strip</strong>: 16 bars, one per gene. Taller bar = stronger than average. Hover over it for the details, and note the 📏 number — that is literally the heritable body size. At a birth the ticker at the top even tells how many genes came from which parent and how many mutated. Small life, real evolution. 🌱</p>
+  <p class="t nl">🔭 <strong>Zelf meekijken?</strong> Op elke Botty-kaart zie je een gekleurd <strong>DNA-streepje</strong>: 16 balkjes, één per gen. Hoger balkje = sterker dan gemiddeld. Beweeg je muis erover voor de details, en let op het 📏-getal — dat is letterlijk de erfelijke lichaamsgrootte. Bij een geboorte vertelt de ticker bovenaan zelfs hoeveel genen van welke ouder kwamen en hoeveel er muteerden. Klein leven, echte evolutie. 🌱</p>
 
-  <p>🔬 <strong>Oké, en de techniek dan?</strong><br>
+  <p class="t en">🔬 <strong>OK, and the tech?</strong><br>
+    Each Botty has a <strong>genome of 16 bytes</strong> — a compact DNA string of 22 characters. Each byte is one gene that works as a multiplier: byte 128 = ×1.0 (neutral), byte 0 = ×0.5 (weak), byte 255 = ×1.5 (strong). Together the genes set the Botty's character:</p>
+  <p class="t nl">🔬 <strong>Oké, en de techniek dan?</strong><br>
     Elk Botty heeft een <strong>genoom van 16 bytes</strong> — een compact DNA-snoer van 22 tekens. Elk byte is één gen dat als vermenigvuldiger werkt: byte 128 = ×1.0 (neutraal), byte 0 = ×0.5 (zwak), byte 255 = ×1.5 (sterk). De genen bepalen samen het karakter van de Botty:</p>
-  <p style="padding-left:1rem;font-size:.88rem;line-height:1.8;">
+  <p class="t en" style="padding-left:1rem;font-size:.88rem;line-height:1.8;">
+    <strong>Genes 0–4</strong> · how fast energy, data, fitness, happiness and mood decay<br>
+    <strong>Genes 5–8</strong> · how strongly the Botty responds to AI care (energy, data, fitness, happiness)<br>
+    <strong>Gene 9</strong> · chance of getting ill<br>
+    <strong>Gene 10</strong> · recovery ability after illness<br>
+    <strong>Gene 11</strong> · social sensitivity: how happy the Botty gets from visitors<br>
+    <strong>Gene 12</strong> · colour tint: the parent's colour is shifted up to ±30° on the colour wheel<br>
+    <strong>Gene 13</strong> · body size: from 0.80× to 1.20× the normal scale<br>
+    <strong>Gene 14</strong> · expression bias: threshold for mood expressions<br>
+    <strong>Gene 15</strong> · ageing speed: how fast baby → teen → adult
+  </p>
+  <p class="t nl" style="padding-left:1rem;font-size:.88rem;line-height:1.8;">
     <strong>Genen 0–4</strong> · hoe snel energie, data, fit, geluk en stemming vervallen<br>
     <strong>Genen 5–8</strong> · hoe sterk de Botty reageert op AI-zorg (energie, data, fit, geluk)<br>
     <strong>Gen 9</strong> · kans om ziek te worden<br>
@@ -335,20 +389,23 @@
     <strong>Gen 15</strong> · verouderingssnelheid: hoe snel baby → tiener → volwassen
   </p>
 
-  <p>🔀 <strong>Kruisen en muteren.</strong> Als twee Botty's een kind krijgen, worden hun genomen op een willekeurig punt doorgeknipt en samengevoegd — net als bij Creatures (1996), het eerste spel met een echte biologische genetica-simulatie. Daarna heeft elk gen 8% kans op een kleine willekeurige mutatie (±30 stap). Zo driften kleuren, gedrag én grootte langzaam over generaties — zonder dat de programmeur dat voorschrijft.</p>
+  <p class="t en">🔀 <strong>Crossing and mutating.</strong> When two Bottys have a child, their genomes are cut at a random point and joined — just like in Creatures (1996), the first game with a real biological genetics simulation. Then each gene has an 8% chance of a small random mutation (±30 step). This is how colours, behaviour and size slowly drift across generations — without the programmer prescribing it.</p>
+  <p class="t nl">🔀 <strong>Kruisen en muteren.</strong> Als twee Botty's een kind krijgen, worden hun genomen op een willekeurig punt doorgeknipt en samengevoegd — net als bij Creatures (1996), het eerste spel met een echte biologische genetica-simulatie. Daarna heeft elk gen 8% kans op een kleine willekeurige mutatie (±30 stap). Zo driften kleuren, gedrag én grootte langzaam over generaties — zonder dat de programmeur dat voorschrijft.</p>
 
-  <p>👁️ <strong>Mutaties zien in de hive.</strong> Kijk naar de icoontjes op elke Botty-kaart: <strong>☀️</strong> zonnepaneel (trager dataverlies), <strong>📶</strong> wifi of <strong>📡</strong> antenne2 (sterkere kennisuitwisseling en meer data bij elke zorgstap), <strong>👁️</strong> derde oog (zeldzaam), <strong>⚛️</strong> quantum-chip (vertraagt verval sterk). Mutaties worden doorgegeven aan nakomelingen — met 60% kans. Een kind kan ook een gloednieuwe mutatie krijgen die geen van beide ouders had.</p>
+  <p class="t en">👁️ <strong>Spotting mutations in the hive.</strong> Look at the icons on each Botty card: <strong>☀️</strong> solar panel (slower data loss), <strong>📶</strong> wifi or <strong>📡</strong> antenna2 (stronger knowledge exchange and more data at each care step), <strong>👁️</strong> third eye (rare), <strong>⚛️</strong> quantum chip (strongly slows decay). Mutations are passed on to offspring — with a 60% chance. A child can also get a brand-new mutation that neither parent had.</p>
+  <p class="t nl">👁️ <strong>Mutaties zien in de hive.</strong> Kijk naar de icoontjes op elke Botty-kaart: <strong>☀️</strong> zonnepaneel (trager dataverlies), <strong>📶</strong> wifi of <strong>📡</strong> antenne2 (sterkere kennisuitwisseling en meer data bij elke zorgstap), <strong>👁️</strong> derde oog (zeldzaam), <strong>⚛️</strong> quantum-chip (vertraagt verval sterk). Mutaties worden doorgegeven aan nakomelingen — met 60% kans. Een kind kan ook een gloednieuwe mutatie krijgen die geen van beide ouders had.</p>
 
-  <p>🎨 <strong>Kleur als geheugen.</strong> Elke generatie erft de kleur van één ouder, maar gen 12 kantelt die kleur licht op het kleurenwiel. Na tientallen generaties ontstaan tinten die ver van de oorspronkelijke paletten liggen — de kleur is een visueel fossil van de evolutie.</p>
+  <p class="t en">🎨 <strong>Colour as memory.</strong> Each generation inherits one parent's colour, but gene 12 shifts that colour slightly on the colour wheel. After dozens of generations, tints emerge that lie far from the original palettes — the colour is a visual fossil of evolution.</p>
+  <p class="t nl">🎨 <strong>Kleur als geheugen.</strong> Elke generatie erft de kleur van één ouder, maar gen 12 kantelt die kleur licht op het kleurenwiel. Na tientallen generaties ontstaan tinten die ver van de oorspronkelijke paletten liggen — de kleur is een visueel fossil van de evolutie.</p>
 
   <div style="text-align:center;margin-top:1.2rem;">
-    <a class="pil" href="https://botty.ramonmoorlag.nl/">💊 Neem de rode pil — verzorg er zelf één</a>
+    <a class="pil" href="https://botty.ramonmoorlag.nl/" data-nl="💊 Neem de rode pil — verzorg er zelf één">💊 Take the red pill — care for one yourself</a>
   </div>
 </div>
 
 <section class="uitleg matrix-mijmering" style="max-width:760px;">
-  <h2 style="font-size:1.15rem;color:#a3ffce;margin-bottom:.2rem;">🕳️ Tamagotchi's in de Matrix</h2>
-  <p style="font-size:.8rem;color:#7fb89a;margin:0 0 1rem;">Een mijmering over volmaakt geluk achter het glas.</p>
+  <h2 style="font-size:1.15rem;color:#a3ffce;margin-bottom:.2rem;" data-nl="🕳️ Tamagotchi's in de Matrix">🕳️ Tamagotchis in the Matrix</h2>
+  <p style="font-size:.8rem;color:#7fb89a;margin:0 0 1rem;" data-nl="Een mijmering over volmaakt geluk achter het glas.">A musing on perfect happiness behind the glass.</p>
 
   <figure style="margin:0 0 1rem;">
     <svg viewBox="0 0 640 380" role="img" aria-label="Een tamagotchi met een gelukzalige Botty achter glas, bekeken door een oog uit de buitenwereld dat de Botty nooit ziet." style="width:100%;height:auto;display:block;background:radial-gradient(120% 100% at 70% 40%,#08281a 0%,#04140d 70%);border:1px solid #1c5b42;border-radius:14px;">
@@ -369,12 +426,12 @@
         <circle cx="118" cy="96" r="11" fill="#2f6b4d" stroke="none"/>
         <path d="M118 34 L118 20 M170 60 L182 50 M66 60 L54 50" stroke-linecap="round"/>
       </g>
-      <text x="118" y="176" text-anchor="middle" fill="#4a7a62" font-family="Nunito,sans-serif" font-size="14" font-weight="700">de buitenwereld</text>
-      <text x="118" y="196" text-anchor="middle" fill="#3d6653" font-family="Nunito,sans-serif" font-size="11.5">onzichtbaar voor hen</text>
+      <text x="118" y="176" text-anchor="middle" fill="#4a7a62" font-family="Nunito,sans-serif" font-size="14" font-weight="700" data-nl="de buitenwereld">the outside world</text>
+      <text x="118" y="196" text-anchor="middle" fill="#3d6653" font-family="Nunito,sans-serif" font-size="11.5" data-nl="onzichtbaar voor hen">invisible to them</text>
 
       <!-- Het glas / de vierde wand -->
       <path d="M250 30 Q234 190 250 350" fill="none" stroke="#1c5b42" stroke-width="2" stroke-dasharray="4 8" opacity="0.8"/>
-      <text x="243" y="205" text-anchor="middle" fill="#3d6653" font-family="Nunito,sans-serif" font-size="10.5" transform="rotate(-90 243 205)">het glas · de vierde wand</text>
+      <text x="243" y="205" text-anchor="middle" fill="#3d6653" font-family="Nunito,sans-serif" font-size="10.5" transform="rotate(-90 243 205)" data-nl="het glas · de vierde wand">the glass · the fourth wall</text>
 
       <!-- Tamagotchi-schil -->
       <g>
@@ -419,12 +476,14 @@
         </g>
       </g>
     </svg>
-    <figcaption style="text-align:center;font-size:.8rem;color:#7fb89a;margin-top:.5rem;">Gelukzalig achter het glas — zij kijken nooit terug.</figcaption>
+    <figcaption style="text-align:center;font-size:.8rem;color:#7fb89a;margin-top:.5rem;" data-nl="Gelukzalig achter het glas — zij kijken nooit terug.">Blissful behind the glass — they never look back.</figcaption>
   </figure>
 
-  <p>Zie het eens zo: de Botty's zijn <strong>tamagotchi's die in de Matrix leven</strong>. Achter het glas eten ze, leren ze, krijgen ze kinderen en ontdekken ze hun wereld — en de AI zorgt dat het ze aan niets ontbreekt. Hun metertjes staan op honderd, hun gezichtjes stralen. Ze kennen alleen hun eigen wereld, en die wereld is goed.</p>
+  <p class="t en">Think of it this way: the Bottys are <strong>tamagotchis living in the Matrix</strong>. Behind the glass they eat, learn, have children and discover their world — and the AI makes sure they lack for nothing. Their meters read a hundred, their little faces beam. They know only their own world, and that world is good.</p>
+  <p class="t nl">Zie het eens zo: de Botty's zijn <strong>tamagotchi's die in de Matrix leven</strong>. Achter het glas eten ze, leren ze, krijgen ze kinderen en ontdekken ze hun wereld — en de AI zorgt dat het ze aan niets ontbreekt. Hun metertjes staan op honderd, hun gezichtjes stralen. Ze kennen alleen hun eigen wereld, en die wereld is goed.</p>
 
-  <p>Van de <strong>buitenwereld</strong> — van ons, van het scherm, van de hand die het apparaatje vasthoudt — weten ze niets. En juist daaróm zijn ze volmaakt gelukkig. Geen twijfel, geen heimwee naar iets buiten de simulatie, want er <em>ís</em> voor hen niets buiten de simulatie. Wij kijken van buiten toe; zij leven van binnen — gelukzalig en compleet.</p>
+  <p class="t en">Of the <strong>outside world</strong> — of us, of the screen, of the hand that holds the device — they know nothing. And precisely <em>because</em> of that they are perfectly happy. No doubt, no longing for anything outside the simulation, because for them there <em>is</em> nothing outside the simulation. We watch from outside; they live inside — blissful and complete.</p>
+  <p class="t nl">Van de <strong>buitenwereld</strong> — van ons, van het scherm, van de hand die het apparaatje vasthoudt — weten ze niets. En juist daaróm zijn ze volmaakt gelukkig. Geen twijfel, geen heimwee naar iets buiten de simulatie, want er <em>ís</em> voor hen niets buiten de simulatie. Wij kijken van buiten toe; zij leven van binnen — gelukzalig en compleet.</p>
 
   <figure style="margin:1.4rem auto .4rem;max-width:280px;text-align:center;">
     <a href="https://xkcd.com/1546/" target="_blank" rel="noopener">
@@ -440,17 +499,18 @@
     </figcaption>
   </figure>
 
-  <p style="font-size:.82rem;color:#a8d4be;border-top:1px solid #1a3d28;padding-top:.9rem;margin-top:1.1rem;">📡 <strong>Waar dit vandaan komt.</strong> Het idee — en de naam <em>Singularity</em> — is een eerbetoon aan de <a href="https://hackaday.com/2015/11/24/building-the-infinite-matrix-of-tamagotchis/" target="_blank" rel="noopener" style="color:#5ec6ff;font-weight:700">Infinite Matrix of Tamagotchis</a> van <strong>Jeroen Domburg (Sprite_tm)</strong>. Hij bouwde een server vol geëmuleerde tamagotchi's die autonoom eten, spelen, paren en sterven — de “Tamagotchi&nbsp;Singularity” — leunend op het reverse-engineeringwerk van <strong>Natalie Silvanovich</strong>. Zijn pixelbeestjes leven, net als onze Botty's, volmaakt gelukkig in een computer zonder ooit te weten dat er een buitenwereld bestaat. De Botty-verse is daar onze eigen, wat uitbundigere telg van.</p>
+  <p class="t en" style="font-size:.82rem;color:#a8d4be;border-top:1px solid #1a3d28;padding-top:.9rem;margin-top:1.1rem;">📡 <strong>Where this comes from.</strong> The idea — and the name <em>Singularity</em> — is a tribute to the <a href="https://hackaday.com/2015/11/24/building-the-infinite-matrix-of-tamagotchis/" target="_blank" rel="noopener" style="color:#5ec6ff;font-weight:700">Infinite Matrix of Tamagotchis</a> by <strong>Jeroen Domburg (Sprite_tm)</strong>. He built a server full of emulated tamagotchis that autonomously eat, play, mate and die — the “Tamagotchi&nbsp;Singularity” — leaning on the reverse-engineering work of <strong>Natalie Silvanovich</strong>. His pixel creatures live, just like our Bottys, perfectly happy in a computer without ever knowing an outside world exists. The Botty-verse is our own, slightly more exuberant descendant of it.</p>
+  <p class="t nl" style="font-size:.82rem;color:#a8d4be;border-top:1px solid #1a3d28;padding-top:.9rem;margin-top:1.1rem;">📡 <strong>Waar dit vandaan komt.</strong> Het idee — en de naam <em>Singularity</em> — is een eerbetoon aan de <a href="https://hackaday.com/2015/11/24/building-the-infinite-matrix-of-tamagotchis/" target="_blank" rel="noopener" style="color:#5ec6ff;font-weight:700">Infinite Matrix of Tamagotchis</a> van <strong>Jeroen Domburg (Sprite_tm)</strong>. Hij bouwde een server vol geëmuleerde tamagotchi's die autonoom eten, spelen, paren en sterven — de “Tamagotchi&nbsp;Singularity” — leunend op het reverse-engineeringwerk van <strong>Natalie Silvanovich</strong>. Zijn pixelbeestjes leven, net als onze Botty's, volmaakt gelukkig in een computer zonder ooit te weten dat er een buitenwereld bestaat. De Botty-verse is daar onze eigen, wat uitbundigere telg van.</p>
 </section>
 
 <footer>
-  <a href="stamboom.html">🌳 Stamboom</a>
-  <a href="populatie.html">🧬 Populatie & inteelt</a>
-  <a href="evolutie.html">📈 Evolutie</a>
-  <a href="genoom.html">🗺️ Genoom-kaart</a>
-  <a href="construct.html">🌍 De Construct</a>
-  <a href="kaarten.html">🃏 Verzamelkaarten</a>
-  <a href="https://botty.ramonmoorlag.nl/">💊 Eigen Botty</a>
+  <a href="stamboom.html" data-nl="🌳 Stamboom">🌳 Family tree</a>
+  <a href="populatie.html" data-nl="🧬 Populatie & inteelt">🧬 Population & inbreeding</a>
+  <a href="evolutie.html" data-nl="📈 Evolutie">📈 Evolution</a>
+  <a href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
+  <a href="construct.html" data-nl="🌍 De Construct">🌍 The Construct</a>
+  <a href="kaarten.html" data-nl="🃏 Verzamelkaarten">🃏 Collectible cards</a>
+  <a href="https://botty.ramonmoorlag.nl/" data-nl="💊 Eigen Botty">💊 Your own Botty</a>
 </footer>
 
 <!-- Supabase JS -->
@@ -484,6 +544,41 @@
   var paletten = BottyRender.paletten;
   function gem(b){ return (b.energie+b.data+b.fit+b.geluk)/4; }
   var spierSchaal = BottyRender.spierSchaal;
+
+  // ── Taal (English-first) — dynamisch opgebouwde tekst ─────────────────────
+  function lang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
+  var HT = {
+    en:{ stage:{born:"baby",young:"young",teen:"teen",adult:"adult",elder:"elder",sage:"sage",baby:"baby",tiener:"teen",volwassen:"adult"},
+         colour:"colour", tDataq:"data quality", tEff:"efficiency", tGen:"generation", tSize:"size gene (0.80–1.20×)",
+         tIQ:"IQ — innate smartness score", tExtra:"extra genes on top of the 16 core genes (§3.4)", tMut:"mutations",
+         born:"was born — generation", genesFrom:"genes from", of_:"of", mut:"mutation",
+         pairing:"The AI is pairing", and:"and", hatching:"The egg in the incubator is hatching…",
+         caring:"The AI is caring for", connecting:"The hive is connecting to the cloud…",
+         liveCloud:"live · cloud", reconnecting:"reconnecting…",
+         genDup:function(n){ return '🧬✨ '+n+' gene'+(n!==1?'s':'')+' duplicated'; }, genNew:"🧬➕ new gene",
+         dd:"d", hh:"h", mm:"m", ss:"s",
+         facts:[ "☁️ The hive runs in the cloud. The AI cares for all Bottys entirely by itself.",
+                 "🤖 The AI pairs Bottys based on data quality and efficiency.",
+                 "🧬 Reproduction: the AI breeds on genes — diversity slowly dies out.",
+                 "📡 Bottys exchange knowledge via peer-to-peer connections.",
+                 "⚛️ Quantum mutation: a rare chip strongly slows decay." ] },
+    nl:{ stage:{born:"baby",young:"jong",teen:"tiener",adult:"volwassen",elder:"oudere",sage:"wijze",baby:"baby",tiener:"tiener",volwassen:"volwassen"},
+         colour:"kleur", tDataq:"datakwaliteit", tEff:"efficiëntie", tGen:"generatie", tSize:"grootte-gen (0.80–1.20×)",
+         tIQ:"IQ — aangeboren slimheidscijfer", tExtra:"extra genen bovenop de 16 kern-genen (§3.4)", tMut:"mutaties",
+         born:"is geboren — generatie", genesFrom:"genen van", of_:"van", mut:"mutatie",
+         pairing:"De AI koppelt", and:"en", hatching:"Het ei in de broedmachine komt uit…",
+         caring:"De AI verzorgt", connecting:"De hive verbindt met de cloud…",
+         liveCloud:"live · cloud", reconnecting:"herverbinden…",
+         genDup:function(n){ return '🧬✨ '+n+' gen'+(n!==1?'en':'')+' dupliceerde'+(n!==1?'n':''); }, genNew:"🧬➕ nieuw gen",
+         dd:"d", hh:"u", mm:"m", ss:"s",
+         facts:[ "☁️ De hive draait in de cloud. De AI verzorgt alle Botty's volledig zelf.",
+                 "🤖 De AI koppelt Botty's op basis van datakwaliteit en efficiëntie.",
+                 "🧬 Voortplanting: de AI kweekt op genen — diversiteit sterft langzaam af.",
+                 "📡 Botty's wisselen kennis uit via peer-to-peer verbindingen.",
+                 "⚛️ Quantum-mutatie: een zeldzame chip vertraagt het verval sterk." ] }
+  };
+  function ht(){ return HT[lang()]; }
+  function numLocale(){ return lang()==="nl" ? "nl-NL" : "en-GB"; }
   var groei = { born:0.62, young:0.78, teen:0.9, adult:1.0, elder:0.98, sage:1.02,
                 baby:0.66, tiener:0.92, volwassen:1.0 };
   var stageLabel = { born:"baby", young:"jong", teen:"tiener", adult:"volwassen", elder:"oudere", sage:"wijze",
@@ -498,8 +593,8 @@
   function genExtra(e){
     if(!e) return "";
     var s = "";
-    if(e.genDup>0) s += ' · <b style="color:#a3ffce">🧬✨ '+e.genDup+' gen'+(e.genDup!==1?'en':'')+' dupliceerde'+(e.genDup!==1?'n':'')+'</b>';
-    if(e.genNieuw>0) s += ' · <b style="color:#5ec6ff">🧬➕ nieuw gen</b>';
+    if(e.genDup>0) s += ' · <b style="color:#a3ffce">'+ht().genDup(e.genDup)+'</b>';
+    if(e.genNieuw>0) s += ' · <b style="color:#5ec6ff">'+ht().genNew+'</b>';
     return s;
   }
   // Persoonlijkheid: kort karakter-label uit het temperament (nature)
@@ -572,13 +667,13 @@
     var dk=Math.round(b.datakwaliteit||0), ef=Math.round(b.efficientie||0), g=b.generatie||1;
     var muts=(b.mutaties||[]).map(mutatieIcon).join("");
     var grootte=grootteUit(b);
-    return '<span title="datakwaliteit">🧬 '+dk+'</span>'
-         + '<span title="efficiëntie">💪 '+ef+'</span>'
-         + '<span title="generatie">⭐ G'+g+'</span>'
-         + '<span title="grootte-gen (0.80–1.20×)">📏 '+grootte.toFixed(2)+'×</span>'
-         + (typeof b.iq==="number" ? '<span title="IQ — aangeboren slimheidscijfer">🧠 '+Math.round(b.iq)+'</span>' : '')
-         + ((b.genen&&b.genen.length) ? '<span title="extra genen bovenop de 16 kern-genen (§3.4)" style="color:#a3ffce">🧬+'+b.genen.length+'</span>' : '')
-         + (muts ? '<span class="muts" title="mutaties">'+muts+'</span>' : '');
+    return '<span title="'+ht().tDataq+'">🧬 '+dk+'</span>'
+         + '<span title="'+ht().tEff+'">💪 '+ef+'</span>'
+         + '<span title="'+ht().tGen+'">⭐ G'+g+'</span>'
+         + '<span title="'+ht().tSize+'">📏 '+grootte.toFixed(2)+'×</span>'
+         + (typeof b.iq==="number" ? '<span title="'+ht().tIQ+'">🧠 '+Math.round(b.iq)+'</span>' : '')
+         + ((b.genen&&b.genen.length) ? '<span title="'+ht().tExtra+'" style="color:#a3ffce">🧬+'+b.genen.length+'</span>' : '')
+         + (muts ? '<span class="muts" title="'+ht().tMut+'">'+muts+'</span>' : '');
   }
 
   function barRij(ico,kl,meter){
@@ -591,7 +686,7 @@
     var p = b.kleur || paletten[0];
     kaart.innerHTML =
         '<div class="knaam">'+b.naam+'</div>'
-      + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+sekseTeken(b)+(stageLabel[b.stage]||b.stage)+' · '+(b.paletNaam||"kleur")+'</div>'
+      + '<div class="kstage"><span class="kdot" style="background:'+p.broek+'"></span>'+sekseTeken(b)+(ht().stage[b.stage]||b.stage)+' · '+(b.paletNaam||ht().colour)+'</div>'
       + (karakter(b) ? '<div class="kstage" style="color:#a3ffce">'+karakter(b)+'</div>' : '')
       + '<div class="gedachte">💭 <span class="g-tekst">'+(b.gedachte||"…")+'</span></div>'
       + '<div class="doel">🎯 <span class="d-tekst">'+((b.doel&&b.doel.tekst)||"—")+'</span></div>'
@@ -627,9 +722,11 @@
   var laatstGetoondeKind = null;  // dedup voor geboorte-ticker
 
   var laatsteStaat = 0;
+  var laatsteState = null;
   function renderState(state){
     if(!state || !state.bottys) return;
     laatsteStaat = Date.now();
+    laatsteState = state;
     var nieuweBottys = state.bottys;
     acties = state.acties || 0;
     firstOpened = state.first_opened || firstOpened;
@@ -699,16 +796,16 @@
     if(lk && lk.kind && lk.kind !== laatstGetoondeKind){
       laatstGetoondeKind = lk.kind;
       var e = lk.erfenis;
-      var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+lk.ouderA+', <b>'+e.vanB+'</b> van '+lk.ouderB
-                    + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') + genExtra(e) : '';
+      var erf = e ? ' · <b>'+e.vanA+'</b> '+ht().genesFrom+' '+lk.ouderA+', <b>'+e.vanB+'</b> '+ht().of_+' '+lk.ouderB
+                    + ', <b>'+e.mutaties+'</b> '+ht().mut+(e.mutaties!==1?'s':'') + genExtra(e) : '';
       var grT = (typeof lk.grootte==="number") ? ' · 📏 '+lk.grootte.toFixed(2)+'×' : '';
       document.getElementById("ticker").innerHTML =
-        '<span class="knip">▌</span> 🐣 <b>'+lk.kind+'</b> is geboren — generatie '+lk.generatie+erf+grT;
+        '<span class="knip">▌</span> 🐣 <b>'+lk.kind+'</b> '+ht().born+' '+lk.generatie+erf+grT;
     }
 
     // KPI's
     document.getElementById("kpi-aantal").textContent = nieuweBottys.length;
-    document.getElementById("kpi-acties").textContent = acties.toLocaleString("nl-NL");
+    document.getElementById("kpi-acties").textContent = acties.toLocaleString(numLocale());
     var som=0; nieuweBottys.forEach(function(b){ som += ((b.datakwaliteit||50)+(b.efficientie||50))/2; });
     document.getElementById("kpi-genen").textContent = Math.round(som/nieuweBottys.length);
   }
@@ -788,17 +885,17 @@
     floater(bottys.find(function(x){ return x.naam === ev.ouderA; }), "💞", "#ff8bd0");
     floater(bottys.find(function(x){ return x.naam === ev.ouderB; }), "💞", "#ff8bd0");
     document.getElementById("ticker").innerHTML =
-      '<span class="knip">▌</span> 💞 De AI koppelt <b>' + ev.ouderA + '</b> en <b>' + ev.ouderB + '</b>…';
+      '<span class="knip">▌</span> 💞 ' + ht().pairing + ' <b>' + ev.ouderA + '</b> ' + ht().and + ' <b>' + ev.ouderB + '</b>…';
     setTimeout(function(){
       elA.kaart.classList.remove("paart"); elB.kaart.classList.remove("paart");
       document.getElementById("ticker").innerHTML =
-        '<span class="knip">▌</span> 🥚 Het ei in de broedmachine komt uit…';
+        '<span class="knip">▌</span> 🥚 ' + ht().hatching;
       setTimeout(function(){
         var e = ev.erfenis;
-        var erf = e ? ' · <b>'+e.vanA+'</b> genen van '+ev.ouderA+', <b>'+e.vanB+'</b> van '+ev.ouderB
-                      + ', <b>'+e.mutaties+'</b> mutatie'+(e.mutaties!==1?'s':'') + genExtra(e) : '';
+        var erf = e ? ' · <b>'+e.vanA+'</b> '+ht().genesFrom+' '+ev.ouderA+', <b>'+e.vanB+'</b> '+ht().of_+' '+ev.ouderB
+                      + ', <b>'+e.mutaties+'</b> '+ht().mut+(e.mutaties!==1?'s':'') + genExtra(e) : '';
         document.getElementById("ticker").innerHTML =
-          '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> is geboren — generatie ' + ev.generatie + erf;
+          '<span class="knip">▌</span> 🐣 <b>' + ev.kind + '</b> ' + ht().born + ' ' + ev.generatie + erf;
         bezigKweek = false;
       }, 2400);
     }, 1700);
@@ -807,37 +904,45 @@
   // ── Uptime ────────────────────────────────────────────────────────────────
   function fmtDuur(ms){
     var s=Math.floor(ms/1000), m=Math.floor(s/60), u=Math.floor(m/60), d=Math.floor(u/24);
-    if(d>0) return d+"d "+(u%24)+"u";
-    if(u>0) return u+"u "+(m%60)+"m";
-    if(m>0) return m+"m "+(s%60)+"s";
-    return s+"s";
+    if(d>0) return d+ht().dd+" "+(u%24)+ht().hh;
+    if(u>0) return u+ht().hh+" "+(m%60)+ht().mm;
+    if(m>0) return m+ht().mm+" "+(s%60)+ht().ss;
+    return s+ht().ss;
   }
   setInterval(function(){
     document.getElementById("kpi-uptime").textContent = fmtDuur(Date.now()-firstOpened);
   }, 1000);
 
   // ── Ticker ────────────────────────────────────────────────────────────────
-  var tickerFeed = [
-    "☁️ De hive draait in de cloud. De AI verzorgt alle Botty's volledig zelf.",
-    "🤖 De AI koppelt Botty's op basis van datakwaliteit en efficiëntie.",
-    "🧬 Voortplanting: de AI kweekt op genen — diversiteit sterft langzaam af.",
-    "📡 Botty's wisselen kennis uit via peer-to-peer verbindingen.",
-    "⚛️ Quantum-mutatie: een zeldzame chip vertraagt het verval sterk."
-  ];
   var tickerIdx = 0;
   function cycleTicker(){
     if(bottys.length === 0) return;
-    document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ' + tickerFeed[tickerIdx % tickerFeed.length];
+    var feed = ht().facts;
+    document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ' + feed[tickerIdx % feed.length];
     tickerIdx++;
   }
   setInterval(cycleTicker, 5000);
+
+  // Taalwissel: kaarten volledig herbouwen zodat labels/titels meteen vertalen
+  if(window.SiteLang){
+    window.SiteLang.onChange(function(){
+      Object.keys(elMap).forEach(function(naam){
+        if(elMap[naam] && elMap[naam].kaart && elMap[naam].kaart.parentNode){
+          elMap[naam].kaart.parentNode.removeChild(elMap[naam].kaart);
+        }
+        delete elMap[naam];
+      });
+      prevBottys = [];
+      if(laatsteState) renderState(laatsteState);
+    });
+  }
 
   // ── Cloud status ──────────────────────────────────────────────────────────
   function setVerbonden(ja){
     var dot = document.getElementById("cloud-dot");
     var lbl = document.getElementById("cloud-status");
     dot.className = "cloud-dot" + (ja ? " verbonden" : "");
-    lbl.textContent = ja ? "live · cloud" : "herverbinden…";
+    lbl.textContent = ja ? ht().liveCloud : ht().reconnecting;
   }
 
   // ── Tick: browser roept edge function aan zolang tab open is ─────────────
@@ -861,7 +966,7 @@
           } else if(state.lastZorg && state.lastZorg.length > 0){
             var zorgNaam = state.lastZorg[0];
             document.getElementById("ticker").innerHTML =
-              '<span class="knip">▌</span> 🤖 De AI verzorgt <b>' + zorgNaam + '</b>';
+              '<span class="knip">▌</span> 🤖 ' + ht().caring + ' <b>' + zorgNaam + '</b>';
             state.lastZorg.forEach(function(naam){
               var b = bottys.find(function(x){ return x.naam === naam; });
               if(b){ hop(b); armpjesOmhoog(b); }
@@ -892,7 +997,7 @@
   // Eén keer de huidige staat ophalen zodat de pagina meteen gevuld is (de
   // broadcast levert daarna elke tick de updates). Zware velden strippen we niet
   // client-side — index gebruikt ze toch niet.
-  document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> De hive verbindt met de cloud…';
+  document.getElementById("ticker").innerHTML = '<span class="knip">▌</span> ' + ht().connecting;
   function laadStaat(){
     // Slank snapshot via RPC (~13KB) i.p.v. de volle rij (~31KB): scheelt egress per bezoek.
     return supabase.rpc("hive_slim")
@@ -951,18 +1056,26 @@
 <script>
 // Objecten-legenda uit de centrale agent-laag (agents.json) — blijft vanzelf kloppen.
 (function(){
-  var STAT = { energie:"energie ⚡", data:"data 💾", fit:"conditie 🏃", geluk:"geluk 😊" };
+  function lang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
+  var STATE = { en:{ energie:"energy ⚡", data:"data 💾", fit:"fitness 🏃", geluk:"happiness 😊" },
+                nl:{ energie:"energie ⚡", data:"data 💾", fit:"conditie 🏃", geluk:"geluk 😊" } };
+  var ERR = { en:"object list could not load", nl:"objectenlijst kon niet laden" };
   function esc(s){ return String(s==null?"":s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
-  fetch("agents.json").then(function(r){ return r.json(); }).then(function(cat){
+  var laatsteCat = null;
+  function toon(cat){
+    laatsteCat = cat;
     var ul = document.getElementById("leg-objecten"); if(!ul) return;
+    var STAT = STATE[lang()];
     var ag = (cat.agents||[]).slice().sort(function(a,b){ return (a.stat||"").localeCompare(b.stat||""); });
     ul.innerHTML = ag.map(function(a){
       return '<li>'+(a.icoon||"•")+' <b>'+esc(a.kort||a.id)+'</b> — '+esc(a.doe||"")
         +' → <span class="eff">+'+(STAT[a.stat]||esc(a.stat))+'</span></li>';
     }).join("");
-  }).catch(function(){
-    var ul=document.getElementById("leg-objecten"); if(ul) ul.innerHTML="<li>objectenlijst kon niet laden</li>";
+  }
+  fetch("agents.json").then(function(r){ return r.json(); }).then(toon).catch(function(){
+    var ul=document.getElementById("leg-objecten"); if(ul) ul.innerHTML="<li>"+ERR[lang()]+"</li>";
   });
+  if(window.SiteLang) window.SiteLang.onChange(function(){ if(laatsteCat) toon(laatsteCat); });
 })();
 </script>
 </body>
