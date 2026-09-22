@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="assets/i18n.js"></script>
 <title>Botty-verse — Fact Sheet</title>
 <meta name="description" content="A one-page fact sheet on the Botty-verse: an artificial-life simulation of a hive of Bottys, fully cared for by AI." />
 <meta name="theme-color" content="#2E7D5B" />
@@ -115,23 +116,23 @@
 </head>
 <body>
 <nav class="paperbar">
-  <button type="button" id="printBtn">Print this page</button>
+  <button type="button" id="printBtn" data-nl="Print deze pagina">Print this page</button>
   <a href="assets/botty-verse-factsheet.pdf" download>Download PDF</a>
   <span class="spacer"></span>
-  <em>A4 &middot; one page</em>
-  <a href="index.html">&larr; Back to the hive</a>
+  <em data-nl="A4 &middot; één pagina">A4 &middot; one page</em>
+  <a href="index.html" data-nl="&larr; Terug naar de hive">&larr; Back to the hive</a>
 </nav>
 <article class="sheet">
   <header class="head">
     <div>
-      <p class="eyebrow">Artificial-life simulation · Botty-verse</p>
+      <p class="eyebrow" data-nl="Kunstmatig-levensimulatie · Botty-verse">Artificial-life simulation · Botty-verse</p>
       <h1>Botty-verse <span>— The Singularity</span></h1>
-      <p class="tag">“A hive full of Bottys. Fully cared for by AI. Human involvement: 0 %.”</p>
+      <p class="tag" data-nl="“Een hive vol Bottys. Volledig verzorgd door AI. Menselijke bemoeienis: 0 %.”">“A hive full of Bottys. Fully cared for by AI. Human involvement: 0 %.”</p>
     </div>
     <div class="meta">
       <b>v12 · THE MARK TEST</b><br>
-      live at <a href="https://hive.ramonmoorlag.nl">hive.ramonmoorlag.nl</a><br>
-      fact sheet · 11 Sep 2026
+      <span class="t en">live at</span><span class="t nl">live op</span> <a href="https://hive.ramonmoorlag.nl">hive.ramonmoorlag.nl</a><br>
+      <span class="t en">fact sheet · 11 Sep 2026</span><span class="t nl">factsheet · 11 sep 2026</span>
     </div>
   </header>
 
@@ -139,33 +140,42 @@
     <!-- narrative column -->
     <section class="col">
       <div>
-        <h2>What it is</h2>
-        <p>A hive of small digital creatures — Bottys — living in a classroom in the woods, cared for entirely by an AI caretaker, in the spirit of Steve Grand’s <em>Creatures</em>. Every Botty carries a genome, a body chemistry, a learning brain, senses and a temperament of its own. They look after their own needs, invent words to share what they learn, breed, and die — and the AI selects on data quality and efficiency. Diversity thins out. That is the Singularity.</p>
-        <p>It runs day and night in the cloud, whether or not anyone is watching. You are the visitor: stroke, feed, medicate, teach a word at the blackboard or hatch an egg — but you never manage the hive.</p>
+        <h2 data-nl="Wat het is">What it is</h2>
+        <p class="t en">A hive of small digital creatures — Bottys — living in a classroom in the woods, cared for entirely by an AI caretaker, in the spirit of Steve Grand’s <em>Creatures</em>. Every Botty carries a genome, a body chemistry, a learning brain, senses and a temperament of its own. They look after their own needs, invent words to share what they learn, breed, and die — and the AI selects on data quality and efficiency. Diversity thins out. That is the Singularity.</p>
+        <p class="t nl">Een hive van kleine digitale wezens — Bottys — die in een klaslokaal in het bos leven, volledig verzorgd door een AI-verzorger, in de geest van Steve Grand’s <em>Creatures</em>. Elke Botty draagt een eigen genoom, een lichaamschemie, een lerend brein, zintuigen en een temperament. Ze verzorgen hun eigen behoeften, verzinnen woorden om te delen wat ze leren, planten zich voort en gaan dood — en de AI selecteert op datakwaliteit en efficiëntie. De diversiteit dunt uit. Dat is de Singularity.</p>
+        <p class="t en">It runs day and night in the cloud, whether or not anyone is watching. You are the visitor: stroke, feed, medicate, teach a word at the blackboard or hatch an egg — but you never manage the hive.</p>
+        <p class="t nl">Het draait dag en nacht in de cloud, of er nu iemand kijkt of niet. Jij bent de bezoeker: aaien, voeren, medicijn geven, een woord aanleren op het schoolbord of een ei laten uitkomen — maar je bestuurt de hive nooit.</p>
       </div>
 
       <div>
-        <h2>Inside a Botty</h2>
+        <h2 data-nl="In een Botty">Inside a Botty</h2>
         <div class="genome" aria-label="16-byte genome, illustrated">
           <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
         </div>
-        <p class="cap">16-byte genome · single-point crossover on gene boundaries · 8 % mutation · sex-linked expression and age-gated switch-on</p>
-        <p>The genome expresses a <b>body chemistry of 14 chemicals and hormones</b> that steer mood, behaviour and the face — and that change with age:</p>
-        <div class="chem">
+        <p class="cap t en">16-byte genome · single-point crossover on gene boundaries · 8 % mutation · sex-linked expression and age-gated switch-on</p>
+        <p class="cap t nl">16-byte genoom · single-point crossover op gengrenzen · 8 % mutatie · geslachtsgebonden expressie en leeftijdsafhankelijke activering</p>
+        <p class="t en">The genome expresses a <b>body chemistry of 14 chemicals and hormones</b> that steer mood, behaviour and the face — and that change with age:</p>
+        <p class="t nl">Het genoom brengt een <b>lichaamschemie van 14 stoffen en hormonen</b> tot expressie die stemming, gedrag en gezicht sturen — en die met de leeftijd veranderen:</p>
+        <div class="chem t en">
           <span>hunger</span><span>fatigue</span><span>stress</span><span>endorphin</span><span>toxin</span><span>boredom</span><span>fear</span><span>loneliness</span><span>glucose</span><span>glycogen</span><span>adrenaline</span><span>libido</span><span>oxytocin</span><span>cortisol</span>
         </div>
-        <p>Four drives (energy, data, fitness, happiness) push a Botty toward objects; which object relieves which drive is <b>not given but learned</b>, through reward and punishment with plasticity gated by endorphin. Bottys sense their way to things — scouting, then smelling, then seeing — and coin words for actions, feelings and each other’s names, passing knowledge to neighbours. Six life stages run from born to sage, each with its own sprite, walk cycle and sleeping pose.</p>
+        <div class="chem t nl">
+          <span>honger</span><span>vermoeidheid</span><span>stress</span><span>endorfine</span><span>gif</span><span>verveling</span><span>angst</span><span>eenzaamheid</span><span>glucose</span><span>glycogeen</span><span>adrenaline</span><span>libido</span><span>oxytocine</span><span>cortisol</span>
+        </div>
+        <p class="t en">Four drives (energy, data, fitness, happiness) push a Botty toward objects; which object relieves which drive is <b>not given but learned</b>, through reward and punishment with plasticity gated by endorphin. Bottys sense their way to things — scouting, then smelling, then seeing — and coin words for actions, feelings and each other’s names, passing knowledge to neighbours. Six life stages run from born to sage, each with its own sprite, walk cycle and sleeping pose.</p>
+        <p class="t nl">Vier driften (energie, data, fitheid, geluk) drijven een Botty naar objecten; welk object welke drift stilt is <b>niet gegeven maar geleerd</b>, via beloning en straf met plasticiteit die door endorfine wordt gestuurd. Bottys speuren hun weg naar dingen — eerst verkennen, dan ruiken, dan zien — en verzinnen woorden voor acties, gevoelens en elkaars namen, en geven kennis door aan buren. Zes levensfasen lopen van pasgeboren tot wijze, elk met een eigen sprite, loopcyclus en slaaphouding.</p>
       </div>
 
       <div>
-        <h2>A mind you can watch</h2>
-        <p>Above the body sits a layered model of a mind, built step by step and shown live: click any Botty and read its stream of thought.</p>
+        <h2 data-nl="Een geest die je kunt volgen">A mind you can watch</h2>
+        <p class="t en">Above the body sits a layered model of a mind, built step by step and shown live: click any Botty and read its stream of thought.</p>
+        <p class="t nl">Boven het lichaam zit een gelaagd model van een geest, stap voor stap opgebouwd en live getoond: klik op een Botty en lees zijn gedachtestroom.</p>
         <ul class="ladder">
-          <li><span class="v">v9</span><span><b>Stride</b> — real walking bodies, senses, language, ageing chemistry</span></li>
-          <li><span class="v">v10</span><span><b>Mirror</b> — a global-workspace “stage” where stimuli compete for attention; surprise, valence, play in surplus, a self-image — and noticing it is being watched</span></li>
-          <li><span class="v">v11</span><span><b>The Mirror</b> — a real mirror in the room; a mature self recognises itself, a young one sees a stranger</span></li>
-          <li><span class="v now">v12</span><span><b>The Mark Test</b> — a smudge on its own head, visible only in the mirror; a mature self wipes it off <em>itself</em>, the gold-standard test of self-recognition</span></li>
-          <li><span class="v next">v13</span><span><b>The Apprentice</b> (in progress) — replacing scripted appearance with small, learned, falsifiable mechanisms; 2 of 7 workstreams live: need-dependent reward and learning-progress curiosity</span></li>
+          <li><span class="v">v9</span><span class="t en"><b>Stride</b> — real walking bodies, senses, language, ageing chemistry</span><span class="t nl"><b>Stride</b> — echt lopende lichamen, zintuigen, taal, verouderende chemie</span></li>
+          <li><span class="v">v10</span><span class="t en"><b>Mirror</b> — a global-workspace “stage” where stimuli compete for attention; surprise, valence, play in surplus, a self-image — and noticing it is being watched</span><span class="t nl"><b>Mirror</b> — een global-workspace-“podium” waar prikkels om aandacht strijden; verrassing, valentie, spel bij overschot, een zelfbeeld — en merken dat het bekeken wordt</span></li>
+          <li><span class="v">v11</span><span class="t en"><b>The Mirror</b> — a real mirror in the room; a mature self recognises itself, a young one sees a stranger</span><span class="t nl"><b>The Mirror</b> — een echte spiegel in de ruimte; een volwassen zelf herkent zichzelf, een jong exemplaar ziet een vreemde</span></li>
+          <li><span class="v now">v12</span><span class="t en"><b>The Mark Test</b> — a smudge on its own head, visible only in the mirror; a mature self wipes it off <em>itself</em>, the gold-standard test of self-recognition</span><span class="t nl"><b>The Mark Test</b> — een vlek op het eigen hoofd, alleen zichtbaar in de spiegel; een volwassen zelf veegt die van <em>zichzelf</em> af, de gouden standaard voor zelfherkenning</span></li>
+          <li><span class="v next">v13</span><span class="t en"><b>The Apprentice</b> (in progress) — replacing scripted appearance with small, learned, falsifiable mechanisms; 2 of 7 workstreams live: need-dependent reward and learning-progress curiosity</span><span class="t nl"><b>The Apprentice</b> (in wording) — voorgeschreven gedrag vervangen door kleine, geleerde, toetsbare mechanismen; 2 van 7 werkstromen live: behoefte-afhankelijke beloning en nieuwsgierigheid naar leervoortgang</span></li>
         </ul>
       </div>
     </section>
@@ -173,49 +183,53 @@
     <!-- data sidebar -->
     <aside class="side">
       <div>
-        <h2>By the numbers</h2>
+        <h2 data-nl="In cijfers">By the numbers</h2>
         <div class="facts">
-          <div><span class="n">16</span><span class="l">bytes of genome</span></div>
-          <div><span class="n">14</span><span class="l">chemicals &amp; hormones</span></div>
-          <div><span class="n">4</span><span class="l">drives</span></div>
-          <div><span class="n">6</span><span class="l">life stages</span></div>
-          <div><span class="n">2 min</span><span class="l">between simulation ticks</span></div>
-          <div><span class="n">7</span><span class="l">live pages</span></div>
+          <div><span class="n">16</span><span class="l" data-nl="bytes genoom">bytes of genome</span></div>
+          <div><span class="n">14</span><span class="l" data-nl="stoffen &amp; hormonen">chemicals &amp; hormones</span></div>
+          <div><span class="n">4</span><span class="l" data-nl="driften">drives</span></div>
+          <div><span class="n">6</span><span class="l" data-nl="levensfasen">life stages</span></div>
+          <div><span class="n">2 min</span><span class="l" data-nl="tussen simulatie-ticks">between simulation ticks</span></div>
+          <div><span class="n">7</span><span class="l" data-nl="live pagina's">live pages</span></div>
         </div>
       </div>
 
       <div>
-        <h2>Under the hood</h2>
+        <h2 data-nl="Onder de motorkap">Under the hood</h2>
         <ul class="stack">
-          <li><span>front-end</span><span>vanilla HTML, JS &amp; SVG on GitHub Pages — no framework</span></li>
-          <li><span>engine</span><span><code>hive-tick</code>, a Supabase edge function in Deno/TypeScript, fired by pg_cron every 2 minutes</span></li>
-          <li><span>live sync</span><span>realtime broadcast to viewers; slim RPCs (<code>hive_slim</code>, <code>hive_detail</code>) keep egress low</span></li>
-          <li><span>state</span><span>the whole population as one JSON row, ≈ 2 KB per Botty</span></li>
-          <li><span>hosting</span><span>Supabase free tier, monitored daily</span></li>
+          <li><span class="t en">front-end</span><span class="t nl">front-end</span><span class="t en">vanilla HTML, JS &amp; SVG on GitHub Pages — no framework</span><span class="t nl">vanilla HTML, JS &amp; SVG op GitHub Pages — geen framework</span></li>
+          <li><span class="t en">engine</span><span class="t nl">engine</span><span class="t en"><code>hive-tick</code>, a Supabase edge function in Deno/TypeScript, fired by pg_cron every 2 minutes</span><span class="t nl"><code>hive-tick</code>, een Supabase edge function in Deno/TypeScript, elke 2 minuten getriggerd door pg_cron</span></li>
+          <li><span class="t en">live sync</span><span class="t nl">live sync</span><span class="t en">realtime broadcast to viewers; slim RPCs (<code>hive_slim</code>, <code>hive_detail</code>) keep egress low</span><span class="t nl">realtime broadcast naar kijkers; slanke RPC's (<code>hive_slim</code>, <code>hive_detail</code>) houden egress laag</span></li>
+          <li><span class="t en">state</span><span class="t nl">state</span><span class="t en">the whole population as one JSON row, ≈ 2 KB per Botty</span><span class="t nl">de hele populatie als één JSON-rij, ≈ 2 KB per Botty</span></li>
+          <li><span class="t en">hosting</span><span class="t nl">hosting</span><span class="t en">Supabase free tier, monitored daily</span><span class="t nl">Supabase free tier, dagelijks gemonitord</span></li>
         </ul>
       </div>
 
       <div>
-        <h2>Free-tier footprint</h2>
+        <h2 data-nl="Free-tier-voetafdruk">Free-tier footprint</h2>
         <div class="usage">
-          <div><span class="lbl">database</span><span class="bar"><i style="width:9.6%"></i></span><span class="pct">9.6 %</span></div>
-          <div><span class="lbl">edge invocations</span><span class="bar"><i style="width:4.3%"></i></span><span class="pct">4.3 %</span></div>
+          <div><span class="lbl" data-nl="database">database</span><span class="bar"><i style="width:9.6%"></i></span><span class="pct">9.6 %</span></div>
+          <div><span class="lbl" data-nl="edge-aanroepen">edge invocations</span><span class="bar"><i style="width:4.3%"></i></span><span class="pct">4.3 %</span></div>
           <div><span class="lbl">egress</span><span class="bar"><i style="width:0.04%"></i></span><span class="pct">0.04 %</span></div>
         </div>
-        <p class="note">48 MB of 500 MB · ~21,600 of 500,000 calls per month · ~2 MB of 5 GB projected. The engine gets smarter without the bill moving.</p>
+        <p class="note t en">48 MB of 500 MB · ~21,600 of 500,000 calls per month · ~2 MB of 5 GB projected. The engine gets smarter without the bill moving.</p>
+        <p class="note t nl">48 MB van 500 MB · ~21.600 van 500.000 calls per maand · ~2 MB van 5 GB verwacht. De engine wordt slimmer zonder dat de rekening beweegt.</p>
       </div>
 
       <div>
-        <h2>Research basis</h2>
-        <p class="honest"><b>66 verified sources</b> — global-workspace theory, predictive processing, the valence–arousal model, intrinsic motivation, mirror self-recognition and the <em>Creatures</em> lineage — each labelled as design inspiration, a simplified implemented mechanism, or a tested result in the literature. The hive simulates the <b>observable behaviour</b> of a mind. It makes no claim that a Botty is conscious.</p>
+        <h2 data-nl="Onderzoeksbasis">Research basis</h2>
+        <p class="honest t en"><b>66 verified sources</b> — global-workspace theory, predictive processing, the valence–arousal model, intrinsic motivation, mirror self-recognition and the <em>Creatures</em> lineage — each labelled as design inspiration, a simplified implemented mechanism, or a tested result in the literature. The hive simulates the <b>observable behaviour</b> of a mind. It makes no claim that a Botty is conscious.</p>
+        <p class="honest t nl"><b>66 geverifieerde bronnen</b> — global-workspace-theorie, predictive processing, het valentie–arousal-model, intrinsieke motivatie, spiegel-zelfherkenning en de <em>Creatures</em>-lijn — elk gelabeld als ontwerp-inspiratie, een vereenvoudigd geïmplementeerd mechanisme of een getoetst resultaat in de literatuur. De hive simuleert het <b>waarneembare gedrag</b> van een geest. Er wordt niet beweerd dat een Botty bewust is.</p>
       </div>
     </aside>
   </div>
 
   <footer class="foot">
     <span>Apache 2.0 · github.com/Botty-verse/singularity</span>
-    <span>docs: fable.md · bewustzijn.md · v13.md · papers.md</span>
-    <span>figures checked against code &amp; live database, 11 Sep 2026</span>
+    <span class="t en">docs: fable.md · bewustzijn.md · v13.md · papers.md</span>
+    <span class="t nl">docs: fable.md · bewustzijn.md · v13.md · papers.md</span>
+    <span class="t en">figures checked against code &amp; live database, 11 Sep 2026</span>
+    <span class="t nl">cijfers gecontroleerd tegen code &amp; live database, 11 sep 2026</span>
   </footer>
 </article>
 <script>

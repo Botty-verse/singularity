@@ -37,7 +37,8 @@
   (function injectCSS(){
     var css = 'html[data-lang="en"] .t.nl{display:none!important}' +
               'html[data-lang="nl"] .t.en{display:none!important}' +
-              '#lang-flag:hover{background:rgba(0,0,0,.7)!important}';
+              '#lang-flag:hover{background:rgba(0,0,0,.7)!important}' +
+              '@media print{#lang-flag{display:none!important}}';
     var st = document.createElement("style");
     st.id = "i18n-style";
     st.appendChild(document.createTextNode(css));
