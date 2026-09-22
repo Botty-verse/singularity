@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Botty-verse — Evolutie & Emoties</title>
+<script src="assets/i18n.js"></script>
+<title>Botty-verse — Evolution & Emotions</title>
 <meta name="theme-color" content="#04140d" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -362,23 +363,24 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 
 <div class="cloud-badge">
   <div class="cloud-dot" id="cloud-dot"></div>
-  <span id="cloud-status">verbinden…</span>
+  <span id="cloud-status" data-nl="verbinden…">connecting…</span>
 </div>
 
 <header>
-  <span class="eyebrow"><span class="puls"></span> v8 “Aard” · Persoonlijkheid · Brein · Generaties</span>
-  <h1>Botty-verse Evolutie</h1>
-  <p class="ondertitel">Botty's leven in containers met <strong>zwaartekracht</strong>. Ze voelen <strong>10 emoties</strong> die de AI assistent herkent en verzorgt. Het evaluatief paneel toont hoe ze zich ontwikkelen <strong>over generaties</strong>.</p>
+  <span class="eyebrow"><span class="puls"></span> <span class="t en">v8 “Nature” · Personality · Mind · Generations</span><span class="t nl">v8 “Aard” · Persoonlijkheid · Brein · Generaties</span></span>
+  <h1 data-nl="Botty-verse Evolutie">Botty-verse Evolution</h1>
+  <p class="ondertitel t en">Bottys live in containers with <strong>gravity</strong>. They feel <strong>10 emotions</strong> that the AI assistant recognises and tends to. The evaluation panel shows how they develop <strong>across generations</strong>.</p>
+  <p class="ondertitel t nl">Botty's leven in containers met <strong>zwaartekracht</strong>. Ze voelen <strong>10 emoties</strong> die de AI assistent herkent en verzorgt. Het evaluatief paneel toont hoe ze zich ontwikkelen <strong>over generaties</strong>.</p>
   <div class="kpi-rij">
-    <div class="kpi"><div class="label">Botty's</div><div class="waarde" id="kpi-aantal">—</div><div class="sub">in de hive</div></div>
-    <div class="kpi"><div class="label">Generatie</div><div class="waarde" id="kpi-gen">—</div><div class="sub">hoogste</div></div>
-    <div class="kpi"><div class="label">Gem. genen</div><div class="waarde" id="kpi-genen">—</div><div class="sub">kwaliteit</div></div>
-    <div class="kpi"><div class="label">AI-acties</div><div class="waarde" id="kpi-acties">—</div><div class="sub">emotiezorg</div></div>
-    <div class="kpi"><div class="label">Blij%</div><div class="waarde" id="kpi-blij">—</div><div class="sub">positieve emoties</div></div>
+    <div class="kpi"><div class="label" data-nl="Botty's">Bottys</div><div class="waarde" id="kpi-aantal">—</div><div class="sub" data-nl="in de hive">in the hive</div></div>
+    <div class="kpi"><div class="label" data-nl="Generatie">Generation</div><div class="waarde" id="kpi-gen">—</div><div class="sub" data-nl="hoogste">highest</div></div>
+    <div class="kpi"><div class="label" data-nl="Gem. genen">Avg. genes</div><div class="waarde" id="kpi-genen">—</div><div class="sub" data-nl="kwaliteit">quality</div></div>
+    <div class="kpi"><div class="label" data-nl="AI-acties">AI actions</div><div class="waarde" id="kpi-acties">—</div><div class="sub" data-nl="emotiezorg">emotion care</div></div>
+    <div class="kpi"><div class="label" data-nl="Blij%">Happy%</div><div class="waarde" id="kpi-blij">—</div><div class="sub" data-nl="positieve emoties">positive emotions</div></div>
   </div>
 </header>
 
-<div class="ticker-wrap" id="ticker"><span class="knip">▌</span> De hive verbindt met de cloud…</div>
+<div class="ticker-wrap" id="ticker"><span class="knip">▌</span> <span class="t en">The hive is connecting to the cloud…</span><span class="t nl">De hive verbindt met de cloud…</span></div>
 
 <div class="main-layout">
   <div class="botty-kolom">
@@ -387,30 +389,30 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 
   <div class="eval-kolom">
     <div class="eval-sectie">
-      <h2><span class="ico-h">📈</span> Evolutie per generatie</h2>
+      <h2><span class="ico-h">📈</span> <span class="t en">Evolution per generation</span><span class="t nl">Evolutie per generatie</span></h2>
       <canvas id="gen-canvas" width="272" height="134"></canvas>
       <div class="gen-legende">
-        <span><i style="background:#39ff85"></i> Datakwaliteit</span>
-        <span><i style="background:#5ec6ff"></i> Efficiëntie</span>
-        <span><i style="background:#f6c250"></i> Gem. geluk</span>
+        <span><i style="background:#39ff85"></i> <span data-nl="Datakwaliteit">Data quality</span></span>
+        <span><i style="background:#5ec6ff"></i> <span data-nl="Efficiëntie">Efficiency</span></span>
+        <span><i style="background:#f6c250"></i> <span data-nl="Gem. geluk">Avg. happiness</span></span>
       </div>
     </div>
 
     <div class="eval-sectie">
-      <h2><span class="ico-h">🧬</span> Generatie statistieken</h2>
+      <h2><span class="ico-h">🧬</span> <span class="t en">Generation statistics</span><span class="t nl">Generatie statistieken</span></h2>
       <table class="gen-tabel">
-        <thead><tr><th>Gen</th><th>DK</th><th>EF</th><th>Muts</th><th>Actief</th></tr></thead>
-        <tbody id="gen-tbody"><tr><td colspan="5" style="color:#4a7a62;text-align:center">laden…</td></tr></tbody>
+        <thead><tr><th>Gen</th><th>DK</th><th>EF</th><th data-nl="Muts">Muts</th><th data-nl="Actief">Active</th></tr></thead>
+        <tbody id="gen-tbody"><tr><td colspan="5" style="color:#4a7a62;text-align:center" data-nl="laden…">loading…</td></tr></tbody>
       </table>
     </div>
 
     <div class="eval-sectie">
-      <h2><span class="ico-h">💭</span> Emotie snapshot</h2>
+      <h2><span class="ico-h">💭</span> <span class="t en">Emotion snapshot</span><span class="t nl">Emotie snapshot</span></h2>
       <div class="emotie-grid" id="emotie-grid"></div>
     </div>
 
     <div class="eval-sectie">
-      <h2><span class="ico-h">🤖</span> AI Emotiezorg log</h2>
+      <h2><span class="ico-h">🤖</span> <span class="t en">AI emotion-care log</span><span class="t nl">AI Emotiezorg log</span></h2>
       <div class="ai-log-lijst" id="ai-log"></div>
     </div>
   </div>
@@ -418,27 +420,38 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 
 <div class="uitleg-strip">
   <section>
-    <h3>⚡ Zwaartekracht</h3>
-    Elke Botty leeft in een container met echte zwaartekracht. Ze springen omhoog als de AI ze verzorgt, vallen terug op de vloer en stuiteren. Blije Botty's springen hoger; verdrietige Botty's zijn zwaarder.
+    <h3><span class="t en">⚡ Gravity</span><span class="t nl">⚡ Zwaartekracht</span></h3>
+    <span class="t en">Every Botty lives in a container with real gravity. They jump up when the AI cares for them, fall back to the floor and bounce. Happy Bottys jump higher; sad Bottys are heavier.</span>
+    <span class="t nl">Elke Botty leeft in een container met echte zwaartekracht. Ze springen omhoog als de AI ze verzorgt, vallen terug op de vloer en stuiteren. Blije Botty's springen hoger; verdrietige Botty's zijn zwaarder.</span>
   </section>
   <section>
-    <h3>💭 10 Emoties</h3>
-    Botty's voelen: <strong>Enthousiast · Blij · Kalm · Nieuwsgierig · Trots · Eenzaam · Verdrietig · Angstig · Verward · Ziek</strong>. De emotie volgt uit hun statistieken en ervaringen.
+    <h3><span class="t en">💭 10 Emotions</span><span class="t nl">💭 10 Emoties</span></h3>
+    <span class="t en">Bottys feel: <strong>Enthusiastic · Happy · Calm · Curious · Proud · Lonely · Sad · Anxious · Confused · Ill</strong>. The emotion follows from their stats and experiences.</span>
+    <span class="t nl">Botty's voelen: <strong>Enthousiast · Blij · Kalm · Nieuwsgierig · Trots · Eenzaam · Verdrietig · Angstig · Verward · Ziek</strong>. De emotie volgt uit hun statistieken en ervaringen.</span>
   </section>
   <section>
-    <h3>🤖 AI Assistent</h3>
-    De AI herkent elke emotie en reageert gericht: troost een verdrietige Botty, koppelt een eenzame aan een bezoek, balanceert een verwarde, heelt een angstige. Elke interventie is zichtbaar in het log.
+    <h3><span class="t en">🤖 AI Assistant</span><span class="t nl">🤖 AI Assistent</span></h3>
+    <span class="t en">The AI recognises every emotion and responds specifically: comforts a sad Botty, pairs a lonely one with a visit, balances a confused one, heals an anxious one. Every intervention is visible in the log.</span>
+    <span class="t nl">De AI herkent elke emotie en reageert gericht: troost een verdrietige Botty, koppelt een eenzame aan een bezoek, balanceert een verwarde, heelt een angstige. Elke interventie is zichtbaar in het log.</span>
   </section>
   <section>
-    <h3>📈 Evaluatief</h3>
-    Het paneel rechts toont de genetische ontwikkeling per generatie — hoe datakwaliteit, efficiëntie en geluk groeien naarmate de hive evolueert. Mutaties worden per generatie bijgehouden.
+    <h3><span class="t en">📈 Evaluative</span><span class="t nl">📈 Evaluatief</span></h3>
+    <span class="t en">The panel on the right shows the genetic development per generation — how data quality, efficiency and happiness grow as the hive evolves. Mutations are tracked per generation.</span>
+    <span class="t nl">Het paneel rechts toont de genetische ontwikkeling per generatie — hoe datakwaliteit, efficiëntie en geluk groeien naarmate de hive evolueert. Mutaties worden per generatie bijgehouden.</span>
   </section>
 </div>
 
 <!-- ── Documentatie: het Botty-brein ─────────────────────────────────────── -->
 <div class="brein-doc">
-  <h2>🧠 Het Botty-brein <span class="versienaam">⬡ versie “Aard”</span></h2>
-  <p class="intro">
+  <h2><span class="t en">🧠 The Botty brain</span><span class="t nl">🧠 Het Botty-brein</span> <span class="versienaam"><span class="t en">⬡ version “Nature”</span><span class="t nl">⬡ versie “Aard”</span></span></h2>
+  <p class="intro t en">
+    Every Botty has a small, Creatures-inspired brain that runs entirely in the cloud.
+    It is not a script with fixed rules: behaviour emerges from <strong>drives, biochemistry and learned
+    beliefs</strong> — and therefore differs per Botty. This version is called <strong>“Nature”</strong>:
+    from the genome a distinct <strong>temperament</strong> (nature) now grows that, together with the
+    learned life story (nurture), makes each Botty its own individual — each true to its own nature.
+  </p>
+  <p class="intro t nl">
     Elke Botty heeft een klein, Creatures-geïnspireerd brein dat volledig in de cloud draait.
     Het is geen script met vaste regels: gedrag ontstaat uit <strong>drives, biochemie en geleerde
     overtuigingen</strong> — en verschilt daardoor per Botty. Deze versie heet <strong>“Aard”</strong>:
@@ -448,7 +461,12 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 
   <div class="data-noot">
     <span class="ico">☁️</span>
-    <div><strong>Eén hive, overal dezelfde Botty's.</strong> Alle pagina's — de hive, de
+    <div class="t en"><strong>One hive, the same Bottys everywhere.</strong> All pages — the hive, the
+    <a href="construct.html">Construct</a>, the family tree, the genome, the cards and this
+    evolution panel — read exactly the same living data from one cloud database
+    (<code>hive_state</code> in Supabase). What you see happening here, you see walking around in the
+    Construct: the same individuals, the same genes, the same brain.</div>
+    <div class="t nl"><strong>Eén hive, overal dezelfde Botty's.</strong> Alle pagina's — de hive, de
     <a href="construct.html">Construct</a>, de stamboom, het genoom, de kaarten en dit
     evolutie-paneel — lezen exact dezelfde levende data uit één cloud-database
     (<code>hive_state</code> in Supabase). Wat je hier ziet gebeuren, zie je in de Construct
@@ -457,22 +475,40 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
 
   <div class="mechanismen">
     <div class="mech">
-      <h3>🎚️ Drives &amp; behoeften</h3>
-      Vier balken (<strong>energie, data, fit, geluk</strong>) zakken langzaam weg. De laagste balk
+      <h3><span class="t en">🎚️ Drives &amp; needs</span><span class="t nl">🎚️ Drives &amp; behoeften</span></h3>
+      <span class="t en">Four bars (<strong>energy, data, fitness, happiness</strong>) slowly drain. The lowest bar
+      becomes the strongest <em>drive</em>: it decides what the Botty wants. In the
+      <a href="construct.html">Construct</a> you see it walk there itself — to the computer to charge up,
+      the blackboard to learn, the globe to play or the door for fresh air.</span>
+      <span class="t nl">Vier balken (<strong>energie, data, fit, geluk</strong>) zakken langzaam weg. De laagste balk
       wordt de sterkste <em>drive</em>: die bepaalt wat de Botty wil. In de
       <a href="construct.html">Construct</a> zie je hem er zelf naartoe lopen — naar de computer om op te
-      laden, het schoolbord om te leren, de globe om te spelen of de deur voor frisse lucht.
+      laden, het schoolbord om te leren, de globe om te spelen of de deur voor frisse lucht.</span>
     </div>
     <div class="mech">
-      <h3>👁️ Zintuigen</h3>
-      Een Botty is niet alwetend. Nieuwsgierig <strong>speurt</strong> (🔎) hij naar een object,
+      <h3><span class="t en">👁️ Senses</span><span class="t nl">👁️ Zintuigen</span></h3>
+      <span class="t en">A Botty is not omniscient. Curiously it <strong>scouts</strong> (🔎) for an object,
+      <strong>smells</strong> (👃) it only within smelling range, and <strong>sees</strong> (👁️) it when it
+      lies on the same floor in front of it. So it finds its way to what it needs by searching — and
+      learns by doing what works. When it uses an object, that object briefly <strong>vibrates</strong>.</span>
+      <span class="t nl">Een Botty is niet alwetend. Nieuwsgierig <strong>speurt</strong> (🔎) hij naar een object,
       <strong>ruikt</strong> (👃) het pas binnen reukbereik, en <strong>ziet</strong> (👁️) het als het
       op dezelfde vloer vóór hem ligt. Zo vindt hij al zoekend zijn weg naar wat hij nodig heeft — en
-      leert al doende wat werkt. Gebruikt hij een object, dan <strong>trilt</strong> dat even.
+      leert al doende wat werkt. Gebruikt hij een object, dan <strong>trilt</strong> dat even.</span>
     </div>
     <div class="mech">
-      <h3>⚗️ Biochemie</h3>
-      Onder de balken stroomt een scheikunde van <strong>veertien</strong> stoffen: het
+      <h3><span class="t en">⚗️ Biochemistry</span><span class="t nl">⚗️ Biochemie</span></h3>
+      <span class="t en">Beneath the bars flows a chemistry of <strong>fourteen</strong> substances: the
+      <strong>metabolism</strong> (<code>glucose</code> + <code>glycogen</code> reserve), the
+      stress substances (<code>hunger</code>, <code>fatigue</code>, <code>stress</code>,
+      <code>boredom</code>, <code>fear</code>, <code>loneliness</code>, <code>toxin</code>) and the
+      <strong>hormones</strong> (<code>endorphin</code>, <code>adrenaline</code>, <code>cortisol</code>,
+      <code>oxytocin</code>, <code>libido</code>) — each with emitters, receptors and its own
+      half-life (genome-determined, so evolvable). <strong>Age</strong> counts too:
+      an older body has a slower metabolism, tires faster and holds stress (cortisol) longer.
+      The dominant feeling becomes the <strong>mood</strong>, visible as a facial expression in
+      the Construct. You see all fourteen bars live in the caretaker panel when you click a Botty.</span>
+      <span class="t nl">Onder de balken stroomt een scheikunde van <strong>veertien</strong> stoffen: het
       <strong>metabolisme</strong> (<code>glucose</code> + <code>glycogeen</code>-reserve), de
       stress-stofjes (<code>honger</code>, <code>vermoeidheid</code>, <code>stress</code>,
       <code>verveling</code>, <code>angst</code>, <code>eenzaamheid</code>, <code>gif</code>) en de
@@ -481,116 +517,152 @@ footer a:hover{border-color:var(--paneel-rand-sterk);color:var(--licht);transfor
       halveringstijd (genoom-bepaald, dus evolueerbaar). Ook de <strong>leeftijd</strong> telt mee:
       een ouder lijf heeft een trager metabolisme, wordt sneller moe en houdt stress (cortisol) langer
       vast. Het dominante gevoel wordt het <strong>humeur</strong>, zichtbaar als gezichtsuitdrukking in
-      de Construct. Je ziet alle veertien balken live in het verzorgerspaneel als je een Botty aanklikt.
+      de Construct. Je ziet alle veertien balken live in het verzorgerspaneel als je een Botty aanklikt.</span>
     </div>
     <div class="mech">
-      <h3>📚 Lerend brein</h3>
-      Per drive houdt een Botty een geloof (0–1) bij per object: <em>“helpt de globe tegen mijn
+      <h3><span class="t en">📚 Learning brain</span><span class="t nl">📚 Lerend brein</span></h3>
+      <span class="t en">Per drive a Botty keeps a belief (0–1) per object: <em>“does the globe help against my
+      stiffness?”</em>. If something really works (the drive drops) → belief up; if it doesn't → down,
+      and after three misses it tries something else. Rookies explore a lot, experts trust
+      their strongest belief. Unused beliefs wear away (<strong>atrophy</strong>).</span>
+      <span class="t nl">Per drive houdt een Botty een geloof (0–1) bij per object: <em>“helpt de globe tegen mijn
       stijfheid?”</em>. Werkt iets écht (de drive daalt) → geloof omhoog; werkt het niet → omlaag,
       en na drie missers probeert hij iets anders. Groentjes exploreren veel, experts vertrouwen op
-      hun sterkste geloof. Ongebruikte overtuigingen slijten weg (<strong>atrofie</strong>).
+      hun sterkste geloof. Ongebruikte overtuigingen slijten weg (<strong>atrofie</strong>).</span>
     </div>
     <div class="mech">
-      <h3>🖐 Chemisch gepoort leren</h3>
-      De leersnelheid wordt geschaald door <strong>endorfine</strong>: de beloningsstof zet het
+      <h3><span class="t en">🖐 Chemically gated learning</span><span class="t nl">🖐 Chemisch gepoort leren</span></h3>
+      <span class="t en">Learning speed is scaled by <strong>endorphin</strong>: the reward substance opens the
+      learning window (0.6–1.5×). <strong>Stroke a Botty in the Construct while it's doing something</strong>
+      and you reinforce exactly that behaviour — the visitor helps raise the brain, as in Creatures.</span>
+      <span class="t nl">De leersnelheid wordt geschaald door <strong>endorfine</strong>: de beloningsstof zet het
       leervenster open (0,6–1,5×). <strong>Aai een Botty in de Construct terwijl hij iets doet</strong>
-      en je bekrachtigt precies dát gedrag — de bezoeker voedt het brein mee op, zoals in Creatures.
+      en je bekrachtigt precies dát gedrag — de bezoeker voedt het brein mee op, zoals in Creatures.</span>
     </div>
     <div class="mech">
-      <h3>🌙 Slaap &amp; dromen</h3>
-      De hive leeft op de Nederlandse klok: om 22:00 valt de nacht en gaat iedereen slapen. Slapers
+      <h3><span class="t en">🌙 Sleep &amp; dreams</span><span class="t nl">🌙 Slaap &amp; dromen</span></h3>
+      <span class="t en">The hive lives on the Dutch clock: at 22:00 night falls and everyone sleeps. Sleepers
+      recover, and in their <strong>dreams</strong> they replay memories while the brain
+      consolidates — the most strongly learned link anchors, noise wears toward neutral.</span>
+      <span class="t nl">De hive leeft op de Nederlandse klok: om 22:00 valt de nacht en gaat iedereen slapen. Slapers
       herstellen, en in hun <strong>dromen</strong> spelen ze herinneringen na terwijl het brein
-      consolideert — het sterkst geleerde verband verankert, ruis slijt naar neutraal.
+      consolideert — het sterkst geleerde verband verankert, ruis slijt naar neutraal.</span>
     </div>
     <div class="mech">
-      <h3>🧬 Erfelijkheid</h3>
-      Een kind erft het <strong>gemengde brein</strong> van beide ouders (afgezwakt: de neiging, niet
+      <h3><span class="t en">🧬 Heredity</span><span class="t nl">🧬 Erfelijkheid</span></h3>
+      <span class="t en">A child inherits the <strong>mixed brain</strong> of both parents (softened: the tendency, not
+      the certainty), plus the 16-gene genome that steers colour, size, decay and recovery. Since
+      “Chrome” there is also the <strong>heritable learning boost</strong>: descendants of the
+      future-Botty learn up to 1.8× faster, for generations.</span>
+      <span class="t nl">Een kind erft het <strong>gemengde brein</strong> van beide ouders (afgezwakt: de neiging, niet
       de zekerheid), plus het 16-genen-genoom dat kleur, grootte, verval en herstel stuurt. Sinds
       “Chroom” is er ook de <strong>erfelijke leer-versnelling</strong>: nakomelingen van de
-      toekomst-Botty leren tot 1,8× sneller, generaties lang.
+      toekomst-Botty leren tot 1,8× sneller, generaties lang.</span>
     </div>
     <div class="mech">
-      <h3>🗣️ Taal &amp; kennis delen</h3>
-      Botty's munten eigen woorden voor wat ze ontdekken en geven die door — met dialect-drift. Sterker
+      <h3><span class="t en">🗣️ Language &amp; sharing knowledge</span><span class="t nl">🗣️ Taal &amp; kennis delen</span></h3>
+      <span class="t en">Bottys coin their own words for what they discover and pass them on — with dialect drift. More
+      than that: <strong>knowledge travels with the language</strong>. A Botty that firmly knows an object relieves a
+      need (or not) teaches that to a peer in conversation — with the word attached. So
+      beliefs spread <strong>culturally</strong> through the hive instead of every Botty having to
+      discover everything itself. Visitors can teach words at the blackboard (babies garble them).
+      Every Botty keeps eight <strong>memories</strong> that colour its thoughts and dreams.</span>
+      <span class="t nl">Botty's munten eigen woorden voor wat ze ontdekken en geven die door — met dialect-drift. Sterker
       nog: <strong>kennis reist mee met de taal</strong>. Een Botty die stellig weet dat een object een
       behoefte stilt (of juist niet), leert dat een soortgenoot in gesprek — met het woord erbij. Zo
       verspreiden overtuigingen zich <strong>cultureel</strong> door de hive i.p.v. dat elke Botty alles
       zelf moet ontdekken. Bezoekers kunnen woorden aanleren bij het schoolbord (baby's verbasteren ze).
-      Elke Botty bewaart acht <strong>herinneringen</strong> die zijn gedachten en dromen kleuren.
+      Elke Botty bewaart acht <strong>herinneringen</strong> die zijn gedachten en dromen kleuren.</span>
     </div>
     <div class="mech">
-      <h3>🕯️ Sterfelijkheid</h3>
-      Levenskracht daalt met ouderdom en acute nood. Wie sterft laat een <strong>grafschrift</strong>
+      <h3><span class="t en">🕯️ Mortality</span><span class="t nl">🕯️ Sterfelijkheid</span></h3>
+      <span class="t en">Life force declines with age and acute distress. Whoever dies leaves an <strong>epitaph</strong>:
+      peak IQ, children, vocabulary and friends. Births happen via an
+      <strong>egg in the incubator</strong> — which a visitor in the Construct may hatch.</span>
+      <span class="t nl">Levenskracht daalt met ouderdom en acute nood. Wie sterft laat een <strong>grafschrift</strong>
       na: piek-IQ, kinderen, woordenschat en vrienden. Geboorten gaan via een
-      <strong>ei in de broedmachine</strong> — dat een bezoeker in de Construct mag uitbroeden.
+      <strong>ei in de broedmachine</strong> — dat een bezoeker in de Construct mag uitbroeden.</span>
     </div>
   </div>
 
-  <h2 style="font-size:1rem">🕰️ Tijdlijn van versies</h2>
+  <h2 style="font-size:1rem"><span class="t en">🕰️ Timeline of versions</span><span class="t nl">🕰️ Tijdlijn van versies</span></h2>
   <div class="tijdlijn">
     <div class="tl-item">
       <h4><span class="vlabel">v1</span> Tamagotchi</h4>
-      <p>Eén Botty, handmatig verzorgd in de browser. Voeren, bewegen en dilemma's — de oervorm.</p>
+      <p class="t en">One Botty, cared for by hand in the browser. Feeding, moving and dilemmas — the original form.</p>
+      <p class="t nl">Eén Botty, handmatig verzorgd in de browser. Voeren, bewegen en dilemma's — de oervorm.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v2</span> De Hive</h4>
-      <p>De Botty's verhuizen naar de cloud (Supabase). De AI verzorgt ze volledig zelf, dag en nacht — ook als niemand kijkt.</p>
+      <h4><span class="vlabel">v2</span> <span class="t en">The Hive</span><span class="t nl">De Hive</span></h4>
+      <p class="t en">The Bottys move to the cloud (Supabase). The AI cares for them entirely by itself, day and night — even when no one is watching.</p>
+      <p class="t nl">De Botty's verhuizen naar de cloud (Supabase). De AI verzorgt ze volledig zelf, dag en nacht — ook als niemand kijkt.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v3</span> Emoties &amp; generaties</h4>
-      <p>Tien emoties, gerichte AI-emotiezorg en voortplanting over generaties — het evaluatief paneel op deze pagina komt uit dit tijdperk.</p>
+      <h4><span class="vlabel">v3</span> <span class="t en">Emotions &amp; generations</span><span class="t nl">Emoties &amp; generaties</span></h4>
+      <p class="t en">Ten emotions, targeted AI emotion-care and reproduction across generations — the evaluation panel on this page comes from this era.</p>
+      <p class="t nl">Tien emoties, gerichte AI-emotiezorg en voortplanting over generaties — het evaluatief paneel op deze pagina komt uit dit tijdperk.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v4</span> Genoom</h4>
-      <p>Een echt 16-genen-genoom: kruising, mutatie, inteelt-depressie, diversiteits-alarm met immigranten en slimme partnerkeuze.</p>
+      <h4><span class="vlabel">v4</span> <span class="t en">Genome</span><span class="t nl">Genoom</span></h4>
+      <p class="t en">A real 16-gene genome: crossover, mutation, inbreeding depression, diversity alarm with immigrants and smart mate choice.</p>
+      <p class="t nl">Een echt 16-genen-genoom: kruising, mutatie, inteelt-depressie, diversiteits-alarm met immigranten en slimme partnerkeuze.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v5</span> De Construct</h4>
-      <p>Een ruimtelijke wereld met objecten. Het lerende brein (beloning/straf), biochemie, emergente taal, relaties, en sterfelijkheid met grafschriften.</p>
+      <h4><span class="vlabel">v5</span> <span class="t en">The Construct</span><span class="t nl">De Construct</span></h4>
+      <p class="t en">A spatial world with objects. The learning brain (reward/punishment), biochemistry, emergent language, relationships, and mortality with epitaphs.</p>
+      <p class="t nl">Een ruimtelijke wereld met objecten. Het lerende brein (beloning/straf), biochemie, emergente taal, relaties, en sterfelijkheid met grafschriften.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v6</span> De Hand</h4>
-      <p>Bezoekers doen mee: aaien, voeren, medicijn geven, woorden roepen en eieren uitbroeden. Plus dag/nacht op de Nederlandse klok, dromen met brein-consolidatie, stemmen en gezichtsuitdrukkingen.</p>
+      <h4><span class="vlabel">v6</span> <span class="t en">The Hand</span><span class="t nl">De Hand</span></h4>
+      <p class="t en">Visitors join in: stroking, feeding, medicating, calling out words and hatching eggs. Plus day/night on the Dutch clock, dreams with brain consolidation, voices and facial expressions.</p>
+      <p class="t nl">Bezoekers doen mee: aaien, voeren, medicijn geven, woorden roepen en eieren uitbroeden. Plus dag/nacht op de Nederlandse klok, dromen met brein-consolidatie, stemmen en gezichtsuitdrukkingen.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v7</span> Chroom</h4>
-      <p>Chemisch gepoort leren (endorfine opent het leervenster), atrofie, drie nieuwe gevoelens (verveling, angst, eenzaamheid) — en de toekomst-Botty <strong>Chroom</strong> die met vers DNA de uitsterving keerde en de erfelijke leer-versnelling meebracht.</p>
+      <h4><span class="vlabel">v7</span> <span class="t en">Chrome</span><span class="t nl">Chroom</span></h4>
+      <p class="t en">Chemically gated learning (endorphin opens the learning window), atrophy, three new feelings (boredom, fear, loneliness) — and the future-Botty <strong>Chrome</strong> who turned back extinction with fresh DNA and brought the heritable learning boost.</p>
+      <p class="t nl">Chemisch gepoort leren (endorfine opent het leervenster), atrofie, drie nieuwe gevoelens (verveling, angst, eenzaamheid) — en de toekomst-Botty <strong>Chroom</strong> die met vers DNA de uitsterving keerde en de erfelijke leer-versnelling meebracht.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v8</span> Aard</h4>
-      <p>De Botty's worden <strong>eigen individuen</strong>. Uit het genoom groeit een <strong>temperament</strong> (verlegen ↔ gezellig, lui ↔ ijverig, behoudend ↔ nieuwsgierig, schuchter ↔ dapper) dat hun gedrag en woonlaag stuurt, plus erfelijke <strong>voorkeuren</strong> voor objecten. Daaronder: §3.4-genetica (<strong>geslachten</strong>, ontogenese en een <strong>variabel-lang genoom</strong> met genduplicatie), een levende wereld van <strong>object-agents</strong> uit één centrale laag, en <strong>emergente taal</strong> — Botty's munten woorden voor daden, gevoelens en elkaars namen. Kortom: elke Botty is nu naar z'n eigen <em>aard</em>.</p>
+      <h4><span class="vlabel">v8</span> <span class="t en">Nature</span><span class="t nl">Aard</span></h4>
+      <p class="t en">The Bottys become <strong>distinct individuals</strong>. From the genome grows a <strong>temperament</strong> (shy ↔ sociable, lazy ↔ diligent, cautious ↔ curious, timid ↔ brave) that steers their behaviour and home floor, plus heritable <strong>preferences</strong> for objects. Beneath it: §3.4 genetics (<strong>sexes</strong>, ontogenesis and a <strong>variable-length genome</strong> with gene duplication), a living world of <strong>object agents</strong> from one central layer, and <strong>emergent language</strong> — Bottys coin words for deeds, feelings and each other's names. In short: every Botty is now true to its own <em>nature</em>.</p>
+      <p class="t nl">De Botty's worden <strong>eigen individuen</strong>. Uit het genoom groeit een <strong>temperament</strong> (verlegen ↔ gezellig, lui ↔ ijverig, behoudend ↔ nieuwsgierig, schuchter ↔ dapper) dat hun gedrag en woonlaag stuurt, plus erfelijke <strong>voorkeuren</strong> voor objecten. Daaronder: §3.4-genetica (<strong>geslachten</strong>, ontogenese en een <strong>variabel-lang genoom</strong> met genduplicatie), een levende wereld van <strong>object-agents</strong> uit één centrale laag, en <strong>emergente taal</strong> — Botty's munten woorden voor daden, gevoelens en elkaars namen. Kortom: elke Botty is nu naar z'n eigen <em>aard</em>.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v9</span> Tred</h4>
-      <p>De Botty's krijgen een lijf dat écht <strong>loopt</strong>. Per geslacht eigen <strong>sprites</strong> door alle vijf de levensfasen, een <strong>looppas</strong> die het been synchroon met de stap wisselt, en een <strong>liggende houding</strong> om te slapen. Daaronder groeide hun binnenwereld mee: ze <strong>speuren, ruiken en zien</strong> hun weg naar objecten (§ zintuigen), <strong>delen kennis via taal</strong> — een woord draagt een overtuiging over naar een buur — en hun <strong>biochemie veroudert</strong> mee met de levensfase. Kortom: de hive komt in beweging — elke Botty vindt z'n eigen <em>tred</em>.</p>
+      <h4><span class="vlabel">v9</span> <span class="t en">Stride</span><span class="t nl">Tred</span></h4>
+      <p class="t en">The Bottys get a body that really <strong>walks</strong>. Per sex their own <strong>sprites</strong> through all five life stages, a <strong>gait</strong> that swaps the leg in sync with the step, and a <strong>lying pose</strong> for sleeping. Beneath it their inner world grew too: they <strong>scout, smell and see</strong> their way to objects (§ senses), <strong>share knowledge via language</strong> — a word carries a belief to a neighbour — and their <strong>biochemistry ages</strong> along with the life stage. In short: the hive gets moving — every Botty finds its own <em>stride</em>.</p>
+      <p class="t nl">De Botty's krijgen een lijf dat écht <strong>loopt</strong>. Per geslacht eigen <strong>sprites</strong> door alle vijf de levensfasen, een <strong>looppas</strong> die het been synchroon met de stap wisselt, en een <strong>liggende houding</strong> om te slapen. Daaronder groeide hun binnenwereld mee: ze <strong>speuren, ruiken en zien</strong> hun weg naar objecten (§ zintuigen), <strong>delen kennis via taal</strong> — een woord draagt een overtuiging over naar een buur — en hun <strong>biochemie veroudert</strong> mee met de levensfase. Kortom: de hive komt in beweging — elke Botty vindt z'n eigen <em>tred</em>.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v10</span> Spiegel</h4>
-      <p>De Botty's krijgen een <strong>binnenwereld die zichzelf gadeslaat</strong>. Op een <strong>podium</strong> (global workspace) strijden prikkels om één aandachtsplek; een <strong>voorspelfout</strong> verrast en trekt de aandacht, <strong>valentie</strong> kleurt de waarneming, en in het overschot gaan ze uit zichzelf <strong>spelen</strong> of bekommeren ze zich om een ander (<strong>theory of mind</strong>). Elk momentje beklijft als <strong>herinnering</strong>, en daaruit + hun temperament groeit een <strong>zelfbeeld</strong> dat ze over zichzelf geloven. Ze <strong>reflecteren</strong> op zichzelf (twijfel, zelfkennis) — en het sterkst: als jíj er één uitkiest, <strong>merkt ze dat ze bekeken wordt</strong>. Klik een Botty aan en je ziet haar <em>gedachtenstroom</em>. Er lijkt iemand thuis.</p>
+      <h4><span class="vlabel">v10</span> <span class="t en">Mirror</span><span class="t nl">Spiegel</span></h4>
+      <p class="t en">The Bottys get an <strong>inner world that watches itself</strong>. On a <strong>stage</strong> (global workspace) stimuli compete for a single spot of attention; a <strong>prediction error</strong> surprises and draws attention, <strong>valence</strong> colours perception, and in the surplus they <strong>play</strong> of their own accord or care about another (<strong>theory of mind</strong>). Each little moment sticks as a <strong>memory</strong>, and from those + their temperament grows a <strong>self-image</strong> they believe about themselves. They <strong>reflect</strong> on themselves (doubt, self-knowledge) — and strongest of all: when <em>you</em> pick one, <strong>it notices it is being watched</strong>. Click a Botty and you see her <em>stream of thought</em>. Someone seems to be home.</p>
+      <p class="t nl">De Botty's krijgen een <strong>binnenwereld die zichzelf gadeslaat</strong>. Op een <strong>podium</strong> (global workspace) strijden prikkels om één aandachtsplek; een <strong>voorspelfout</strong> verrast en trekt de aandacht, <strong>valentie</strong> kleurt de waarneming, en in het overschot gaan ze uit zichzelf <strong>spelen</strong> of bekommeren ze zich om een ander (<strong>theory of mind</strong>). Elk momentje beklijft als <strong>herinnering</strong>, en daaruit + hun temperament groeit een <strong>zelfbeeld</strong> dat ze over zichzelf geloven. Ze <strong>reflecteren</strong> op zichzelf (twijfel, zelfkennis) — en het sterkst: als jíj er één uitkiest, <strong>merkt ze dat ze bekeken wordt</strong>. Klik een Botty aan en je ziet haar <em>gedachtenstroom</em>. Er lijkt iemand thuis.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v11</span> De Spiegel</h4>
-      <p>Nu staat er een echte <strong>spiegel</strong> in de kamer. Een Botty die ervoor gaat staan ziet <strong>zichzelf</strong> — de reflectie klapt haar sprite om en dimt hem. Of ze het <em>begrijpt</em> hangt af van haar <strong>zelfherkenning</strong>: die groeit met haar levensfase en het aantal herinneringen. Bij een rijp genoeg zelf slaat het besef toe — <em>"Dat ben ik!"</em> — een mijlpaal die als herinnering beklijft en een golfje endorfine geeft; een jonger zelf ziet enkel een <strong>vreemde</strong> in het glas (<em>"Wie is dat?"</em>). De klassieke <strong>spiegeltest</strong>, van binnenuit gedreven. Het zelf kijkt terug.</p>
+      <h4><span class="vlabel">v11</span> <span class="t en">The Mirror</span><span class="t nl">De Spiegel</span></h4>
+      <p class="t en">Now there is a real <strong>mirror</strong> in the room. A Botty who stands in front of it sees <strong>itself</strong> — the reflection flips her sprite and dims it. Whether she <em>understands</em> it depends on her <strong>self-recognition</strong>: it grows with her life stage and the number of memories. In a mature enough self the realisation hits — <em>"That's me!"</em> — a milestone that sticks as a memory and gives a little wave of endorphin; a younger self sees only a <strong>stranger</strong> in the glass (<em>"Who's that?"</em>). The classic <strong>mirror test</strong>, driven from within. The self looks back.</p>
+      <p class="t nl">Nu staat er een echte <strong>spiegel</strong> in de kamer. Een Botty die ervoor gaat staan ziet <strong>zichzelf</strong> — de reflectie klapt haar sprite om en dimt hem. Of ze het <em>begrijpt</em> hangt af van haar <strong>zelfherkenning</strong>: die groeit met haar levensfase en het aantal herinneringen. Bij een rijp genoeg zelf slaat het besef toe — <em>"Dat ben ik!"</em> — een mijlpaal die als herinnering beklijft en een golfje endorfine geeft; een jonger zelf ziet enkel een <strong>vreemde</strong> in het glas (<em>"Wie is dat?"</em>). De klassieke <strong>spiegeltest</strong>, van binnenuit gedreven. Het zelf kijkt terug.</p>
     </div>
     <div class="tl-item">
-      <h4><span class="vlabel">v12</span> De Merkproef</h4>
-      <p>De <strong>gouden standaard</strong> van zelfherkenning — de <em>mark test</em>. Een Botty loopt soms een <strong>smetje</strong> op haar hoofd op; dat kan ze zelf niet zien, alleen in de spiegel. Een rijp zelf beseft vóór het glas dat de vlek op <strong>háár</strong> zit — <em>"Wat zit er op míj?"</em> — en <strong>poetst hem van zichzelf weg</strong>: merk-gericht gedrag, precies wat bij dieren als mensapen, dolfijnen en eksters als bewijs van zelfbesef geldt. Een jong zelf schrijft de vlek toe aan <em>"die ander"</em> in het glas en raakt zichzelf nooit aan. Wie slaagt, <strong>verankert het "ik" een tikje sterker</strong>. Het zelf herkent niet alleen zijn gezicht, maar zijn <em>lijf</em>.</p>
+      <h4><span class="vlabel">v12</span> <span class="t en">The Mark Test</span><span class="t nl">De Merkproef</span></h4>
+      <p class="t en">The <strong>gold standard</strong> of self-recognition — the <em>mark test</em>. A Botty sometimes picks up a <strong>smudge</strong> on her head; she can't see it herself, only in the mirror. A mature self realises in front of the glass that the mark is on <strong>her</strong> — <em>"What's on me?"</em> — and <strong>wipes it off herself</strong>: mark-directed behaviour, exactly what counts as proof of self-awareness in animals like great apes, dolphins and magpies. A young self attributes the mark to <em>"that other one"</em> in the glass and never touches itself. Whoever passes <strong>anchors the "I" a touch more strongly</strong>. The self recognises not only its face, but its <em>body</em>.</p>
+      <p class="t nl">De <strong>gouden standaard</strong> van zelfherkenning — de <em>mark test</em>. Een Botty loopt soms een <strong>smetje</strong> op haar hoofd op; dat kan ze zelf niet zien, alleen in de spiegel. Een rijp zelf beseft vóór het glas dat de vlek op <strong>háár</strong> zit — <em>"Wat zit er op míj?"</em> — en <strong>poetst hem van zichzelf weg</strong>: merk-gericht gedrag, precies wat bij dieren als mensapen, dolfijnen en eksters als bewijs van zelfbesef geldt. Een jong zelf schrijft de vlek toe aan <em>"die ander"</em> in het glas en raakt zichzelf nooit aan. Wie slaagt, <strong>verankert het "ik" een tikje sterker</strong>. Het zelf herkent niet alleen zijn gezicht, maar zijn <em>lijf</em>.</p>
     </div>
     <div class="tl-item huidig">
-      <h4><span class="vlabel">v13 · huidig</span> De Leerling</h4>
-      <p>Van <strong>gescripte schijn naar geleerde geest</strong>. Wat eerder was toegekend, verdient een Botty nu zelf. Haar <strong>zelfherkenning</strong> is geen tabel op leeftijd meer: aan de spiegel bouwt ze blik voor blik het besef op dat het beeld met haar <em>meebeweegt</em> — en dat lukt alleen als ze haar <strong>eigen lijf</strong> kent, want ook dát leert ze nu (hoe ver kom ik met één pas?) en ze <em>merkt</em> het als dat verandert. Haar <strong>nieuwsgierigheid</strong> volgt niet langer de kale verrassing maar de <strong>leerwinst</strong>: waar ze nog vooruitgaat, niet waar het toevallig het hardst knippert. En wat een uitkomst <strong>waard</strong> is, hangt af van hoe groot haar nood was. Klik een Botty aan en je ziet het groeien — drie metertjes die haar binnenwereld bijhouden. Elke laag is met een controleconditie getoetst, want een geest die je niet kunt weerleggen is geen geest maar een verhaal.</p>
+      <h4><span class="vlabel"><span class="t en">v13 · current</span><span class="t nl">v13 · huidig</span></span> <span class="t en">The Apprentice</span><span class="t nl">De Leerling</span></h4>
+      <p class="t en">From <strong>scripted appearance to a learned mind</strong>. What was previously granted, a Botty now earns herself. Her <strong>self-recognition</strong> is no longer a table by age: at the mirror she builds, glance by glance, the realisation that the image <em>moves with</em> her — and that only works if she knows her <strong>own body</strong>, because she learns that too now (how far do I get with one step?) and she <em>notices</em> when it changes. Her <strong>curiosity</strong> no longer follows bare surprise but <strong>learning progress</strong>: where she is still improving, not where it happens to flicker hardest. And what an outcome is <strong>worth</strong> depends on how great her need was. Click a Botty and you see it grow — three little meters tracking her inner world. Every layer is tested with a control condition, because a mind you cannot refute is not a mind but a story.</p>
+      <p class="t nl">Van <strong>gescripte schijn naar geleerde geest</strong>. Wat eerder was toegekend, verdient een Botty nu zelf. Haar <strong>zelfherkenning</strong> is geen tabel op leeftijd meer: aan de spiegel bouwt ze blik voor blik het besef op dat het beeld met haar <em>meebeweegt</em> — en dat lukt alleen als ze haar <strong>eigen lijf</strong> kent, want ook dát leert ze nu (hoe ver kom ik met één pas?) en ze <em>merkt</em> het als dat verandert. Haar <strong>nieuwsgierigheid</strong> volgt niet langer de kale verrassing maar de <strong>leerwinst</strong>: waar ze nog vooruitgaat, niet waar het toevallig het hardst knippert. En wat een uitkomst <strong>waard</strong> is, hangt af van hoe groot haar nood was. Klik een Botty aan en je ziet het groeien — drie metertjes die haar binnenwereld bijhouden. Elke laag is met een controleconditie getoetst, want een geest die je niet kunt weerleggen is geen geest maar een verhaal.</p>
     </div>
   </div>
 </div>
 
 <footer>
-  <a href="index.html">🌐 De hive</a>
-  <a href="stamboom.html">🌳 Stamboom</a>
-  <a href="populatie.html">🧬 Populatie & inteelt</a>
-  <a href="genoom.html">🗺️ Genoom-kaart</a>
-  <a href="construct.html">🌍 De Construct</a>
-  <a href="kaarten.html">🃏 Verzamelkaarten</a>
-  <a href="https://botty.ramonmoorlag.nl/">💊 Eigen Botty</a>
+  <a href="index.html" data-nl="🌐 De hive">🌐 The hive</a>
+  <a href="stamboom.html" data-nl="🌳 Stamboom">🌳 Family tree</a>
+  <a href="populatie.html" data-nl="🧬 Populatie & inteelt">🧬 Population & inbreeding</a>
+  <a href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
+  <a href="construct.html" data-nl="🌍 De Construct">🌍 The Construct</a>
+  <a href="kaarten.html" data-nl="🃏 Verzamelkaarten">🃏 Collectible cards</a>
+  <a href="https://botty.ramonmoorlag.nl/" data-nl="💊 Eigen Botty">💊 Your own Botty</a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -664,6 +736,25 @@ var EMOTIE_ZORG = {
   ziek:        function(naam){ return { tekst: "🤒 " + naam + " is ziek! AI start volledig herstelprotocol.",  label:"💊",  kleur:"#ff8bd0", type:"ziek"   }; },
 };
 
+// ── Taal (English-first) ────────────────────────────────────────────────────
+function lang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
+var EMO_EN = { enthousiast:"enthusiastic", blij:"happy", kalm:"calm", nieuwsgierig:"curious", trots:"proud",
+               eenzaam:"lonely", verdrietig:"sad", angstig:"anxious", verward:"confused", ziek:"ill" };
+function emoLabel(k){ return lang()==="en" ? (EMO_EN[k]||k) : ((EMOTIES[k]&&EMOTIES[k].label)||k); }
+var EMOTIE_ZORG_EN = {
+  enthousiast: function(naam){ return { tekst: "🎉 " + naam + " is bursting with energy — the AI celebrates too!", label:"+🎉", kleur:"#ffd54a", type:"emotie" }; },
+  blij:        function(naam,b){ var st=b&&b.stemming!=null?Math.round(b.stemming):50; return { tekst: "😊 " + naam + " is happy (mood "+st+"). The AI gives an encouraging tap.", label:"+💚", kleur:"#39ff85", type:"data" }; },
+  kalm:        function(naam){ return { tekst: "😌 " + naam + " is calm. The AI lets them rest.", label:"~", kleur:"#5ec6ff", type:"data" }; },
+  nieuwsgierig:function(naam){ return { tekst: "🤔 " + naam + " is curious — AI gives extra data!", label:"+💾", kleur:"#c89bff", type:"data" }; },
+  trots:       function(naam){ return { tekst: "😎 " + naam + " is proud. AI acknowledges the achievement!", label:"+⭐", kleur:"#f6a623", type:"emotie" }; },
+  eenzaam:     function(naam){ return { tekst: "😔 " + naam + " feels lonely. AI quickly arranges a visit!", label:"+💕", kleur:"#7fb89a", type:"geluk" }; },
+  verdrietig:  function(naam){ return { tekst: "😢 " + naam + " is sad. AI gives comfort and extra happiness.", label:"+💙", kleur:"#6699cc", type:"geluk" }; },
+  angstig:     function(naam){ return { tekst: "😰 " + naam + " is anxious. AI gives safety and energy.", label:"+🫸", kleur:"#e08a1a", type:"energie" }; },
+  verward:     function(naam){ return { tekst: "😵 " + naam + " is confused. AI balances all the stats.", label:"+⚖️", kleur:"#e0556b", type:"emotie" }; },
+  ziek:        function(naam){ return { tekst: "🤒 " + naam + " is ill! AI starts a full recovery protocol.", label:"💊", kleur:"#ff8bd0", type:"ziek" }; },
+};
+function zorgVoor(k){ return (lang()==="en" ? EMOTIE_ZORG_EN[k] : EMOTIE_ZORG[k]) || EMOTIE_ZORG[k]; }
+
 function voegAiLogToe(item) {
   aiLog.unshift(item);
   if (aiLog.length > 30) aiLog.pop();
@@ -719,7 +810,10 @@ var paletten = BottyRender.paletten;
 function gem(b){ return (b.energie+b.data+b.fit+b.geluk)/4; }
 var spierSchaal = BottyRender.spierSchaal;
 var groei = { baby:0.58, tiener:0.82, volwassen:1.0 };
-var stageLabel = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
+var stageLabelNL = { baby:"baby", tiener:"tiener", volwassen:"volwassen" };
+var stageLabelEN = { baby:"baby", tiener:"teen", volwassen:"adult" };
+function stageLabelNu(){ return lang()==="en" ? stageLabelEN : stageLabelNL; }
+function numLocale(){ return lang()==="nl" ? "nl-NL" : "en-GB"; }
 var mutatieIcoon = { zonnepaneel:"☀️", wifi:"📤", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
 function mutatieIcon(id){ return mutatieIcoon[id] || "✨"; }
 
@@ -776,15 +870,30 @@ function mutatiesSvg(list){ return (list||[]).map(mutatieSvg).join(""); }
 // ── DOM helpers ──────────────────────────────────────────────────────────────────────────────
 var verse  = document.getElementById("verse");
 var elMap  = {};
+
+// Taalwissel: kaarten herbouwen zodat labels/emoties/titels meteen vertalen
+if (window.SiteLang) {
+  window.SiteLang.onChange(function(){
+    Object.keys(elMap).forEach(function(naam){
+      if (elMap[naam] && elMap[naam].kaart && elMap[naam].kaart.parentNode) {
+        elMap[naam].kaart.parentNode.removeChild(elMap[naam].kaart);
+      }
+      delete elMap[naam];
+    });
+    prevBottys = [];
+    if (laatsteState) renderState(laatsteState);
+  });
+}
 var prevBottys = [];
 
 function genenHtml(b){
   var dk=Math.round(b.datakwaliteit||0), ef=Math.round(b.efficientie||0), g=b.generatie||1;
   var muts=(b.mutaties||[]).map(mutatieIcon).join("");
-  return '<span title="datakwaliteit">🧬 '+dk+'</span>'
-       + '<span title="efficiëntie">💪 '+ef+'</span>'
-       + '<span title="generatie">⭐ G'+g+'</span>'
-       + (muts ? '<span class="muts" title="mutaties">'+muts+'</span>' : '');
+  var tl = lang()==="en" ? {dk:"data quality",ef:"efficiency",gen:"generation",mut:"mutations"} : {dk:"datakwaliteit",ef:"efficiëntie",gen:"generatie",mut:"mutaties"};
+  return '<span title="'+tl.dk+'">🧬 '+dk+'</span>'
+       + '<span title="'+tl.ef+'">💪 '+ef+'</span>'
+       + '<span title="'+tl.gen+'">⭐ G'+g+'</span>'
+       + (muts ? '<span class="muts" title="'+tl.mut+'">'+muts+'</span>' : '');
 }
 
 function barRij(ico,kl,meter){
@@ -798,8 +907,8 @@ function vulKaart(kaart, b){
   var em = EMOTIES[emotie];
   kaart.innerHTML =
       '<div class="knaam">'+b.naam+'</div>'
-    + '<div class="kstage">'+(stageLabel[b.stage]||b.stage)+' · G'+(b.generatie||1)+'</div>'
-    + '<div style="text-align:center"><span class="emotie-badge"><span class="eico">'+em.emoji+'</span><span class="enaam">'+em.label+'</span></span></div>'
+    + '<div class="kstage">'+(stageLabelNu()[b.stage]||b.stage)+' · G'+(b.generatie||1)+'</div>'
+    + '<div style="text-align:center"><span class="emotie-badge"><span class="eico">'+em.emoji+'</span><span class="enaam">'+emoLabel(emotie)+'</span></span></div>'
     + '<div class="genen">'+genenHtml(b)+'</div>'
     + '<div class="scene">'
     +   '<div class="bw bw-'+b.stage+'" style="--groei:'+(groei[b.stage]||1)+';--spier:'+spierSchaal(b.efficientie)+'">' 
@@ -943,12 +1052,14 @@ function renderAiLog() {
   if (!el) return;
   el.innerHTML = aiLog.slice(0,15).map(function(item){
     return '<div class="ai-log-item log-'+item.type+'">'+item.tekst+'</div>';
-  }).join("") || '<div style="color:#4a7a62;font-size:.72rem">Wacht op AI acties…</div>';
+  }).join("") || '<div style="color:#4a7a62;font-size:.72rem">'+(lang()==="en"?"Waiting for AI actions…":"Wacht op AI acties…")+'</div>';
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────────────
+var laatsteState = null;
 function renderState(state){
   if (!state || !state.bottys) return;
+  laatsteState = state;
   var nieuweBottys = state.bottys;
   acties = state.acties || 0;
 
@@ -999,11 +1110,11 @@ function renderState(state){
           existing.kaart.className = "kaart emotie-" + emotie;
           var em2 = EMOTIES[emotie];
           if (existing.bubelEl) existing.bubelEl.textContent = em2.emoji;
-          if (existing.badgeEl) existing.badgeEl.innerHTML = '<span class="eico">'+em2.emoji+'</span><span class="enaam">'+em2.label+'</span>';
+          if (existing.badgeEl) existing.badgeEl.innerHTML = '<span class="eico">'+em2.emoji+'</span><span class="enaam">'+emoLabel(emotie)+'</span>';
 
-          var zorgFn = EMOTIE_ZORG[emotie];
+          var zorgFn = zorgVoor(emotie);
           if (zorgFn) {
-            var zorgRes = zorgFn(b.naam);
+            var zorgRes = zorgFn(b.naam, b);
             if (emotie !== "blij" && emotie !== "kalm") {
               voegAiLogToe(zorgRes);
               floater(b, zorgRes.label, zorgRes.kleur || "#39ff85");
@@ -1033,7 +1144,7 @@ function renderState(state){
   bottys = nieuweBottys;
 
   document.getElementById("kpi-aantal").textContent = nieuweBottys.length;
-  document.getElementById("kpi-acties").textContent = acties.toLocaleString("nl-NL");
+  document.getElementById("kpi-acties").textContent = acties.toLocaleString(numLocale());
   var maxGen = 1;
   nieuweBottys.forEach(function(b){ if ((b.generatie||1) > maxGen) maxGen = b.generatie||1; });
   document.getElementById("kpi-gen").textContent = "G" + maxGen;
@@ -1106,20 +1217,23 @@ function toonKweek(ev){
   elA.kaart.style.boxShadow = "0 0 22px #ff8bd066";
   elB.kaart.style.boxShadow = "0 0 22px #ff8bd066";
   trekBeam(ev.ouderA, ev.ouderB);
+  var kw = lang()==="en"
+    ? { pairing:"The AI is pairing", and:"and", repro:"Reproduction", waves:"waves goodbye…", born:"was born — generation" }
+    : { pairing:"De AI koppelt", and:"en", repro:"Voortplanting", waves:"zwaait gedag…", born:"is geboren — generatie" };
   document.getElementById("ticker").innerHTML =
-    '<span class="knip">▌</span> 💞 De AI koppelt <b>'+ev.ouderA+'</b> en <b>'+ev.ouderB+'</b>…';
-  voegAiLogToe({ tekst:"💞 Voortplanting: "+ev.ouderA+" × "+ev.ouderB+" → "+ev.kind, type:"emotie" });
+    '<span class="knip">▌</span> 💞 '+kw.pairing+' <b>'+ev.ouderA+'</b> '+kw.and+' <b>'+ev.ouderB+'</b>…';
+  voegAiLogToe({ tekst:"💞 "+kw.repro+": "+ev.ouderA+" × "+ev.ouderB+" → "+ev.kind, type:"emotie" });
   setTimeout(function(){
     if (elA.kaart) elA.kaart.style.boxShadow = "";
     if (elB.kaart) elB.kaart.style.boxShadow = "";
     if (elA.wrap) elA.wrap.classList.add("weg");
     document.getElementById("ticker").innerHTML =
-      '<span class="knip">▌</span> 👋 <b>'+ev.ouderA+'</b> zwaait gedag…';
+      '<span class="knip">▌</span> 👋 <b>'+ev.ouderA+'</b> '+kw.waves;
     setTimeout(function(){
       if (elA.wrap) elA.wrap.classList.remove("weg");
       setTimeout(function(){
         document.getElementById("ticker").innerHTML =
-          '<span class="knip">▌</span> 🐣 <b>'+ev.kind+'</b> is geboren — generatie '+ev.generatie+'!';
+          '<span class="knip">▌</span> 🐣 <b>'+ev.kind+'</b> '+kw.born+' '+ev.generatie+'!';
         bezigKweek = false;
       }, 2800);
     }, 1600);
@@ -1131,7 +1245,7 @@ function setVerbonden(ja){
   var dot = document.getElementById("cloud-dot");
   var lbl = document.getElementById("cloud-status");
   dot.className = "cloud-dot" + (ja ? " verbonden" : "");
-  lbl.textContent = ja ? "live · cloud" : "herverbinden…";
+  lbl.textContent = ja ? "live · cloud" : (lang()==="en" ? "reconnecting…" : "herverbinden…");
 }
 
 // ── Tick ───────────────────────────────────────────────────────────────────────────────
