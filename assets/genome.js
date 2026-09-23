@@ -19,6 +19,7 @@
 
   // Per gen: [kort label, lange uitleg, categorie]
   // Categorie bepaalt de kleur van het DNA-staafje.
+  // De korte labels zijn taalneutraal (symbolen); alleen de lange uitleg verschilt per taal.
   var genMeta = [
     ["E↓", "energie-verval", "verval"], ["D↓", "data-verval", "verval"],
     ["F↓", "fit-verval", "verval"],     ["G↓", "geluk-verval", "verval"],
@@ -31,7 +32,23 @@
     ["⏳", "veroudering", "overig"]
   ];
 
+  // Engelse lange uitleg per gen (zelfde volgorde en categorie).
+  var genLangEN = [
+    "energy decay", "data decay", "fitness decay", "happiness decay", "mood decay",
+    "energy care", "data care", "fitness care", "happiness care",
+    "illness chance", "recovery speed", "social sensitivity", "colour tint",
+    "size", "expression bias", "ageing"
+  ];
+  // genMeta in de gevraagde taal ("en"/"nl"); NL is de standaard/bron.
+  function genMetaFor(lang){
+    if(lang !== "en") return genMeta;
+    return genMeta.map(function(m, i){ return [m[0], genLangEN[i], m[2]]; });
+  }
+
   var genKleur = { verval: "#e0556b", zorg: "#5fd0a8", risico: "#f6a623", overig: "#7b9bff" };
+  var catLabelNL = { verval:"verval", zorg:"zorg", risico:"risico", overig:"overig" };
+  var catLabelEN = { verval:"decay", zorg:"care", risico:"risk", overig:"other" };
+  function catLabelFor(lang){ return lang === "en" ? catLabelEN : catLabelNL; }
 
   // base64url-genoom → array van 16 bytes (ontbrekend = 128 = neutraal)
   function genoomBytes(g) {
@@ -56,8 +73,10 @@
 
   global.BottyGenome = {
     GENOOM_LEN: GENOOM_LEN,
-    genMeta: genMeta,
+    genMeta: genMeta,          // NL (backward compatible)
+    genMetaFor: genMetaFor,    // taalbewust: genMetaFor("en"|"nl")
     genKleur: genKleur,
+    catLabelFor: catLabelFor,  // taalbewust categorie-label
     genoomBytes: genoomBytes,
     grootteUit: grootteUit
   };

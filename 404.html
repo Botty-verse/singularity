@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>404 — Bottys in de Moestuin</title>
+<script src="/assets/i18n.js"></script>
+<title>404 — Bottys in the Vegetable Garden</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -246,13 +247,13 @@ body{
 <div class="wrapper">
   <div class="groot-getal">404</div>
 
-  <span class="eyebrow"><span class="puls"></span> Pagina vermist &mdash; Botty-verse Hive</span>
+  <span class="eyebrow"><span class="puls"></span> <span class="t en">Page missing &mdash; Botty-verse Hive</span><span class="t nl">Pagina vermist &mdash; Botty-verse Hive</span></span>
 
   <!-- Moestuin scene -->
   <div style="width:100%;background:var(--paneel);border:1px solid var(--paneel-rand);border-radius:20px;backdrop-filter:blur(18px);overflow:hidden;box-shadow:var(--schaduw);position:relative">
     <div class="moestuin-scene">
       <div class="botty-wrap">
-        <div class="botty-bubbel">Hoe groeit dit ding?? 🤔</div>
+        <div class="botty-bubbel" data-nl="Hoe groeit dit ding?? 🤔">How does this thing grow?? 🤔</div>
         <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
           <ellipse cx="29" cy="36" rx="20" ry="22" fill="#1a4a2e" stroke="#39ff85" stroke-width="1.5"/>
           <ellipse cx="29" cy="32" rx="13" ry="14" fill="#0e2e1a"/>
@@ -291,7 +292,7 @@ body{
         </svg>
       </div>
       <div class="botty-wrap" style="animation-delay:.8s">
-        <div class="botty-bubbel">Staat er iets over water? 💧</div>
+        <div class="botty-bubbel" data-nl="Staat er iets over water? 💧">Does it say anything about water? 💧</div>
         <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
           <ellipse cx="29" cy="36" rx="20" ry="22" fill="#1a2a4a" stroke="#c89bff" stroke-width="1.5"/>
           <ellipse cx="29" cy="32" rx="13" ry="14" fill="#0d1a2e"/>
@@ -321,7 +322,7 @@ body{
         </svg>
       </div>
       <div class="botty-wrap" style="animation-delay:1.4s">
-        <div class="botty-bubbel">Zon? Maar... het is nacht? ☀️</div>
+        <div class="botty-bubbel" data-nl="Zon? Maar... het is nacht? ☀️">Sun? But... it's night? ☀️</div>
         <svg width="58" height="72" viewBox="0 0 58 72" fill="none" xmlns="http://www.w3.org/2000/svg">
           <ellipse cx="29" cy="36" rx="20" ry="22" fill="#2a1a0a" stroke="#ff9f43" stroke-width="1.5"/>
           <ellipse cx="29" cy="32" rx="13" ry="14" fill="#1a0f05"/>
@@ -353,39 +354,45 @@ body{
 
   <!-- Error panel -->
   <div class="paneel">
-    <h1>Oeps! De Bottys zijn in de moestuin. 🍅</h1>
-    <p>De pagina die je zocht <span class="tomaat">bestaat niet</span> — maar dat deert de Bottys niet.
+    <h1 data-nl="Oeps! De Bottys zijn in de moestuin. 🍅">Oops! The Bottys are in the vegetable garden. 🍅</h1>
+    <p class="t en">The page you were looking for <span class="tomaat">doesn't exist</span> — but that doesn't bother the Bottys.
+    They're busy figuring out how you actually grow tomatoes.</p>
+    <p class="t nl">De pagina die je zocht <span class="tomaat">bestaat niet</span> — maar dat deert de Bottys niet.
     Ze zijn druk bezig met het uitzoeken hoe je eigenlijk tomaten kweekt.</p>
-    <p>Tot nu toe hebben ze ontdekt dat je ze <span class="acc">niet kunt debuggen met een git commit</span>,
+    <p class="t en">So far they've discovered that you <span class="acc">can't debug them with a git commit</span>,
+    that sunshine <em>"works differently than a power cable"</em>, and that watering water
+    doesn't come out of the Supabase bucket.</p>
+    <p class="t nl">Tot nu toe hebben ze ontdekt dat je ze <span class="acc">niet kunt debuggen met een git commit</span>,
     dat zonneschijn <em>"anders werkt dan een stroomkabel"</em>, en dat gietwater
     niet uit de Supabase-bucket komt.</p>
-    <p style="margin-top:.8rem;color:var(--dim);font-size:.88rem">Vooruitgang: <span class="tomaat">0.3 tomaten</span> per generatie. Verwachte eerste oogst: nooit.</p>
+    <p class="t en" style="margin-top:.8rem;color:var(--dim);font-size:.88rem">Progress: <span class="tomaat">0.3 tomatoes</span> per generation. Expected first harvest: never.</p>
+    <p class="t nl" style="margin-top:.8rem;color:var(--dim);font-size:.88rem">Vooruitgang: <span class="tomaat">0.3 tomaten</span> per generatie. Verwachte eerste oogst: nooit.</p>
   </div>
 
   <!-- Stats panel (only shown with ?stats) -->
   <div id="stats-paneel" class="paneel">
-    <h2>📊 404 Statistieken</h2>
+    <h2 data-nl="📊 404 Statistieken">📊 404 Statistics</h2>
     <div class="stats-kpi">
-      <div class="kpi-card"><div class="getal" id="kpi-totaal">...</div><div class="label">Totaal hits</div></div>
-      <div class="kpi-card"><div class="getal" id="kpi-vandaag">...</div><div class="label">Vandaag</div></div>
-      <div class="kpi-card"><div class="getal" id="kpi-uniek">...</div><div class="label">Unieke pagina's</div></div>
+      <div class="kpi-card"><div class="getal" id="kpi-totaal">...</div><div class="label" data-nl="Totaal hits">Total hits</div></div>
+      <div class="kpi-card"><div class="getal" id="kpi-vandaag">...</div><div class="label" data-nl="Vandaag">Today</div></div>
+      <div class="kpi-card"><div class="getal" id="kpi-uniek">...</div><div class="label" data-nl="Unieke pagina's">Unique pages</div></div>
     </div>
     <table class="hits-tabel">
-      <thead><tr><th>Tijd</th><th>Pad</th><th>Referrer</th></tr></thead>
-      <tbody id="hits-tbody"><tr><td colspan="3" style="color:var(--dim)">Laden...</td></tr></tbody>
+      <thead><tr><th data-nl="Tijd">Time</th><th data-nl="Pad">Path</th><th>Referrer</th></tr></thead>
+      <tbody id="hits-tbody"><tr><td colspan="3" style="color:var(--dim)" data-nl="Laden...">Loading...</td></tr></tbody>
     </table>
   </div>
 
   <!-- Navigation -->
   <nav class="footer-nav">
-    <a href="index.html">🏠 Terug naar de Hive</a>
-    <a href="stamboom.html">🌳 Stamboom</a>
-    <a href="populatie.html">🧬 Populatie &amp; inteelt</a>
-    <a href="evolutie.html">📈 Evolutie</a>
-    <a href="genoom.html">🗺️ Genoom-kaart</a>
-    <a href="construct.html">🌍 De Construct</a>
-    <a href="kaarten.html">🃏 Verzamelkaarten</a>
-    <a href="https://botty.ramonmoorlag.nl/">💊 Eigen Botty</a>
+    <a href="index.html" data-nl="🏠 Terug naar de Hive">🏠 Back to the Hive</a>
+    <a href="stamboom.html" data-nl="🌳 Stamboom">🌳 Family tree</a>
+    <a href="populatie.html" data-nl="🧬 Populatie &amp; inteelt">🧬 Population &amp; inbreeding</a>
+    <a href="evolutie.html" data-nl="📈 Evolutie">📈 Evolution</a>
+    <a href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
+    <a href="construct.html" data-nl="🌍 De Construct">🌍 The Construct</a>
+    <a href="kaarten.html" data-nl="🃏 Verzamelkaarten">🃏 Collectible cards</a>
+    <a href="https://botty.ramonmoorlag.nl/" data-nl="💊 Eigen Botty">💊 Your own Botty</a>
   </nav>
 </div>
 
@@ -441,7 +448,8 @@ if (statsMode) {
 
     const tbody = document.getElementById('hits-tbody');
     tbody.innerHTML = hits.map(h => {
-      const t = new Date(h.ts).toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' });
+      const loc = (window.SiteLang && SiteLang.get() === 'nl') ? 'nl-NL' : 'en-GB';
+      const t = new Date(h.ts).toLocaleString(loc, { dateStyle: 'short', timeStyle: 'short' });
       const pad = h.path || '—';
       const ref = h.referrer ? '<a href="' + h.referrer + '" style="color:var(--matrix)" target="_blank" rel="noopener">' + h.referrer.replace(/https?:\/\//, '').slice(0, 40) + '</a>' : '<span style="color:var(--dim)">direct</span>';
       return '<tr><td>' + t + '</td><td>' + pad + '</td><td>' + ref + '</td></tr>';

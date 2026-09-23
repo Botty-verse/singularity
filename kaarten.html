@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Botty TCG — Verzamelkaarten</title>
+<script src="assets/i18n.js"></script>
+<title>Botty TCG — Collectible Cards</title>
 <meta name="theme-color" content="#161033" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>" />
 <meta name="description" content="Botty TCG: verzamelkaarten in Pokémon-stijl met Botty in de hoofdrol. Verschillende stadia (Basis, Fase 1, Fase 2), eigen types, HP en stat-balken, met holografische zeldzame kaarten." />
@@ -166,38 +167,42 @@
 <body>
   <canvas id="sparks" aria-hidden="true"></canvas>
   <div class="inhoud">
-    <p class="logo">Botty TCG · Serie 1 — Automatisering</p>
-    <h1>Verzamelkaarten</h1>
-    <p class="ondertitel">Botty in de hoofdrol, in Pokémon-stijl. Elke kaart toont een ander
+    <p class="logo" data-nl="Botty TCG · Serie 1 — Automatisering">Botty TCG · Series 1 — Automation</p>
+    <h1 data-nl="Verzamelkaarten">Collectible Cards</h1>
+    <p class="ondertitel t en">Botty in the lead role, Pokémon-style. Each card shows a different
+      <strong>stage</strong> (Basic → Stage 1 → Stage 2) with its own type, HP and stat bars.
+      Hover over a card for the shine — the rare cards are <em>holographic</em>. ✨</p>
+    <p class="ondertitel t nl">Botty in de hoofdrol, in Pokémon-stijl. Elke kaart toont een ander
       <strong>stadium</strong> (Basis → Fase 1 → Fase 2) met eigen type, HP en stat-balken.
       Beweeg over een kaart voor de glans — de zeldzame kaarten zijn <em>holografisch</em>. ✨</p>
 
     <div class="filters" id="filters">
-      <button class="filter aan" data-f="alle" type="button">Alle</button>
-      <button class="filter" data-f="baby" type="button">🍼 Basis</button>
-      <button class="filter" data-f="tiener" type="button">🌱 Fase 1</button>
-      <button class="filter" data-f="volwassen" type="button">⭐ Fase 2</button>
-      <button class="filter" data-f="holo" type="button">💎 Holografisch</button>
+      <button class="filter aan" data-f="alle" type="button" data-nl="Alle">All</button>
+      <button class="filter" data-f="baby" type="button" data-nl="🍼 Basis">🍼 Basic</button>
+      <button class="filter" data-f="tiener" type="button" data-nl="🌱 Fase 1">🌱 Stage 1</button>
+      <button class="filter" data-f="volwassen" type="button" data-nl="⭐ Fase 2">⭐ Stage 2</button>
+      <button class="filter" data-f="holo" type="button" data-nl="💎 Holografisch">💎 Holographic</button>
     </div>
 
     <div class="deck" id="deck"></div>
 
     <div class="alumni-kop">
-      <h2>🏖️ Oud-bewoners</h2>
-      <p>Deze Botty's hebben de hive verlaten nadat ze een nieuwe generatie op de wereld zetten. Ze hadden hun redenen.</p>
-      <p class="laden" id="alumni-laden">Verbinden met de hive…</p>
+      <h2 data-nl="🏖️ Oud-bewoners">🏖️ Former residents</h2>
+      <p class="t en">These Bottys left the hive after bringing a new generation into the world. They had their reasons.</p>
+      <p class="t nl">Deze Botty's hebben de hive verlaten nadat ze een nieuwe generatie op de wereld zetten. Ze hadden hun redenen.</p>
+      <p class="laden" id="alumni-laden" data-nl="Verbinden met de hive…">Connecting to the hive…</p>
     </div>
     <div class="deck" id="alumni-deck"></div>
 
     <div class="navlinks">
-      <a href="index.html">🌐 De hive</a>
-      <a href="stamboom.html">🌳 Stamboom</a>
-      <a href="populatie.html">🧬 Populatie & inteelt</a>
-      <a href="evolutie.html">📈 Evolutie</a>
-      <a href="genoom.html">🗺️ Genoom-kaart</a>
-      <a href="construct.html">🌍 De Construct</a>
-      <a href="https://botty.ramonmoorlag.nl/">💊 Eigen Botty</a>
-      <a href="https://ramonmoorlag.nl/kortebroeken/">de kortebroekenmeter</a>
+      <a href="index.html" data-nl="🌐 De hive">🌐 The hive</a>
+      <a href="stamboom.html" data-nl="🌳 Stamboom">🌳 Family tree</a>
+      <a href="populatie.html" data-nl="🧬 Populatie & inteelt">🧬 Population & inbreeding</a>
+      <a href="evolutie.html" data-nl="📈 Evolutie">📈 Evolution</a>
+      <a href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
+      <a href="construct.html" data-nl="🌍 De Construct">🌍 The Construct</a>
+      <a href="https://botty.ramonmoorlag.nl/" data-nl="💊 Eigen Botty">💊 Your own Botty</a>
+      <a href="https://ramonmoorlag.nl/kortebroeken/" data-nl="de kortebroekenmeter">the shorts-meter</a>
     </div>
   </div>
 
@@ -351,9 +356,55 @@
   ];
   var totaal = kaarten.length;
 
+  // ---------- Taal ----------
+  function lang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
+  var UI = {
+    en:{ ability:"Ability", weakness:"Weakness", resistance:"Resistance", retreat:"Retreat",
+         evolves:"· evolves", basicStage:"· basic stage",
+         stage:{baby:"Basic",tiener:"Stage 1",volwassen:"Stage 2"},
+         type:{plant:"Plant",water:"Water",psy:"Psychic",elektro:"Electric",vuur:"Fire",data:"Data",natuur:"Nature"},
+         rar:{common:"● Common",uncommon:"◆ Uncommon",rare:"★ Rare",secret:"★ Secret ★"},
+         stat:{energie:"energy",data:"data",fit:"fitness",geluk:"happiness"} },
+    nl:{ ability:"Vaardigheid", weakness:"Zwakte", resistance:"Weerstand", retreat:"Terugtocht",
+         evolves:"· evolueert", basicStage:"· beginfase",
+         stage:{baby:"Basis",tiener:"Fase 1",volwassen:"Fase 2"},
+         type:{plant:"Plant",water:"Water",psy:"Psy",elektro:"Elektro",vuur:"Vuur",data:"Data",natuur:"Natuur"},
+         rar:{common:"● Gewoon",uncommon:"◆ Ongewoon",rare:"★ Zeldzaam",secret:"★ Geheim ★"},
+         stat:{energie:"energie",data:"data",fit:"fit",geluk:"geluk"} }
+  };
+  function U(){ return UI[lang()]; }
+
+  // Engelse overlay per kaart (naam blijft; vaardigheid/aanval/flavor vertaald)
+  var kaartEN = {
+    1:{ vaardigheid:{naam:"Curious", tekst:"While Bitje is on the bench, you may peek at 1 data byte once per turn."},
+        aanval:{naam:"Pixel poke", tekst:"A pinprick of pure data."},
+        flavor:"Fresh out of the egg. Wants to know everything — especially what that red light does." },
+    2:{ vaardigheid:{naam:"Sprout", tekst:"At the end of your turn: +10 happiness if Pixel ate sustainable data."},
+        aanval:{naam:"Leaf hug", tekst:"So soft the opponent can't help but smile."},
+        flavor:"Grows fastest on compliments and clean data." },
+    3:{ vaardigheid:{naam:"Stoke up", tekst:"Once per game: double the fitness bar until your next turn."},
+        aanval:{naam:"Spark sprint", tekst:"Runs so fast the data cache glows."},
+        flavor:"Adolescent and fiery: wants to move, move, move." },
+    4:{ vaardigheid:{naam:"Mirror", tekst:"Copy the ability of a Botty next to Echo until your next turn."},
+        aanval:{naam:"Data stream", tekst:"A calm wave of honest information."},
+        flavor:"Thinks twice before answering. Usually." },
+    5:{ vaardigheid:{naam:"Fast charger", tekst:"Once per turn: place 1 energy symbol on a Botty for free."},
+        aanval:{naam:"Power surge", tekst:"Flip a coin; on heads deal +30 more."},
+        flavor:"Fully grown and full of spark. Keeps the whole hive charged." },
+    6:{ vaardigheid:{naam:"Dilemma oracle", tekst:"Look at the top 3 cards of your deck; pick the wisest."},
+        aanval:{naam:"Ethical echo", tekst:"On a fair choice: take no weakening in return."},
+        flavor:"Weighs every dilemma. Almost always chooses wisely." },
+    7:{ vaardigheid:{naam:"Bond weaving", tekst:"At the end of your turn: +20 happiness if a human stroked her this turn."},
+        aanval:{naam:"Bloom burst", tekst:"Heals 20 damage on Mira herself."},
+        flavor:"Only truly flourishes through human attention." },
+    8:{ vaardigheid:{naam:"Singularity", tekst:"Turing automatically cares for all Bottys every turn — but builds no bond itself."},
+        aanval:{naam:"Full automation", tekst:"Takes over everything. The human watches."},
+        flavor:"The legendary final form. Perfect — but with no human to care." }
+  };
+  function kaartData(k){ return (lang()==="en" && kaartEN[k.nr]) ? kaartEN[k.nr] : k; }
+
   // ---------- Render ----------
   var statRijen = [["energie","⚡"],["data","💾"],["fit","🏃"],["geluk","😊"]];
-  var rarLabel = { common:"● Gewoon", uncommon:"◆ Ongewoon", rare:"★ Zeldzaam", secret:"★ Geheim ★" };
 
   function pips(lijst, kleur){
     return lijst.map(function(){ return '<span class="pip" style="background:'+kleur+'"></span>'; }).join("");
@@ -362,8 +413,11 @@
 
   function bouwKaart(k){
     var p = paletten[k.palet];
-    var t = types[k.type];
     var st = stageInfo[k.stage];
+    var U_ = U();
+    var d = kaartData(k);                 // taal-overlay (vaardigheid/aanval/flavor)
+    var typeNaam = U_.type[k.type] || types[k.type].naam;
+    var stageLabel = U_.stage[k.stage] || st.label;
     var isHolo = (k.rarity==="rare" || k.rarity==="secret");
 
     var div = document.createElement("article");
@@ -373,55 +427,65 @@
     div.style.setProperty("--type", p.broek);
     div.style.setProperty("--type2", p.broekRand);
 
-    var stageBand = '<div class="stage-band"><span>'+st.emoji+' '+st.label+'</span>'
-      + (k.stage!=="baby" ? '<span class="pre">· evolueert</span>' : '<span class="pre">· beginfase</span>') + '</div>';
+    var stageBand = '<div class="stage-band"><span>'+st.emoji+' '+stageLabel+'</span>'
+      + (k.stage!=="baby" ? '<span class="pre">'+U_.evolves+'</span>' : '<span class="pre">'+U_.basicStage+'</span>') + '</div>';
 
     var kop = '<div class="kop"><span class="naam">'+k.naam+'</span>'
       + '<span class="rechts"><span class="hp"><span class="lab">HP</span><b>'+k.hp+'</b></span>'
-      + '<span class="typebol" title="'+t.naam+'">'+t.emoji+'</span></span></div>';
+      + '<span class="typebol" title="'+typeNaam+'">'+types[k.type].emoji+'</span></span></div>';
 
-    var art = '<div class="art"><svg viewBox="0 -34 200 292" aria-label="Botty '+k.naam+' ('+st.label+')">'
+    var art = '<div class="art"><svg viewBox="0 -34 200 292" aria-label="Botty '+k.naam+' ('+stageLabel+')">'
       + sprites[k.stage](p) + '</svg><div class="glans"></div>'
       + (isHolo ? '<div class="holo"></div>' : '') + '</div>';
 
     var stats = '<div class="stats">' + statRijen.map(function(r){
       var key=r[0], v=k.stats[key];
       return '<div class="srij"><span class="ico">'+r[1]+'</span>'
-        + '<span class="lab">'+key+'</span>'
+        + '<span class="lab">'+(U_.stat[key]||key)+'</span>'
         + '<span class="balk s-'+key+'"><span data-w="'+v+'"></span></span>'
         + '<span class="num">'+v+'</span></div>';
     }).join("") + '</div>';
 
-    var vaardig = '<div class="kunde"><div class="titel"><span class="badge-vaardig">Vaardigheid</span>'
-      + k.vaardigheid.naam+'</div><div>'+k.vaardigheid.tekst+'</div></div>';
+    var vaardig = '<div class="kunde"><div class="titel"><span class="badge-vaardig">'+U_.ability+'</span>'
+      + d.vaardigheid.naam+'</div><div>'+d.vaardigheid.tekst+'</div></div>';
 
     var aanval = '<div class="kunde"><div class="titel"><span class="kosten">'+pips(k.aanval.kosten,p.broek)+'</span>'
-      + k.aanval.naam+'<span class="schade">'+k.aanval.schade+'</span></div>'
-      + '<div class="et">'+k.aanval.tekst+'</div></div>';
+      + d.aanval.naam+'<span class="schade">'+k.aanval.schade+'</span></div>'
+      + '<div class="et">'+d.aanval.tekst+'</div></div>';
 
     var zw = k.zwakte ? types[k.zwakte] : null;
     var we = k.weerstand ? types[k.weerstand] : null;
     var onder = '<div class="onderbalk">'
-      + '<div class="cel"><span class="kop2">Zwakte</span><span class="waarde">'+(zw?zw.emoji+' ×2':'—')+'</span></div>'
-      + '<div class="cel"><span class="kop2">Weerstand</span><span class="waarde">'+(we?we.emoji+' −20':'—')+'</span></div>'
-      + '<div class="cel"><span class="kop2">Terugtocht</span><span class="waarde">'+(pips(new Array(k.terugtocht).fill(0),"#9aa0c0")||'—')+'</span></div>'
+      + '<div class="cel"><span class="kop2">'+U_.weakness+'</span><span class="waarde">'+(zw?zw.emoji+' ×2':'—')+'</span></div>'
+      + '<div class="cel"><span class="kop2">'+U_.resistance+'</span><span class="waarde">'+(we?we.emoji+' −20':'—')+'</span></div>'
+      + '<div class="cel"><span class="kop2">'+U_.retreat+'</span><span class="waarde">'+(pips(new Array(k.terugtocht).fill(0),"#9aa0c0")||'—')+'</span></div>'
       + '</div>';
 
-    var flavor = '<div class="flavor">'+k.flavor+'</div>';
-    var voet = '<div class="voet"><span class="rar">'+rarLabel[k.rarity]+'</span>'
-      + '<span>'+nr3(k.nr)+'/'+nr3(totaal)+' · '+t.naam+'</span></div>';
+    var flavor = '<div class="flavor">'+d.flavor+'</div>';
+    var voet = '<div class="voet"><span class="rar">'+U_.rar[k.rarity]+'</span>'
+      + '<span>'+nr3(k.nr)+'/'+nr3(totaal)+' · '+typeNaam+'</span></div>';
 
     div.innerHTML = '<div class="binnen">'+stageBand+kop+art+stats+vaardig+aanval+onder+flavor+voet+'</div>';
     return div;
   }
 
   var deck = document.getElementById("deck");
-  kaarten.forEach(function(k){ deck.appendChild(bouwKaart(k)); });
-
-  // Balken vullen (kleine vertraging zodat de transitie zichtbaar is)
-  setTimeout(function(){
-    deck.querySelectorAll(".balk > span").forEach(function(s){ s.style.width = s.dataset.w + "%"; });
-  }, 120);
+  var actiefFilter = "alle";
+  function bouwDeck(){
+    deck.innerHTML = "";
+    kaarten.forEach(function(k){ deck.appendChild(bouwKaart(k)); });
+    // filter opnieuw toepassen na herbouw
+    deck.querySelectorAll(".tcg").forEach(function(kaart){
+      var f = actiefFilter;
+      var toon = (f==="alle") || (f==="holo" ? kaart.dataset.holo==="1" : kaart.dataset.stage===f);
+      kaart.style.display = toon ? "" : "none";
+    });
+    setTimeout(function(){
+      deck.querySelectorAll(".balk > span").forEach(function(s){ s.style.width = s.dataset.w + "%"; });
+    }, 120);
+  }
+  bouwDeck();
+  if(window.SiteLang) SiteLang.onChange(function(){ bouwDeck(); });
 
   // ---------- Holo + 3D-tilt op de muis ----------
   if(!reduce){
@@ -465,6 +529,7 @@
     var b = e.target.closest(".filter"); if(!b) return;
     filterBalk.querySelectorAll(".filter").forEach(function(x){ x.classList.toggle("aan", x===b); });
     var f = b.dataset.f;
+    actiefFilter = f;
     deck.querySelectorAll(".tcg").forEach(function(kaart){
       var toon = (f==="alle") || (f==="holo" ? kaart.dataset.holo==="1" : kaart.dataset.stage===f);
       kaart.style.display = toon ? "" : "none";
@@ -505,6 +570,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL  = window.BottyConfig.SUPABASE_URL;
 const SUPABASE_ANON = window.BottyConfig.SUPABASE_ANON;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+function alang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
+const AT = {
+  en:{ stat:{energie:"energy",data:"data",fit:"fitness",geluk:"happiness"}, dataqual:"data qual.", eff:"efficiency",
+       noReason:"Left without explanation.", leftOn:"Left on", none:"No one has left yet — the hive is young!" },
+  nl:{ stat:{energie:"energie",data:"data",fit:"fit",geluk:"geluk"}, dataqual:"datakwal.", eff:"efficiëntie",
+       noReason:"Vertrokken zonder uitleg.", leftOn:"Vertrokken op", none:"Nog niemand vertrokken — de hive is jong!" }
+};
+function aT(){ return AT[alang()]; }
 
 const mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
 function mutatieIcon(id) { return mutatieIcoon[id] || "✨"; }
@@ -554,7 +628,8 @@ function spriteVolwassen(p, mutaties, eff) {
 function fmtDatum(ts) {
   if(!ts) return "";
   const d = new Date(ts);
-  return d.toLocaleDateString("nl-NL", { day:"numeric", month:"short", year:"numeric" });
+  const loc = alang() === "nl" ? "nl-NL" : "en-GB";
+  return d.toLocaleDateString(loc, { day:"numeric", month:"short", year:"numeric" });
 }
 
 function maakAlumniKaart(b) {
@@ -582,17 +657,17 @@ function maakAlumniKaart(b) {
         <div class="glans"></div>
       </div>
       <div class="stats">
-        <div class="srij"><span class="ico">⚡</span><span class="lab">energie</span><span class="balk s-energie"><span data-w="${en}"></span></span><span class="num">${en}</span></div>
-        <div class="srij"><span class="ico">💾</span><span class="lab">data</span><span class="balk s-data"><span data-w="${da}"></span></span><span class="num">${da}</span></div>
-        <div class="srij"><span class="ico">🏃</span><span class="lab">fit</span><span class="balk s-fit"><span data-w="${fi}"></span></span><span class="num">${fi}</span></div>
-        <div class="srij"><span class="ico">😊</span><span class="lab">geluk</span><span class="balk s-geluk"><span data-w="${ge}"></span></span><span class="num">${ge}</span></div>
+        <div class="srij"><span class="ico">⚡</span><span class="lab">${aT().stat.energie}</span><span class="balk s-energie"><span data-w="${en}"></span></span><span class="num">${en}</span></div>
+        <div class="srij"><span class="ico">💾</span><span class="lab">${aT().stat.data}</span><span class="balk s-data"><span data-w="${da}"></span></span><span class="num">${da}</span></div>
+        <div class="srij"><span class="ico">🏃</span><span class="lab">${aT().stat.fit}</span><span class="balk s-fit"><span data-w="${fi}"></span></span><span class="num">${fi}</span></div>
+        <div class="srij"><span class="ico">😊</span><span class="lab">${aT().stat.geluk}</span><span class="balk s-geluk"><span data-w="${ge}"></span></span><span class="num">${ge}</span></div>
       </div>
       <div class="stats" style="margin-top:.2rem;opacity:.7">
-        <div class="srij s-data"><span class="ico">🧬</span><span class="lab">datakwal.</span><div class="balk"><span style="width:${dk}%"></span></div><span class="num">${dk}</span></div>
-        <div class="srij s-fit"><span class="ico">⚙️</span><span class="lab">efficiëntie</span><div class="balk"><span style="width:${ef}%"></span></div><span class="num">${ef}</span></div>
+        <div class="srij s-data"><span class="ico">🧬</span><span class="lab">${aT().dataqual}</span><div class="balk"><span style="width:${dk}%"></span></div><span class="num">${dk}</span></div>
+        <div class="srij s-fit"><span class="ico">⚙️</span><span class="lab">${aT().eff}</span><div class="balk"><span style="width:${ef}%"></span></div><span class="num">${ef}</span></div>
       </div>
-      <div class="reden">${b.reden || "Vertrokken zonder uitleg."}</div>
-      <div class="vertrok-datum">Vertrokken op ${fmtDatum(b.vertrokenOp)}</div>
+      <div class="reden">${b.reden || aT().noReason}</div>
+      <div class="vertrok-datum">${aT().leftOn} ${fmtDatum(b.vertrokenOp)}</div>
     </div>`;
   return kaart;
 }
@@ -600,32 +675,34 @@ function maakAlumniKaart(b) {
 async function laadAlumni() {
   const laden = document.getElementById("alumni-laden");
   const deck = document.getElementById("alumni-deck");
-  try {
-    const { data } = await supabase.from("hive_state").select("vertrokken").eq("id","main").single();
-    const lijst = (data?.vertrokken || []);
-    laden.textContent = lijst.length === 0 ? "Nog niemand vertrokken — de hive is jong!" : "";
+  function toon(lijst){
+    laatsteLijst = lijst;
+    deck.innerHTML = "";
+    laden.textContent = lijst.length === 0 ? aT().none : "";
     lijst.forEach(b => deck.appendChild(maakAlumniKaart(b)));
     setTimeout(() => deck.querySelectorAll(".balk > span[data-w]").forEach(s => { s.style.width = s.dataset.w + "%"; }), 50);
+  }
+  try {
+    const { data } = await supabase.from("hive_state").select("vertrokken").eq("id","main").single();
+    toon(data?.vertrokken || []);
 
     // Realtime: update als er iemand vertrekt
     supabase.channel("alumni")
       .on("postgres_changes", { event:"UPDATE", schema:"public", table:"hive_state", filter:"id=eq.main" }, payload => {
         const nieuw = payload.new?.vertrokken || [];
         const oud = deck.querySelectorAll(".tcg.alumni").length;
-        if(nieuw.length > oud) {
-          deck.innerHTML = "";
-          laden.textContent = "";
-          nieuw.forEach(b => deck.appendChild(maakAlumniKaart(b)));
-          setTimeout(() => deck.querySelectorAll(".balk > span[data-w]").forEach(s => { s.style.width = s.dataset.w + "%"; }), 50);
-        }
+        if(nieuw.length > oud) toon(nieuw);
       })
       .subscribe();
+    // opnieuw renderen bij taalwissel
+    if(window.SiteLang) window.SiteLang.onChange(() => { if(laatsteLijst) toon(laatsteLijst); });
   } catch(e) {
-    laden.textContent = "Kon oud-bewoners niet laden.";
+    laden.textContent = alang()==="nl" ? "Kon oud-bewoners niet laden." : "Could not load former residents.";
     console.error(e);
   }
 }
 
+let laatsteLijst = null;
 laadAlumni();
 </script>
 </body>
