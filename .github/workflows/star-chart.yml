@@ -1,0 +1,23 @@
+name: Star chart
+
+# Generates a shadcn-styled star-history chart (light + dark SVG) and opens a
+# pull request with the update, so main stays free of automated commits.
+# Runs weekly and on demand.
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  star-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jal-co/shieldcn@v1
+        with:
+          theme: violet
+          pull-request: true
