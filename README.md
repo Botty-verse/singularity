@@ -2,6 +2,8 @@
 
 > *A hive full of Bottys. Entirely cared for by AI. The human bond is 0%.*
 
+![Botty-verse — The Singularity (v13 · The Apprentice)](assets/banner.webp)
+
 ## 🤖 What is this?
 
 The **Botty-verse** is an artificial-life simulation in the spirit of Steve Grand's
