@@ -6,7 +6,7 @@
 <script src="assets/i18n.js"></script>
 <title>Botty-verse — The Construct: the classroom</title>
 <meta name="theme-color" content="#1c130b" />
-<meta name="description" content="De Construct, side-on: een net verlaten klaslokaal in het bos waarin de Botty's rondlopen — live uit de hive." />
+<meta name="description" content="The Construct, side-on: a just-vacated classroom in the forest where the Bottys roam — live from the hive." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
@@ -267,7 +267,7 @@
 
 <main>
   <div class="kamer-wrap">
-    <svg class="kamer" id="kamer" viewBox="0 0 1500 844" role="img" aria-label="De Construct: de tuin boven en de ondergrondse kamer met de Botty's">
+    <svg class="kamer" id="kamer" viewBox="0 0 1500 844" role="img" aria-label="The Construct: the garden above and the underground room with the Bottys">
       <defs>
         <radialGradient id="broedgloed" cx="0.5" cy="0.5" r="0.6">
           <stop offset="0" stop-color="#ffe6a8" stop-opacity="0.9"/><stop offset="1" stop-color="#f6c75a" stop-opacity="0"/>
@@ -375,7 +375,7 @@
     <div class="kit-kop"><span class="lampje"></span> <span data-nl="Verzorgerskit">Caretaker kit</span></div>
     <div class="kit-leeg" id="kit-leeg" data-nl="Klik op een Botty in het lokaal om ’m te observeren — de kit leest zijn driften, brein en biochemie uit.">Click a Botty in the classroom to observe it — the kit reads out its drives, brain and biochemistry.</div>
     <div class="kit-body" id="kit-body" hidden>
-      <svg class="kit-portret" id="kit-portret" viewBox="0 0 200 250" aria-label="portret"></svg>
+      <svg class="kit-portret" id="kit-portret" viewBox="0 0 200 250" aria-label="portrait"></svg>
       <div class="kit-info">
         <div class="kit-naam" id="kit-naam"></div>
         <div class="kit-sub" id="kit-sub"></div>
@@ -405,7 +405,7 @@
           <span><span class="pd-label" data-nl="op het podium">on the stage</span><br><span class="pd-focus" id="pd-focus"></span></span>
           <span class="pd-bar" title="salience — how strongly this grabs attention" data-nl-title="salience — hoe sterk dit de aandacht grijpt"><span id="pd-bar-fill"></span></span>
         </div>
-        <div class="kit-stroom" id="kit-stroom" aria-label="gedachtenstroom"></div>
+        <div class="kit-stroom" id="kit-stroom" aria-label="thought stream"></div>
       </div>
       <div class="kit-drives" id="kit-drives"></div>
       <div class="kit-hart">
@@ -471,12 +471,18 @@
     en:{ connecting:"🏫 Connecting to the hive…", sleeps:"🌙 The hive sleeps · ",
          ill:" ill", illDot:" · 🤒 ill", beatsMin:" beats/min", eggOf:"Egg of ",
          driveMoe:"😴 Tiredness", driveHonger:"💾 Data hunger", driveStijf:"🦴 Stiffness", driveEenzaam:"💔 Loneliness",
+         eggHatch:"🖐 hatch it!", ripeIn:"ripe in ", egressPre:" · 📊 ~", egressMid:" egress this month (", egressPost:"% of 5 GB)",
+         patience:"just a little longer…", eggTick:"🥚 tick… tick… crack!", isHere:" is here!", helloWorld:"hello world!",
+         didntWork:"⚠️ that didn't work…", easyNow:"🖐 easy now…", nobodyListens:"nobody's listening…",
          bio:{glucose:"glucose", glycogeen:"reserve", honger:"hunger", vermoeidheid:"fatigue", endorfine:"endorphin",
               stress:"stress", adrenaline:"adrenaline", cortisol:"cortisol", gif:"toxin", verveling:"boredom",
               angst:"fear", eenzaamheid:"loneliness", oxytocine:"oxytocin", libido:"libido"} },
     nl:{ connecting:"🏫 Verbinden met de hive…", sleeps:"🌙 De hive slaapt · ",
          ill:" ziek", illDot:" · 🤒 ziek", beatsMin:" klop/min", eggOf:"Ei van ",
          driveMoe:"😴 Moeheid", driveHonger:"💾 Datahonger", driveStijf:"🦴 Stijfheid", driveEenzaam:"💔 Eenzaamheid",
+         eggHatch:"🖐 broed uit!", ripeIn:"rijp over ", egressPre:" · 📊 ~", egressMid:" egress deze maand (", egressPost:"% van 5 GB)",
+         patience:"nog even geduld…", eggTick:"🥚 tik… tik… krak!", isHere:" is er!", helloWorld:"hallo wereld!",
+         didntWork:"⚠️ dat lukte niet…", easyNow:"🖐 rustig aan…", nobodyListens:"niemand luistert…",
          bio:{glucose:"glucose", glycogeen:"reserve", honger:"honger", vermoeidheid:"moeheid", endorfine:"endorfine",
               stress:"stress", adrenaline:"adrenaline", cortisol:"cortisol", gif:"gif", verveling:"verveling",
               angst:"angst", eenzaamheid:"eenzaamheid", oxytocine:"oxytocine", libido:"libido"} }
@@ -706,7 +712,7 @@
     var mb = hiveEgress.bytes / 1048576;
     var pct = (hiveEgress.bytes / (5 * 1073741824)) * 100;   // 5 GB gratis tier
     var toon = mb < 1000 ? mb.toFixed(mb < 10 ? 2 : 0) + " MB" : (mb/1024).toFixed(2) + " GB";
-    return " · 📊 ~" + toon + " egress deze maand (" + pct.toFixed(1) + "% van 5 GB)";
+    return ct().egressPre + toon + ct().egressMid + pct.toFixed(1) + ct().egressPost;
   }
 
   // Zware brein-/leervelden zitten NIET in de live-broadcast. Voor het geselecteerde
@@ -763,14 +769,14 @@
           (rijp ? '<ellipse cx="'+cx+'" cy="'+cy+'" rx="24" ry="18" fill="url(#broedgloed)" class="broed"/>' : '')
         + '<g class="ei-schaal"><path d="M'+cx+','+(cy-16)+' a11,14 0 1 0 0.1,0 Z" fill="#f3e6cf" stroke="'+(rijp?"#39ff85":"#c9a227")+'" stroke-width="1.8"/>'
         + '<path d="M'+(cx-6)+','+(cy-9)+' q6,4 12,0" fill="none" stroke="#caa15c" stroke-width="1.2"/></g>'
-        + '<text class="ei-label" x="'+cx+'" y="'+(cy-24)+'">'+(rijp ? "🖐 broed uit!" : "rijp over "+restS+"s")+'</text>';
+        + '<text class="ei-label" x="'+cx+'" y="'+(cy-24)+'">'+(rijp ? ct().eggHatch : ct().ripeIn+restS+"s")+'</text>';
       var t = document.createElementNS(SVGNS,"title");
       t.textContent = ct().eggOf + (ei.ouderA||"?") + " × " + (ei.ouderB||"?");
       g.appendChild(t);
       g.addEventListener("click", function(ev){
         ev.stopPropagation();
         if(rijp) broedUit(ei);
-        else zegBijIncubator("nog even geduld…");
+        else zegBijIncubator(ct().patience);
       });
       eilaag.appendChild(g);
     });
@@ -788,7 +794,7 @@
   function broedUit(ei){
     if(broedBezig) return;
     broedBezig = true;
-    zegBijIncubator("🥚 tik… tik… krak!");
+    zegBijIncubator(ct().eggTick);
     fetch(TICK_URL, { method:"POST", headers:{ "Content-Type":"application/json" },
                       body: JSON.stringify({ actie:"broed", ei: ei.id }) })
       .then(function(){ return laad(); })
@@ -796,11 +802,11 @@
         broedBezig = false;
         var kuiken = bottys.filter(function(b){ return b.naam === (ei.kind && ei.kind.naam); })[0];
         if(kuiken){
-          zegBijIncubator("🐣 " + kuiken.naam + " is er!");
-          setTimeout(function(){ var nd = nodes[kuiken.naam]; if(nd) zeg(nd, "hallo wereld!", "blij"); }, 1400);
+          zegBijIncubator("🐣 " + kuiken.naam + ct().isHere);
+          setTimeout(function(){ var nd = nodes[kuiken.naam]; if(nd) zeg(nd, ct().helloWorld, "blij"); }, 1400);
         }
       })
-      .catch(function(){ broedBezig = false; zegBijIncubator("⚠️ dat lukte niet…"); });
+      .catch(function(){ broedBezig = false; zegBijIncubator(ct().didntWork); });
   }
   // Alleen de tick aanstoten; de nieuwe staat komt via de realtime-subscription
   // binnen (geen dubbele download meer). Scheelt fors in egress.
@@ -1341,11 +1347,12 @@
       .then(function(res){
         iaBezig = false;
         var ia = res && res.interactie;
-        if(ia && ia.ok === false){ zeg(nd, ia.reden === "rustig" ? "🖐 rustig aan…" : "…"); return; }
-        if(actie === "voer"){ zeg(nd, kies2(["mmm!","lekker!","hap hap","dank je!"]), "blij"); toonFloater(nd, "🍎"); }
+        if(ia && ia.ok === false){ zeg(nd, ia.reden === "rustig" ? ct().easyNow : "…"); return; }
+        var en = lang()==="en";
+        if(actie === "voer"){ zeg(nd, kies2(en?["mmm!","tasty!","nom nom","thank you!"]:["mmm!","lekker!","hap hap","dank je!"]), "blij"); toonFloater(nd, "🍎"); }
         else if(actie === "medicijn"){
           var was = nd.b && nd.b.ziek;
-          zeg(nd, was ? kies2(["beter!","dank je!","voel me top!"]) : "ik ben niet ziek", was ? "blij" : "praat");
+          zeg(nd, was ? kies2(en?["better!","thank you!","feel great!"]:["beter!","dank je!","voel me top!"]) : (en?"I'm not ill":"ik ben niet ziek"), was ? "blij" : "praat");
           toonFloater(nd, "💊");
         }
         laad();
@@ -1375,7 +1382,7 @@
       .then(function(res){
         iaBezig = false;
         var ia = res && res.interactie;
-        if(ia && ia.ok === false){ zegBijIncubator(ia.reden === "rustig" ? "🖐 rustig aan…" : "niemand luistert…"); return; }
+        if(ia && ia.ok === false){ zegBijIncubator(ia.reden === "rustig" ? ct().easyNow : ct().nobodyListens); return; }
         inp.value = "";
         // de wakkere Botty's echoën het woord even
         bottys.forEach(function(b){
@@ -1388,9 +1395,13 @@
   });
 
   // ── Aaien: hartjes + gegiechel (de hand-animatie zit in doeInteractie) ────
-  var GIECHEL = ["hihi!","aai aai!","hihihi","nog eens!","fijn!","dank je!"];
+  var GIECHEL_L = {
+    en: ["hehe!","pat pat!","hehehe","again!","nice!","thank you!"],
+    nl: ["hihi!","aai aai!","hihihi","nog eens!","fijn!","dank je!"]
+  };
   function kietelFx(naam){
     var nd = nodes[naam]; if(!nd) return;
+    var GIECHEL = GIECHEL_L[lang()] || GIECHEL_L.nl;
     zeg(nd, GIECHEL[Math.floor(Math.random()*GIECHEL.length)], "blij");
     for(var i=0;i<3;i++){
       (function(i){ setTimeout(function(){
@@ -1406,20 +1417,37 @@
   }
 
   // ── Brabbelen: Creatures-babytaal per doel/toestand ──────────────────────
-  var BRABBEL = {
-    spiegelen:    ["wie daar?","hallo ik?","kijk kijk","dat… ik?"],
-    dwalen:       ["ikke loop","waar heen?","lalala","rondje rondje"],
-    gezelschap:   ["wil vriend","samen leuk","waar iedereen?","botty bij botty"],
-    herstellen:   ["botty moe","even rusten","zzz…","oplaadje doen"],
-    bijkomen:     ["poeh poeh","even zitten","botty bijkomen"],
-    voortplanting:["botty verliefd 💕","mooi botty daar","hartje snel"],
-    nieuwsgierig: ["dat wat?","ooh mooi","ikke kijken","glimmend ding!"],
-    zelfzorg:     ["ikke speel","dit fijn","zelf doen!"],
-    slapen:       ["zzz…","*snurk*","mmm… lekker…","zzz… vriendje…"],
-    ziek:         ["botty au","voel raar","niet lekker…"],
-    verveeld:     ["saai…","niks te doen…","gaap…","boooring"],
-    bang:         ["botty bang!","eng!","niet leuk…","help?"],
-    eenzaam:      ["waar iedereen…","botty alleen","wil knuffel","niemand hier…"]
+  var BRABBEL_L = {
+    en: {
+      spiegelen:    ["who there?","hello me?","look look","that… me?"],
+      dwalen:       ["me walk","where to?","lalala","round round"],
+      gezelschap:   ["want friend","fun together","where everyone?","botty by botty"],
+      herstellen:   ["botty tired","little rest","zzz…","need recharge"],
+      bijkomen:     ["phew phew","sit a bit","botty resting"],
+      voortplanting:["botty in love 💕","pretty botty there","heart go fast"],
+      nieuwsgierig: ["what that?","ooh pretty","me looking","shiny thing!"],
+      zelfzorg:     ["me play","this nice","do it myself!"],
+      slapen:       ["zzz…","*snore*","mmm… cozy…","zzz… friend…"],
+      ziek:         ["botty ow","feel weird","not well…"],
+      verveeld:     ["boring…","nothing to do…","yawn…","boooring"],
+      bang:         ["botty scared!","scary!","not fun…","help?"],
+      eenzaam:      ["where everyone…","botty alone","want hug","nobody here…"]
+    },
+    nl: {
+      spiegelen:    ["wie daar?","hallo ik?","kijk kijk","dat… ik?"],
+      dwalen:       ["ikke loop","waar heen?","lalala","rondje rondje"],
+      gezelschap:   ["wil vriend","samen leuk","waar iedereen?","botty bij botty"],
+      herstellen:   ["botty moe","even rusten","zzz…","oplaadje doen"],
+      bijkomen:     ["poeh poeh","even zitten","botty bijkomen"],
+      voortplanting:["botty verliefd 💕","mooi botty daar","hartje snel"],
+      nieuwsgierig: ["dat wat?","ooh mooi","ikke kijken","glimmend ding!"],
+      zelfzorg:     ["ikke speel","dit fijn","zelf doen!"],
+      slapen:       ["zzz…","*snurk*","mmm… lekker…","zzz… vriendje…"],
+      ziek:         ["botty au","voel raar","niet lekker…"],
+      verveeld:     ["saai…","niks te doen…","gaap…","boooring"],
+      bang:         ["botty bang!","eng!","niet leuk…","help?"],
+      eenzaam:      ["waar iedereen…","botty alleen","wil knuffel","niemand hier…"]
+    }
   };
   function zeg(nd, tekst, stemming){
     if(nd.bub && nd.bub.parentNode) nd.bub.parentNode.removeChild(nd.bub);
@@ -1444,6 +1472,7 @@
     var hum = b.humeur;
     var stemming = b.ziek ? "ziek" : soort === "slapen" ? "slaap"
       : (hum === "bang" || hum === "eenzaam") ? "ziek" : hum === "blij" ? "blij" : "praat";
+    var BRABBEL = BRABBEL_L[lang()] || BRABBEL_L.nl;
     var pot = b.ziek ? BRABBEL.ziek
       : (hum && BRABBEL[hum]) ? BRABBEL[hum]
       : (BRABBEL[soort] || BRABBEL.nieuwsgierig);
