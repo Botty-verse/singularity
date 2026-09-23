@@ -245,6 +245,18 @@ voor een merkproef is geen meting van subjectief zelfbesef.
 - Graziano, M. S. A., & Kastner, S. (2011). Human consciousness and its relationship to social neuroscience: a novel hypothesis. *Cognitive Neuroscience*, 2(2), 98–113.
 - Metzinger, T. (2003). *Being No One: The Self-Model Theory of Subjectivity.* MIT Press.
 
+## ⭐ Sterrengeschiedenis
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/shieldcn/star-chart-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset=".github/shieldcn/star-chart-light.svg">
+  <img alt="Star history van Botty-verse/singularity" src=".github/shieldcn/star-chart-light.svg">
+</picture>
+
+*Automatisch bijgewerkt via de [Star chart](.github/workflows/star-chart.yml)-workflow
+(shadcn-stijl, light/dark). De grafiek verschijnt zodra de workflow voor het eerst heeft
+gedraaid.*
+
 ## 📜 Licentie
 
 Apache 2.0 — zie [`LICENSE`](LICENSE)
