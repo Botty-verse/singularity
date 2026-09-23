@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Botty-verse — De Construct: het klaslokaal</title>
+<script src="assets/i18n.js"></script>
+<title>Botty-verse — The Construct: the classroom</title>
 <meta name="theme-color" content="#1c130b" />
 <meta name="description" content="De Construct, side-on: een net verlaten klaslokaal in het bos waarin de Botty's rondlopen — live uit de hive." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏫</text></svg>" />
@@ -246,15 +247,22 @@
 </head>
 <body>
 <header>
-  <h1>🏫 Het klaslokaal <span class="versie" title="Versie 13 — De Leerling: zelfherkenning, lichaamsbesef en nieuwsgierigheid zijn niet langer gescript maar geleerd — en zichtbaar in de kit">⬡ v13 · De Leerling</span></h1>
-  <p class="ondertitel">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
+  <h1><span class="t en">🏫 The classroom</span><span class="t nl">🏫 Het klaslokaal</span> <span class="versie" title="Version 13 — The Apprentice: self-recognition, body awareness and curiosity are no longer scripted but learned — and visible in the kit"><span class="t en">⬡ v13 · The Apprentice</span><span class="t nl">⬡ v13 · De Leerling</span></span></h1>
+  <p class="ondertitel t en">The pupils have just left; the forest looks in through the windows. The Bottys
+    have the classroom to themselves. They <strong>fend for themselves</strong>: curiously they <strong>scout</strong> (🔎)
+    for an object, they <strong>smell</strong> (👃) and <strong>see</strong> (👁️) it, and by doing they learn what relieves their
+    hunger, tiredness or gloom — the object briefly vibrates when they use it. <strong>You are the hand</strong> —
+    pick a tool and click a Botty to <strong>stroke</strong>, <strong>feed</strong> or give
+    <strong>medicine</strong>, or teach the hive a <strong>word</strong> at the blackboard. And if a
+    pair broods an egg? Then you get to hatch it.</p>
+  <p class="ondertitel t nl">De leerlingen zijn net vertrokken; het bos kijkt door de ramen naar binnen. De Botty's
     hebben het lokaal voor zichzelf. Ze <strong>redden zichzelf</strong>: nieuwsgierig <strong>speuren</strong> (🔎) ze
     naar een object, ze <strong>ruiken</strong> (👃) en <strong>zien</strong> (👁️) het, en al doende leren ze wat hun
     honger, moeheid of somberheid stilt — het object trilt even als ze het gebruiken. <strong>Jij bent de hand</strong> —
     kies een gereedschap en klik op een Botty om te <strong>aaien</strong>, <strong>voeren</strong> of
     <strong>medicijn</strong> te geven, of leer de hive een <strong>woord</strong> bij het schoolbord. En broedt een
     paar een ei? Dan mag jíj het uitbroeden.</p>
-  <a class="terug" href="./">← Terug naar de hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html">🗺️ Genoom-kaart</a>
+  <a class="terug" href="./" data-nl="← Terug naar de hive">← Back to the hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
 </header>
 
 <main>
@@ -344,28 +352,28 @@
     </svg>
   </div>
   <div class="status">
-    <span id="st-links">🏫 Verbinden met de hive…</span>
+    <span id="st-links" data-nl="🏫 Verbinden met de hive…">🏫 Connecting to the hive…</span>
     <span id="st-rechts"></span>
   </div>
 
   <!-- Gereedschap voor de Hand: kies wat je doet, klik dan op een Botty -->
   <div class="gereedschap" id="gereedschap">
     <div class="tools">
-      <button class="tool actief" data-tool="aai"      title="Klik op een Botty om te aaien">🖐 Aaien</button>
-      <button class="tool"        data-tool="voer"     title="Klik op een Botty om te voeren">🍎 Voeren</button>
-      <button class="tool"        data-tool="medicijn" title="Klik op een zieke Botty om te genezen">💊 Medicijn</button>
+      <button class="tool actief" data-tool="aai"      title="Click a Botty to stroke it" data-nl-title="Klik op een Botty om te aaien" data-nl="🖐 Aaien">🖐 Stroke</button>
+      <button class="tool"        data-tool="voer"     title="Click a Botty to feed it" data-nl-title="Klik op een Botty om te voeren" data-nl="🍎 Voeren">🍎 Feed</button>
+      <button class="tool"        data-tool="medicijn" title="Click a sick Botty to heal it" data-nl-title="Klik op een zieke Botty om te genezen" data-nl="💊 Medicijn">💊 Medicine</button>
     </div>
     <form class="woordvorm" id="woordvorm" autocomplete="off">
-      <input id="woordinput" type="text" maxlength="16" placeholder="leer de hive een woord…" aria-label="woord" />
-      <button type="submit">🗣️ Roep</button>
-      <button type="button" id="geluidknop" class="geluidknop" title="Botty-stemmen aan/uit" aria-pressed="false">🔇 Stem uit</button>
+      <input id="woordinput" type="text" maxlength="16" placeholder="teach the hive a word…" data-nl-ph="leer de hive een woord…" aria-label="word" />
+      <button type="submit" data-nl="🗣️ Roep">🗣️ Call</button>
+      <button type="button" id="geluidknop" class="geluidknop" title="Botty voices on/off" data-nl-title="Botty-stemmen aan/uit" aria-pressed="false" data-nl="🔇 Stem uit">🔇 Voice off</button>
     </form>
   </div>
 
   <!-- Verzorgerskit (Creatures-stijl observatiepaneel) -->
   <div class="kit" id="kit">
-    <div class="kit-kop"><span class="lampje"></span> Verzorgerskit</div>
-    <div class="kit-leeg" id="kit-leeg">Klik op een Botty in het lokaal om ’m te observeren — de kit leest zijn driften, brein en biochemie uit.</div>
+    <div class="kit-kop"><span class="lampje"></span> <span data-nl="Verzorgerskit">Caretaker kit</span></div>
+    <div class="kit-leeg" id="kit-leeg" data-nl="Klik op een Botty in het lokaal om ’m te observeren — de kit leest zijn driften, brein en biochemie uit.">Click a Botty in the classroom to observe it — the kit reads out its drives, brain and biochemistry.</div>
     <div class="kit-body" id="kit-body" hidden>
       <svg class="kit-portret" id="kit-portret" viewBox="0 0 200 250" aria-label="portret"></svg>
       <div class="kit-info">
@@ -374,19 +382,19 @@
         <div class="kit-zelfbeeld" id="kit-zelfbeeld" hidden></div>
         <!-- v13: de geleerde binnenwereld (zelfherkenning, lichaamsmodel, leerwinst) -->
         <div class="kit-leerling" id="kit-leerling" hidden>
-          <div class="kit-leerling-kop">🎓 Geleerd over zichzelf <span id="ll-sub"></span></div>
-          <div class="ll-rij" title="Contingentie die ze aan de spiegel leerde: 'dat beeld beweegt zoals ik beweeg'. Boven de streep schrijft ze het spiegelbeeld aan zichzelf toe.">
-            <span>🪞 zelfherkenning</span>
+          <div class="kit-leerling-kop"><span data-nl="🎓 Geleerd over zichzelf">🎓 Learned about itself</span> <span id="ll-sub"></span></div>
+          <div class="ll-rij" title="Contingency it learned at the mirror: 'that image moves the way I move'. Above the line it attributes the reflection to itself." data-nl-title="Contingentie die ze aan de spiegel leerde: 'dat beeld beweegt zoals ik beweeg'. Boven de streep schrijft ze het spiegelbeeld aan zichzelf toe.">
+            <span data-nl="🪞 zelfherkenning">🪞 self-recognition</span>
             <span class="ll-bar"><i id="ll-zh"></i><span class="ll-drempel" style="left:60%"></span></span>
             <span class="ll-waarde" id="ll-zh-v">—</span>
           </div>
-          <div class="ll-rij" title="Hoe goed ze haar eigen lijf kent: de geleerde staplengte en de voorspelfout daarop (§3).">
-            <span>🦿 lichaamsmodel</span>
+          <div class="ll-rij" title="How well it knows its own body: the learned step length and the prediction error on it (§3)." data-nl-title="Hoe goed ze haar eigen lijf kent: de geleerde staplengte en de voorspelfout daarop (§3).">
+            <span data-nl="🦿 lichaamsmodel">🦿 body model</span>
             <span class="ll-bar"><i id="ll-lijf"></i></span>
             <span class="ll-waarde" id="ll-lijf-v">—</span>
           </div>
-          <div class="ll-rij" title="Leerprogressie: daalt haar voorspelfout? Dit stuurt haar nieuwsgierigheid, niet de kale verrassing (§2).">
-            <span>📈 leerwinst</span>
+          <div class="ll-rij" title="Learning progress: is its prediction error dropping? This steers its curiosity, not bare surprise (§2)." data-nl-title="Leerprogressie: daalt haar voorspelfout? Dit stuurt haar nieuwsgierigheid, niet de kale verrassing (§2).">
+            <span data-nl="📈 leerwinst">📈 learning gain</span>
             <span class="ll-bar"><i id="ll-lw"></i></span>
             <span class="ll-waarde" id="ll-lw-v">—</span>
           </div>
@@ -394,8 +402,8 @@
         <div class="kit-gedachte" id="kit-gedachte">…</div>
         <div class="kit-podium" id="kit-podium" hidden>
           <span class="pd-ico" id="pd-ico">💭</span>
-          <span><span class="pd-label">op het podium</span><br><span class="pd-focus" id="pd-focus"></span></span>
-          <span class="pd-bar" title="salience — hoe sterk dit de aandacht grijpt"><span id="pd-bar-fill"></span></span>
+          <span><span class="pd-label" data-nl="op het podium">on the stage</span><br><span class="pd-focus" id="pd-focus"></span></span>
+          <span class="pd-bar" title="salience — how strongly this grabs attention" data-nl-title="salience — hoe sterk dit de aandacht grijpt"><span id="pd-bar-fill"></span></span>
         </div>
         <div class="kit-stroom" id="kit-stroom" aria-label="gedachtenstroom"></div>
       </div>
@@ -405,39 +413,41 @@
           <svg viewBox="0 0 150 44" preserveAspectRatio="none" style="width:50%;height:100%"><path d="M0,24 h40 l8,-13 8,24 8,-18 5,7 h81" fill="none" stroke="#39ff85" stroke-width="2.5"/></svg>
           <svg viewBox="0 0 150 44" preserveAspectRatio="none" style="width:50%;height:100%"><path d="M0,24 h40 l8,-13 8,24 8,-18 5,7 h81" fill="none" stroke="#39ff85" stroke-width="2.5"/></svg>
         </div></div>
-        <div class="kit-bpm" id="kit-bpm">— klop/min</div>
+        <div class="kit-bpm" id="kit-bpm" data-nl="— klop/min">— beats/min</div>
       </div>
       <div class="kit-brein" id="kit-brein">
-        <div class="kit-brein-kop">🧠 Brein — geleerde verbanden <span id="kit-brein-n"></span></div>
-        <div class="kit-anat" id="kit-anat" aria-label="brein-anatomie">
-          <img class="kit-anat-img" src="assets/brein.png" alt="Botty brein — 8 kamers" loading="lazy">
-          <div class="kit-anat-glow" data-kamer="waarneming"     title="Waarneming — ziet objecten in de buurt"></div>
-          <div class="kit-anat-glow" data-kamer="conceptlaag"    title="Conceptlaag — legt verbanden tussen drift en object"></div>
-          <div class="kit-anat-glow" data-kamer="beslislaag"     title="Beslislaag — kiest wat te doen"></div>
-          <div class="kit-anat-glow" data-kamer="beloning"       title="Beloningssysteem — endorfine bij aaien/eten"></div>
-          <div class="kit-anat-glow" data-kamer="biochemie"      title="Biochemie — driften &amp; stofwisseling"></div>
-          <div class="kit-anat-glow" data-kamer="geheugen"       title="Geheugen — opgeslagen leerervaringen"></div>
-          <div class="kit-anat-glow" data-kamer="taal"           title="Taal-lobe — woordenschat"></div>
-          <div class="kit-anat-glow" data-kamer="temperament"    title="Temperament — aard &amp; humeur"></div>
+        <div class="kit-brein-kop"><span data-nl="🧠 Brein — geleerde verbanden">🧠 Brain — learned links</span> <span id="kit-brein-n"></span></div>
+        <div class="kit-anat" id="kit-anat" aria-label="brain anatomy">
+          <img class="kit-anat-img" src="assets/brein.png" alt="Botty brain — 8 chambers" loading="lazy">
+          <div class="kit-anat-glow" data-kamer="waarneming"     title="Perception — sees nearby objects" data-nl-title="Waarneming — ziet objecten in de buurt"></div>
+          <div class="kit-anat-glow" data-kamer="conceptlaag"    title="Concept layer — links drives to objects" data-nl-title="Conceptlaag — legt verbanden tussen drift en object"></div>
+          <div class="kit-anat-glow" data-kamer="beslislaag"     title="Decision layer — chooses what to do" data-nl-title="Beslislaag — kiest wat te doen"></div>
+          <div class="kit-anat-glow" data-kamer="beloning"       title="Reward system — endorphin on stroking/eating" data-nl-title="Beloningssysteem — endorfine bij aaien/eten"></div>
+          <div class="kit-anat-glow" data-kamer="biochemie"      title="Biochemistry — drives &amp; metabolism" data-nl-title="Biochemie — driften &amp; stofwisseling"></div>
+          <div class="kit-anat-glow" data-kamer="geheugen"       title="Memory — stored learning experiences" data-nl-title="Geheugen — opgeslagen leerervaringen"></div>
+          <div class="kit-anat-glow" data-kamer="taal"           title="Language lobe — vocabulary" data-nl-title="Taal-lobe — woordenschat"></div>
+          <div class="kit-anat-glow" data-kamer="temperament"    title="Temperament — nature &amp; mood" data-nl-title="Temperament — aard &amp; humeur"></div>
         </div>
-        <svg id="kit-brein-svg" viewBox="0 0 300 210" preserveAspectRatio="xMidYMid meet" aria-label="brein-graaf"></svg>
-        <div class="kit-brein-noot">Drift ↔ object. Dikker &amp; groener = sterker geleerd dat dít object die behoefte stilt; dof/rood = geleerd dat het níét helpt. Een oplichtende lijn is zojuist versterkt — door het zelf te doen, óf doordat een soortgenoot het hem in taal vertelde. Zo verspreidt kennis zich door de hive.</div>
-        <div class="kit-biochem-kop">🧪 Biochemie — stofjes &amp; hormonen</div>
-        <div class="kit-biochem" id="kit-biochem" aria-label="biochemie"></div>
-        <div class="kit-brein-noot">De chemie ónder het gedrag: metabolisme (glucose/reserve), stress-stofjes en hormonen. Elke stof stijgt door de wereld — eten/opladen, gezelschap, leren aan het bord (leerhonger), ziekte — en ebt in eigen tempo weg. <strong>Leeftijd telt mee</strong>: een ouder lijf heeft een trager metabolisme, wordt sneller moe en houdt stress (cortisol) langer vast. Samen sturen ze stemming, keuzes en gezicht.</div>
+        <svg id="kit-brein-svg" viewBox="0 0 300 210" preserveAspectRatio="xMidYMid meet" aria-label="brain graph"></svg>
+        <div class="kit-brein-noot t en">Drive ↔ object. Thicker &amp; greener = more strongly learned that this object relieves that need; dull/red = learned that it does <em>not</em> help. A lit-up line was just strengthened — by doing it, or because a peer told it in language. That's how knowledge spreads through the hive.</div>
+        <div class="kit-brein-noot t nl">Drift ↔ object. Dikker &amp; groener = sterker geleerd dat dít object die behoefte stilt; dof/rood = geleerd dat het níét helpt. Een oplichtende lijn is zojuist versterkt — door het zelf te doen, óf doordat een soortgenoot het hem in taal vertelde. Zo verspreidt kennis zich door de hive.</div>
+        <div class="kit-biochem-kop"><span data-nl="🧪 Biochemie — stofjes &amp; hormonen">🧪 Biochemistry — substances &amp; hormones</span></div>
+        <div class="kit-biochem" id="kit-biochem" aria-label="biochemistry"></div>
+        <div class="kit-brein-noot t en">The chemistry <em>beneath</em> behaviour: metabolism (glucose/reserve), stress substances and hormones. Each substance rises through the world — eating/charging, company, learning at the board (learning hunger), illness — and ebbs away at its own pace. <strong>Age counts</strong>: an older body has a slower metabolism, tires faster and holds stress (cortisol) longer. Together they steer mood, choices and the face.</div>
+        <div class="kit-brein-noot t nl">De chemie ónder het gedrag: metabolisme (glucose/reserve), stress-stofjes en hormonen. Elke stof stijgt door de wereld — eten/opladen, gezelschap, leren aan het bord (leerhonger), ziekte — en ebt in eigen tempo weg. <strong>Leeftijd telt mee</strong>: een ouder lijf heeft een trager metabolisme, wordt sneller moe en houdt stress (cortisol) langer vast. Samen sturen ze stemming, keuzes en gezicht.</div>
       </div>
     </div>
   </div>
 </main>
 
 <footer>
-  <a href="index.html">🌐 De hive</a>
-  <a href="stamboom.html">🌳 Stamboom</a>
-  <a href="populatie.html">🧬 Populatie & inteelt</a>
-  <a href="evolutie.html">📈 Evolutie</a>
-  <a href="genoom.html">🗺️ Genoom-kaart</a>
-  <a href="kaarten.html">🃏 Verzamelkaarten</a>
-  <a href="https://botty.ramonmoorlag.nl/">💊 Eigen Botty</a>
+  <a href="index.html" data-nl="🌐 De hive">🌐 The hive</a>
+  <a href="stamboom.html" data-nl="🌳 Stamboom">🌳 Family tree</a>
+  <a href="populatie.html" data-nl="🧬 Populatie & inteelt">🧬 Population & inbreeding</a>
+  <a href="evolutie.html" data-nl="📈 Evolutie">📈 Evolution</a>
+  <a href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
+  <a href="kaarten.html" data-nl="🃏 Verzamelkaarten">🃏 Collectible cards</a>
+  <a href="https://botty.ramonmoorlag.nl/" data-nl="💊 Eigen Botty">💊 Your own Botty</a>
 </footer>
 
 <script src="assets/botty-config.js"></script>
@@ -453,6 +463,25 @@
   var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   var paletten = BottyRender.paletten;
   var sprites  = BottySprites.set;
+
+  // ── Taal (English-first) — client-side dynamische tekst ──────────────────
+  function lang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
+  function numLocale(){ return lang()==="nl" ? "nl-NL" : "en-GB"; }
+  var CT = {
+    en:{ connecting:"🏫 Connecting to the hive…", sleeps:"🌙 The hive sleeps · ",
+         ill:" ill", illDot:" · 🤒 ill", beatsMin:" beats/min", eggOf:"Egg of ",
+         driveMoe:"😴 Tiredness", driveHonger:"💾 Data hunger", driveStijf:"🦴 Stiffness", driveEenzaam:"💔 Loneliness",
+         bio:{glucose:"glucose", glycogeen:"reserve", honger:"hunger", vermoeidheid:"fatigue", endorfine:"endorphin",
+              stress:"stress", adrenaline:"adrenaline", cortisol:"cortisol", gif:"toxin", verveling:"boredom",
+              angst:"fear", eenzaamheid:"loneliness", oxytocine:"oxytocin", libido:"libido"} },
+    nl:{ connecting:"🏫 Verbinden met de hive…", sleeps:"🌙 De hive slaapt · ",
+         ill:" ziek", illDot:" · 🤒 ziek", beatsMin:" klop/min", eggOf:"Ei van ",
+         driveMoe:"😴 Moeheid", driveHonger:"💾 Datahonger", driveStijf:"🦴 Stijfheid", driveEenzaam:"💔 Eenzaamheid",
+         bio:{glucose:"glucose", glycogeen:"reserve", honger:"honger", vermoeidheid:"moeheid", endorfine:"endorfine",
+              stress:"stress", adrenaline:"adrenaline", cortisol:"cortisol", gif:"gif", verveling:"verveling",
+              angst:"angst", eenzaamheid:"eenzaamheid", oxytocine:"oxytocine", libido:"libido"} }
+  };
+  function ct(){ return CT[lang()]; }
   var WERELD_B = 1500;                 // achtergrond-breedte (viewBox)
   var WERELD_H = 844;                  // achtergrond-hoogte (viewBox)
   var WERELD_R = WERELD_H / WERELD_B;  // aspect voor de camera
@@ -652,11 +681,12 @@
     if(nieuweBottys) bottys = nieuweBottys.filter(function(b){ return b && b.naam; });
     if(nieuweEieren){ eieren = nieuweEieren; }
     renderEieren();
-    document.getElementById("st-links").textContent = (nacht ? "🌙 De hive slaapt · " : "🏫 ")
-      + bottys.length + " Botty's in het klaslokaal"
-      + (eieren.length ? " · 🥚 " + eieren.length + " in de broedmachine" : "");
+    var en = lang()==="en";
+    document.getElementById("st-links").textContent = (nacht ? (en?"🌙 The hive sleeps · ":"🌙 De hive slaapt · ") : "🏫 ")
+      + bottys.length + (en?" Bottys in the classroom":" Botty's in het klaslokaal")
+      + (eieren.length ? " · 🥚 " + eieren.length + (en?" in the incubator":" in de broedmachine") : "");
     var z = bottys.filter(function(b){ return b.ziek; }).length;
-    document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + " gezond" + (z?(" · 🤒 "+z+" ziek"):"") + egressTekst();
+    document.getElementById("st-rechts").textContent = "💚 " + (bottys.length-z) + (en?" healthy":" gezond") + (z?(" · 🤒 "+z+(en?" ill":" ziek")):"") + egressTekst();
   }
   function laad(){
     // Slank snapshot via RPC (~13KB) i.p.v. de volle rij (~31KB). De zware brein-/
@@ -735,7 +765,7 @@
         + '<path d="M'+(cx-6)+','+(cy-9)+' q6,4 12,0" fill="none" stroke="#caa15c" stroke-width="1.2"/></g>'
         + '<text class="ei-label" x="'+cx+'" y="'+(cy-24)+'">'+(rijp ? "🖐 broed uit!" : "rijp over "+restS+"s")+'</text>';
       var t = document.createElementNS(SVGNS,"title");
-      t.textContent = "Ei van " + (ei.ouderA||"?") + " × " + (ei.ouderB||"?");
+      t.textContent = ct().eggOf + (ei.ouderA||"?") + " × " + (ei.ouderB||"?");
       g.appendChild(t);
       g.addEventListener("click", function(ev){
         ev.stopPropagation();
@@ -1254,7 +1284,7 @@
   var geluidKnop = document.getElementById("geluidknop");
   function tekenGeluidKnop(){
     var aan = window.BottyAudio && !BottyAudio.isGedempt();
-    geluidKnop.textContent = aan ? "🔊 Stem aan" : "🔇 Stem uit";
+    geluidKnop.textContent = aan ? (lang()==="en"?"🔊 Voice on":"🔊 Stem aan") : (lang()==="en"?"🔇 Voice off":"🔇 Stem uit");
     geluidKnop.classList.toggle("aan", !!aan);
     geluidKnop.setAttribute("aria-pressed", aan ? "true" : "false");
   }
@@ -1422,18 +1452,26 @@
 
   // ── Verzorgerskit ────────────────────────────────────────────────────────
   var DRIVES = [
-    { id:"moe",     label:"😴 Moeheid",     bron:"energie" },
-    { id:"honger",  label:"💾 Datahonger",  bron:"data" },
-    { id:"stijf",   label:"🦴 Stijfheid",   bron:"fit" },
-    { id:"eenzaam", label:"💔 Eenzaamheid", bron:"geluk" }
+    { id:"moe",     key:"driveMoe",     bron:"energie" },
+    { id:"honger",  key:"driveHonger",  bron:"data" },
+    { id:"stijf",   key:"driveStijf",   bron:"fit" },
+    { id:"eenzaam", key:"driveEenzaam", bron:"geluk" }
   ];
   var kitDrives = document.getElementById("kit-drives");
   DRIVES.forEach(function(d){
     var rij = document.createElement("div"); rij.className = "drive"; rij.id = "drive-"+d.id;
-    rij.innerHTML = '<span class="dlabel">'+d.label+'</span><span class="dbar"><span style="width:0%"></span></span>';
+    rij.innerHTML = '<span class="dlabel">'+ct()[d.key]+'</span><span class="dbar"><span style="width:0%"></span></span>';
     kitDrives.appendChild(rij);
   });
-  var kitStageLabel = { born:"Baby", young:"Jong", teen:"Tiener", adult:"Volwassen", elder:"Oudere", sage:"Wijze" };
+  function updateDriveLabels(){
+    DRIVES.forEach(function(d){
+      var row=document.getElementById("drive-"+d.id); if(!row) return;
+      var l=row.querySelector(".dlabel"); if(l) l.textContent = ct()[d.key];
+    });
+  }
+  var kitStageLabelNL = { born:"Baby", young:"Jong", teen:"Tiener", adult:"Volwassen", elder:"Oudere", sage:"Wijze" };
+  var kitStageLabelEN = { born:"Baby", young:"Young", teen:"Teen", adult:"Adult", elder:"Elder", sage:"Sage" };
+  function kitStageLabelNu(){ return lang()==="en" ? kitStageLabelEN : kitStageLabelNL; }
   // ── Brein-graaf: leert-ie welk object welke behoefte stilt? ──────────────────
   // Bipartiete graaf: links de vier driften, rechts de objecten. De lijn-dikte en
   // -kleur tonen het geleerde geloof b.brein[drift][object] (0..1). Groen = "helpt",
@@ -1527,18 +1565,20 @@
     // nog niet (of gefaald), toon dat expliciet i.p.v. 14 misleidend-lege balken.
     if(!breinDetail[b.naam]){
       box.innerHTML = '<div class="bio-melding">' +
-        (breinDetailFout ? "⚠️ biochemie kon niet laden" : "biochemie laden…") + '</div>';
+        (breinDetailFout ? (lang()==="en"?"⚠️ biochemistry could not load":"⚠️ biochemie kon niet laden")
+                         : (lang()==="en"?"loading biochemistry…":"biochemie laden…")) + '</div>';
       return;
     }
     var c = b.chem || {}, prev = biochemPrev[b.naam] || {}, p = [];
     BIOSTOF.forEach(function(s){
+      var naam = ct().bio[s[0]] || s[2];
       var v = Math.max(0, Math.min(100, c[s[0]] || 0));
       var piek = (prev[s[0]] != null && v - prev[s[0]] > 6) ? " piek" : "";
       // Kleur direct op de balk zetten (geen CSS-custom-property-omweg) — robuuster
       // over browsers heen.
-      p.push('<div class="biostof'+piek+'" title="'+s[2]+': '+Math.round(v)+'/100">'
+      p.push('<div class="biostof'+piek+'" title="'+naam+': '+Math.round(v)+'/100">'
         + '<span class="bio-ico">'+s[1]+'</span>'
-        + '<span class="bio-naam">'+s[2]+'</span>'
+        + '<span class="bio-naam">'+naam+'</span>'
         + '<span class="bio-baan"><span class="bio-vul" style="width:'+v.toFixed(0)+'%;background:'+s[3]+'"></span></span></div>');
     });
     box.innerHTML = p.join("");
@@ -1584,7 +1624,7 @@
     }
     // zelfbeeld tonen
     var zb = document.getElementById("kit-zelfbeeld");
-    if(b.zelfbeeld){ zb.hidden = false; zb.innerHTML = '🪞 Zelfbeeld: <b>' + esc(b.zelfbeeld) + '</b>'; }
+    if(b.zelfbeeld){ zb.hidden = false; zb.innerHTML = (lang()==="en"?'🪞 Self-image: <b>':'🪞 Zelfbeeld: <b>') + esc(b.zelfbeeld) + '</b>'; }
     else zb.hidden = true;
 
     // v13 "De Leerling": toon wat ze over zichzélf geleerd heeft. Alles hier is
@@ -1642,12 +1682,13 @@
     if(!b){ sel = null; updateKit(); return; }
     var g = (b.energie+b.data+b.fit+b.geluk)/4;
     var sekseTxt = b.sekse==="m" ? " · ♂" : b.sekse==="v" ? " · ♀" : "";
-    var rijpTxt = (b.stage==="born"||b.stage==="young"||b.stage==="teen") ? " · 🌱 trekken rijpen nog" : "";
+    var en = lang()==="en";
+    var rijpTxt = (b.stage==="born"||b.stage==="young"||b.stage==="teen") ? (en?" · 🌱 traits still maturing":" · 🌱 trekken rijpen nog") : "";
     var kar = karakter(b);
     document.getElementById("kit-sub").textContent =
-      (kitStageLabel[b.stage]||b.stage) + sekseTxt + " · generatie " + (b.generatie||1)
+      (kitStageLabelNu()[b.stage]||b.stage) + sekseTxt + (en?" · generation ":" · generatie ") + (b.generatie||1)
       + (kar ? " · " + kar : "")
-      + (b.ziek ? " · 🤒 ziek" : "") + rijpTxt + " · doel: " + (b.doel && b.doel.soort || "dwalen");
+      + (b.ziek ? (en?" · 🤒 ill":" · 🤒 ziek") : "") + rijpTxt + (en?" · goal: ":" · doel: ") + (b.doel && b.doel.soort || (en?"wandering":"dwalen"));
     document.getElementById("kit-gedachte").textContent = "“" + (b.gedachte || "…") + "”";
     updateStroom(b);   // stap 5: podium + gedachtenstroom bijwerken
     DRIVES.forEach(function(d){
@@ -1659,7 +1700,7 @@
     metBrein(b); renderBrein(b); renderBreinAnat(b); renderBiochem(b);   // brein-graaf + anatomie + biochemie (detail uit cache)
     var bpm = Math.round(55 + (100-g)*1.1 + (b.ziek?25:0));
     document.getElementById("ecg-band").style.setProperty("--dur", (60/bpm*2).toFixed(2)+"s");
-    document.getElementById("kit-bpm").textContent = "♥ " + bpm + " klop/min";
+    document.getElementById("kit-bpm").textContent = "♥ " + bpm + ct().beatsMin;
   }
 
   laad();
@@ -1676,6 +1717,15 @@
   setInterval(function(){ if(sel && !document.hidden) laadBreinDetail(); }, 30000);   // niet pollen op de achtergrond
   // Vangnet: alleen ná stilte (geen broadcast) de staat opnieuw ophalen.
   setInterval(function(){ if(!document.hidden && Date.now()-laatsteStaat > 15000) laad(); }, 15000);
+
+  // Taalwissel: labels, statusbalk en de kit meteen in de nieuwe taal zetten.
+  if(window.SiteLang){
+    window.SiteLang.onChange(function(){
+      updateDriveLabels();
+      toonState();
+      if(sel) updateKit();
+    });
+  }
 })();
 </script>
 
@@ -1684,7 +1734,7 @@
 <div class="muziekdok" id="muziekdok">
   <div class="paneel" id="muziekpaneel"></div>
   <button type="button" class="muziekknop" id="muziekknop" aria-expanded="false" aria-controls="muziekpaneel"
-          title="De soundtrack van de hive">🎧 <span id="muziekknop-tekst">Muziek</span></button>
+          title="The hive's soundtrack" data-nl-title="De soundtrack van de hive">🎧 <span id="muziekknop-tekst">Music</span></button>
 </div>
 <script>
 (function(){
@@ -1693,22 +1743,25 @@
   var tekst = document.getElementById("muziekknop-tekst");
   var paneel = document.getElementById("muziekpaneel");
   var geladen = false;
+  function mlang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
 
   function vulPaneel(){
     if(geladen) return;
     geladen = true;
+    var cap = mlang()==="en"
+      ? 'Twenty-five songs that follow a Botty life. Press play — the music keeps playing as long as you stay in the classroom.'
+      : 'Vijfentwintig nummers die een Botty-leven volgen. Druk op play — de muziek blijft spelen zolang je in het lokaal blijft.';
     paneel.innerHTML =
       '<iframe src="https://open.spotify.com/embed/playlist/1sRUrMj1kG9m9BaKmwrbaf?theme=0" ' +
-      'title="Spotify: de soundtrack van de hive" loading="lazy" ' +
+      'title="Spotify: the hive\'s soundtrack" loading="lazy" ' +
       'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>' +
-      '<p class="bijschrift">Vijfentwintig nummers die een Botty-leven volgen. Druk op play — ' +
-      'de muziek blijft spelen zolang je in het lokaal blijft.</p>';
+      '<p class="bijschrift">'+cap+'</p>';
   }
 
   function zet(open){
     dok.classList.toggle("open", open);
     knop.setAttribute("aria-expanded", open ? "true" : "false");
-    tekst.textContent = open ? "Verberg" : "Muziek";
+    tekst.textContent = open ? (mlang()==="en"?"Hide":"Verberg") : (mlang()==="en"?"Music":"Muziek");
     if(open) vulPaneel();
     try { localStorage.setItem("botty-muziek", open ? "1" : "0"); } catch(e){}
   }
