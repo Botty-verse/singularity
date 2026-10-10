@@ -118,6 +118,14 @@
   .kit-portret{width:74px;height:92px;flex-shrink:0;background:#14100a;border:2px solid #4a3a28;border-radius:12px;padding:4px;}
   .kit-info{min-width:150px;flex:1 1 150px;}
   .kit-naam{font-weight:900;font-size:1.15rem;color:#ffe6a8;}
+  .adopt-knop{margin-top:.5rem;display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;
+    border:1px solid rgba(255,206,122,.5);background:rgba(255,206,122,.12);color:#ffe6a8;
+    border-radius:10px;padding:.35rem .7rem;font:inherit;font-size:.82rem;font-weight:800;
+    transition:background .15s,opacity .15s;}
+  .adopt-knop:hover{background:rgba(255,206,122,.22);}
+  .adopt-knop.actief{background:rgba(127,224,176,.16);border-color:rgba(127,224,176,.55);color:#9ff0c6;}
+  .adopt-knop[disabled]{opacity:.6;cursor:progress;}
+  .adopt-hint{margin-top:.25rem;font-size:.68rem;color:#b9a98a;max-width:240px;line-height:1.35;}
   .kit-sub{font-size:.75rem;color:#b89a6a;margin-top:.1rem;}
   .kit-gedachte{margin-top:.45rem;font-size:.82rem;color:#e6d2a8;font-style:italic;line-height:1.4;
                 background:#14100a;border:1px solid #4a3a28;border-radius:10px;padding:.4rem .6rem;}
@@ -379,6 +387,8 @@
       <div class="kit-info">
         <div class="kit-naam" id="kit-naam"></div>
         <div class="kit-sub" id="kit-sub"></div>
+        <button class="adopt-knop" id="adopt-knop" type="button" hidden></button>
+        <div class="adopt-hint" id="adopt-hint" hidden></div>
         <div class="kit-zelfbeeld" id="kit-zelfbeeld" hidden></div>
         <!-- v13: de geleerde binnenwereld (zelfherkenning, lichaamsmodel, leerwinst) -->
         <div class="kit-leerling" id="kit-leerling" hidden>
@@ -1622,6 +1632,7 @@
     leeg.hidden = true; body.hidden = false;
     document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
     document.getElementById("kit-naam").textContent = b.naam;
+    refreshAdopt(b.naam, b.bid || null);
     delete breinPrev[b.naam];   // verse selectie → geen valse puls
     try { metBrein(b); renderBrein(b); renderBreinAnat(b); renderBiochem(b); }
     catch(e){ console.error("brein-paneel fout:", e); }
@@ -1746,6 +1757,85 @@
   setInterval(function(){ if(sel && !document.hidden) laadBreinDetail(); }, 30000);   // niet pollen op de achtergrond
   // Vangnet: alleen ná stilte (geen broadcast) de staat opnieuw ophalen.
   setInterval(function(){ if(!document.hidden && Date.now()-laatsteStaat > 15000) laad(); }, 15000);
+
+  // ── Adopteer een Botty: Web Push bij mijlpalen (geboorte/overlijden) ────────
+  var adoptKnop = document.getElementById("adopt-knop");
+  var adoptHint = document.getElementById("adopt-hint");
+  var pushOK = ("serviceWorker" in navigator) && ("PushManager" in window) && ("Notification" in window);
+  var adoptHuidig = null;
+
+  function adL(){ return (window.SiteLang && SiteLang.get()) === "nl" ? "nl" : "en"; }
+  function adoptLijst(){ try { return JSON.parse(localStorage.getItem("botty-adopties")||"{}"); } catch(e){ return {}; } }
+  function adoptZet(naam, aan){ try { var m=adoptLijst(); if(aan) m[naam]=true; else delete m[naam]; localStorage.setItem("botty-adopties", JSON.stringify(m)); } catch(e){} }
+  function isGeadopteerd(naam){ return !!adoptLijst()[naam]; }
+
+  function urlB64ToUint8Array(b64){
+    var pad = "=".repeat((4 - b64.length % 4) % 4);
+    var base64 = (b64 + pad).replace(/-/g,"+").replace(/_/g,"/");
+    var raw = atob(base64), arr = new Uint8Array(raw.length);
+    for(var i=0;i<raw.length;i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  }
+
+  function refreshAdopt(naam, bid){
+    adoptHuidig = { naam: naam, bid: bid };
+    if(!adoptKnop) return;
+    if(!pushOK){
+      adoptKnop.hidden = true; adoptHint.hidden = false;
+      adoptHint.textContent = adL()==="nl" ? "🔔 Meldingen worden niet ondersteund in deze browser." : "🔔 Notifications aren’t supported in this browser.";
+      return;
+    }
+    adoptKnop.hidden = false; adoptKnop.disabled = false; adoptHint.hidden = false;
+    var aan = isGeadopteerd(naam);
+    adoptKnop.classList.toggle("actief", aan);
+    adoptKnop.textContent = aan
+      ? (adL()==="nl" ? "🔔 Je volgt "+naam : "🔔 Following "+naam)
+      : (adL()==="nl" ? "🔔 Adopteer "+naam : "🔔 Adopt "+naam);
+    adoptHint.textContent = aan
+      ? (adL()==="nl" ? "Je krijgt een melding bij een geboorte of overlijden. Tik om te stoppen." : "You’ll get a ping on a birth or death. Tap to stop.")
+      : (adL()==="nl" ? "Krijg een melding als deze Botty een kind krijgt of overlijdt." : "Get notified when this Botty has a child or passes away.");
+  }
+
+  async function doeAdopt(){
+    if(!adoptHuidig || !adoptKnop) return;
+    var naam = adoptHuidig.naam, bid = adoptHuidig.bid;
+    if(isGeadopteerd(naam)) return stopAdopt(naam);
+    adoptKnop.disabled = true;
+    try{
+      var perm = await Notification.requestPermission();
+      if(perm !== "granted"){ adoptHint.textContent = adL()==="nl"?"Meldingen geweigerd — zet ze aan in je browser.":"Notifications denied — enable them in your browser."; adoptKnop.disabled=false; return; }
+      var reg = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.getSubscription();
+      if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: urlB64ToUint8Array(BottyConfig.VAPID_PUBLIC) });
+      var j = sub.toJSON();
+      var res = await supabase.from("adopties").upsert({
+        botty_naam: naam, botty_bid: bid || null,
+        endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, lang: adL()
+      }, { onConflict: "endpoint,botty_naam", ignoreDuplicates: true });
+      if(res.error) throw res.error;
+      adoptZet(naam, true);
+    }catch(e){
+      console.error("adopt faalde:", e);
+      adoptHint.textContent = adL()==="nl" ? "Kon niet aanmelden — probeer later opnieuw." : "Couldn’t subscribe — try again later.";
+    }
+    adoptKnop.disabled = false;
+    refreshAdopt(naam, bid);
+  }
+
+  async function stopAdopt(naam){
+    adoptKnop.disabled = true;
+    try{
+      var reg = await navigator.serviceWorker.getRegistration();
+      var sub = reg && await reg.pushManager.getSubscription();
+      if(sub) await supabase.from("adopties").delete().eq("endpoint", sub.toJSON().endpoint).eq("botty_naam", naam);
+    }catch(e){ console.warn("stop-adopt:", e); }
+    adoptZet(naam, false);
+    adoptKnop.disabled = false;
+    refreshAdopt(naam, adoptHuidig && adoptHuidig.bid);
+  }
+
+  if(adoptKnop) adoptKnop.addEventListener("click", doeAdopt);
 
   // Taalwissel: labels, statusbalk en de kit meteen in de nieuwe taal zetten.
   if(window.SiteLang){
