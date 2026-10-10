@@ -10,5 +10,7 @@
  */
 window.BottyConfig = {
   SUPABASE_URL:  "https://oblzouaapvdippyhxmpo.supabase.co",
-  SUPABASE_ANON: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4"
+  SUPABASE_ANON: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ibHpvdWFhcHZkaXBweWh4bXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyMzIsImV4cCI6MjA5NzQwNzIzMn0.dvrxesHILnLdYYrs0_p1Os7Zwi2BdShLDRj8QCkodP4",
+  // Public VAPID key for Web Push (adopt-a-Botty notifications). Public by design.
+  VAPID_PUBLIC:  "BCy5Dy1-8E7KdseMf5htnPWloxJ0E4AJ65rcCKNozItqdI18gsP9b-s2OPg427JRbIs-bbghqN5Zkcc5QbnNuXA"
 };
