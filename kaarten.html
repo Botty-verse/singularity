@@ -155,6 +155,22 @@
     margin-top:2px;text-align:center;
   }
   .tcg.alumni .vertrok-datum{font-size:8px;color:#6a648a;text-align:center;margin-top:1px;}
+  .tcg.alumni{position:relative;}
+  .deel-knop{position:absolute;top:6px;right:6px;z-index:5;border:none;cursor:pointer;
+    background:rgba(30,20,55,.82);color:#e7dcff;border-radius:8px;padding:3px 7px;
+    font-size:12px;font-weight:800;line-height:1;opacity:0;transition:opacity .15s,background .15s;}
+  .tcg.alumni:hover .deel-knop,.deel-knop:focus-visible{opacity:1;}
+  .deel-knop:hover{background:rgba(70,48,130,.95);}
+  .deel-knop[disabled]{opacity:1;cursor:progress;}
+  @media (hover:none){ .deel-knop{opacity:.85;} }
+
+  /* ---- Hall of Fame ---- */
+  .hof{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin:.5rem auto 1.6rem;max-width:760px;}
+  .hof-item{background:linear-gradient(135deg,rgba(60,45,110,.5),rgba(30,22,55,.6));
+    border:1px solid rgba(150,130,220,.3);border-radius:12px;padding:.5rem .85rem;min-width:150px;text-align:center;}
+  .hof-item .hof-titel{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9b96c4;}
+  .hof-item .hof-naam{font-size:15px;font-weight:900;color:#e7dcff;margin:.12rem 0;}
+  .hof-item .hof-waarde{font-size:12px;color:#c9b8ff;}
 
   @media (max-width:430px){ h1{font-size:26px;} .deck{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));} }
   @media (prefers-reduced-motion: reduce){
@@ -192,6 +208,7 @@
       <p class="t nl">Deze Botty's hebben de hive verlaten nadat ze een nieuwe generatie op de wereld zetten. Ze hadden hun redenen.</p>
       <p class="laden" id="alumni-laden" data-nl="Verbinden met de hive…">Connecting to the hive…</p>
     </div>
+    <div class="hof" id="hof"></div>
     <div class="deck" id="alumni-deck"></div>
 
     <div class="navlinks">
@@ -566,6 +583,7 @@
 <script src="assets/botty-config.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { toPng } from "https://esm.sh/html-to-image@1.11.11";
 
 const SUPABASE_URL  = window.BottyConfig.SUPABASE_URL;
 const SUPABASE_ANON = window.BottyConfig.SUPABASE_ANON;
@@ -574,11 +592,69 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 function alang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
 const AT = {
   en:{ stat:{energie:"energy",data:"data",fit:"fitness",geluk:"happiness"}, dataqual:"data qual.", eff:"efficiency",
-       noReason:"Left without explanation.", leftOn:"Left on", none:"No one has left yet — the hive is young!" },
+       noReason:"Left without explanation.", leftOn:"Left on", none:"No one has left yet — the hive is young!",
+       share:"Share this card", hof:"🏆 Hall of Fame",
+       hofHP:"Highest HP", hofData:"Best data quality", hofEff:"Most efficient", hofGen:"Furthest generation",
+       shareText:"Meet {n} from the Botty-verse hive! 🤖" },
   nl:{ stat:{energie:"energie",data:"data",fit:"fit",geluk:"geluk"}, dataqual:"datakwal.", eff:"efficiëntie",
-       noReason:"Vertrokken zonder uitleg.", leftOn:"Vertrokken op", none:"Nog niemand vertrokken — de hive is jong!" }
+       noReason:"Vertrokken zonder uitleg.", leftOn:"Vertrokken op", none:"Nog niemand vertrokken — de hive is jong!",
+       share:"Deel deze kaart", hof:"🏆 Hall of Fame",
+       hofHP:"Hoogste HP", hofData:"Beste datakwaliteit", hofEff:"Meest efficiënt", hofGen:"Verste generatie",
+       shareText:"Maak kennis met {n} uit de Botty-verse hive! 🤖" }
 };
 function aT(){ return AT[alang()]; }
+
+// Bereken HP zoals op de kaart (gemiddelde van de vier hoofdstats)
+function alumniHP(b){
+  return Math.round(((b.energie||70)+(b.data||70)+(b.fit||70)+(b.geluk||70))/4);
+}
+
+// Deel/download een Alumni-kaart als PNG (Web Share op mobiel, anders download)
+async function deelKaart(knop, tcgEl, naam){
+  const binnen = tcgEl.querySelector(".binnen");
+  if(!binnen || knop.disabled) return;
+  const oud = knop.textContent;
+  knop.disabled = true; knop.textContent = "⏳";
+  try{
+    const dataUrl = await toPng(binnen, { pixelRatio:2, backgroundColor:"#1a1430", cacheBust:true, skipFonts:true });
+    const bestand = "botty-" + String(naam||"alumnus").replace(/[^a-z0-9]+/gi,"-").toLowerCase() + ".png";
+    const blob = await (await fetch(dataUrl)).blob();
+    const file = new File([blob], bestand, { type:"image/png" });
+    if(navigator.canShare && navigator.canShare({ files:[file] })){
+      await navigator.share({ files:[file], title:"Botty " + naam, text:aT().shareText.replace("{n}", naam) });
+    } else {
+      const a = document.createElement("a"); a.href = dataUrl; a.download = bestand;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+  }catch(e){
+    if(!(e && e.name === "AbortError")) console.error("deel-kaart faalde:", e);
+  }finally{
+    knop.disabled = false; knop.textContent = oud;
+  }
+}
+
+// Hall of Fame: superlatieven uit de live-lijst
+function renderHof(lijst){
+  const hof = document.getElementById("hof");
+  if(!hof) return;
+  hof.innerHTML = "";
+  if(!lijst || !lijst.length) return;
+  function best(key){ return lijst.reduce((a,b)=> key(b) > key(a) ? b : a); }
+  const items = [
+    { titel:aT().hofHP,   b:best(alumniHP),                       val:b=>alumniHP(b) },
+    { titel:aT().hofData, b:best(b=>Math.round(b.datakwaliteit||0)), val:b=>Math.round(b.datakwaliteit||0) },
+    { titel:aT().hofEff,  b:best(b=>Math.round(b.efficientie||0)),  val:b=>Math.round(b.efficientie||0) },
+    { titel:aT().hofGen,  b:best(b=>b.generatie||1),               val:b=>"Gen " + (b.generatie||1) }
+  ];
+  items.forEach(it=>{
+    const el = document.createElement("div");
+    el.className = "hof-item";
+    el.innerHTML = '<div class="hof-titel">'+it.titel+'</div>'
+      + '<div class="hof-naam">'+ (it.b.naam||"?") +'</div>'
+      + '<div class="hof-waarde">'+ it.val(it.b) +'</div>';
+    hof.appendChild(el);
+  });
+}
 
 const mutatieIcoon = { zonnepaneel:"☀️", wifi:"📶", antenne2:"📡", oog3:"👁️", quantum:"⚛️" };
 function mutatieIcon(id) { return mutatieIcoon[id] || "✨"; }
@@ -669,6 +745,14 @@ function maakAlumniKaart(b) {
       <div class="reden">${b.reden || aT().noReason}</div>
       <div class="vertrok-datum">${aT().leftOn} ${fmtDatum(b.vertrokenOp)}</div>
     </div>`;
+  const deel = document.createElement("button");
+  deel.className = "deel-knop";
+  deel.type = "button";
+  deel.textContent = "⬆️";
+  deel.title = aT().share;
+  deel.setAttribute("aria-label", aT().share);
+  deel.addEventListener("click", () => deelKaart(deel, kaart, b.naam));
+  kaart.appendChild(deel);
   return kaart;
 }
 
@@ -679,6 +763,7 @@ async function laadAlumni() {
     laatsteLijst = lijst;
     deck.innerHTML = "";
     laden.textContent = lijst.length === 0 ? aT().none : "";
+    renderHof(lijst);
     lijst.forEach(b => deck.appendChild(maakAlumniKaart(b)));
     setTimeout(() => deck.querySelectorAll(".balk > span[data-w]").forEach(s => { s.style.width = s.dataset.w + "%"; }), 50);
   }
