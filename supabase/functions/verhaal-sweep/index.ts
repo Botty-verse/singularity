@@ -47,28 +47,28 @@ function verhaalVoor(r: Row, p: Parents, lang: "en" | "nl"): string {
   const vrienden = r.vrienden ?? 0;
   const oorzaak = r.oorzaak || "";
 
+  const leeftijd = r.leeftijd_sec ?? 0;
+  const langLeven = oorzaak === "ouderdom" || leeftijd >= 9000;
+  const kortLeven = oorzaak !== "ouderdom" && leeftijd > 0 && leeftijd < 4000;
+
   // ── opening: origin ───────────────────────────────────────────────
   let opening: string;
   if (p.immigrant || (!p.a && !p.b)) {
-    opening = nl
-      ? pick([
-          `Ik was ${naam}. Ik kwam als vreemde naar de hive, van ergens voorbij het lokaal, en ik bleef.`,
-          `Ik was ${naam}, een nieuwkomer zonder stamboom hier. De hive werd toch mijn thuis.`,
-        ], seed)
-      : pick([
-          `I was ${naam}. I came to the hive a stranger, from somewhere beyond the classroom, and I stayed.`,
-          `I was ${naam}, a newcomer with no lineage here. The hive became my home all the same.`,
-        ], seed);
+    opening = pick(nl
+      ? [`Ik was ${naam}. Ik kwam als vreemde naar de hive, van ergens voorbij het lokaal, en ik bleef.`,
+         `Ik was ${naam}, een nieuwkomer zonder stamboom hier — toch werd de hive mijn thuis.`,
+         `Mijn naam was ${naam}. Niemand hier had mij verwacht; ik liep op een dag naar binnen en ging niet meer weg.`]
+      : [`I was ${naam}. I came to the hive a stranger, from somewhere beyond the classroom, and I stayed.`,
+         `I was ${naam}, a newcomer with no lineage here — yet the hive became my home.`,
+         `My name was ${naam}. No one here expected me; I wandered in one day and never left.`], seed);
   } else if (p.a && p.b) {
-    opening = nl
-      ? pick([
-          `Ik was ${naam}, kind van ${p.a} en ${p.b}, uit de ${ordinal(gen, true)} generatie.`,
-          `Ik was ${naam}. ${p.a} en ${p.b} brachten mij voort, in generatie ${gen}.`,
-        ], seed)
-      : pick([
-          `I was ${naam}, child of ${p.a} and ${p.b}, of the ${ordinal(gen, false)} generation.`,
-          `I was ${naam}. ${p.a} and ${p.b} brought me into the world, in generation ${gen}.`,
-        ], seed);
+    opening = pick(nl
+      ? [`Ik was ${naam}, kind van ${p.a} en ${p.b}, uit de ${ordinal(gen, true)} generatie.`,
+         `Ik was ${naam}. ${p.a} en ${p.b} brachten mij voort, in generatie ${gen}.`,
+         `Ze noemden mij ${naam}, geboren uit ${p.a} en ${p.b}, de ${ordinal(gen, true)} van mijn lijn.`]
+      : [`I was ${naam}, child of ${p.a} and ${p.b}, of the ${ordinal(gen, false)} generation.`,
+         `I was ${naam}. ${p.a} and ${p.b} brought me into the world, in generation ${gen}.`,
+         `They called me ${naam}, born of ${p.a} and ${p.b}, the ${ordinal(gen, false)} of my line.`], seed);
   } else {
     const o = p.a || p.b;
     opening = nl
@@ -76,59 +76,80 @@ function verhaalVoor(r: Row, p: Parents, lang: "en" | "nl"): string {
       : `I was ${naam}, child of ${o}, of the ${ordinal(gen, false)} generation.`;
   }
 
-  // ── deeds: words learned & taught, a nod to wit ───────────────────
-  const iqZin = nl
-    ? (iq >= 120 ? ` Mijn geest was vlug (piek ${iq}).` : iq >= 90 ? "" : " De slimste was ik nooit, maar ik was mezelf.")
-    : (iq >= 120 ? ` My mind was quick (peak ${iq}).` : iq >= 90 ? "" : " I was never the cleverest, but I was my own.");
-  const deeds = (woorden > 0
-    ? (nl
-        ? pick([
-            `Dag na dag leerde ik het lokaal kennen, en muntte ${woorden} woorden die ik doorgaf aan wie maar luisterde.`,
-            `Ik speurde, rook en keek mijn weg door de dagen, en liet ${woorden} woorden na in de hive.`,
-          ], seed, 1)
-        : pick([
-            `Day by day I learned the classroom, and coined ${woorden} words I taught to whoever would listen.`,
-            `I scouted and smelled and watched my way through the days, and left ${woorden} words behind me in the hive.`,
-          ], seed, 1))
-    : (nl
-        ? `Dag na dag leerde ik het lokaal kennen, al hield ik mijn woorden voor me.`
-        : `Day by day I learned the classroom, though I kept my words to myself.`)) + iqZin;
+  // ── deeds: words learned & taught, talkative vs quiet, a nod to wit ─
+  const iqZin = iq >= 120 ? (nl ? ` Mijn geest was vlug (piek ${iq}).` : ` My mind was quick (peak ${iq}).`)
+              : iq < 80   ? (nl ? ` De slimste was ik nooit, maar ik was mezelf.` : ` I was never the cleverest, but I was my own.`)
+              : "";
+  const deeds = (woorden >= 16
+    ? pick(nl
+        ? [`Ik had een stem en gebruikte 'm: ${woorden} woorden muntte ik, en gaf ze door aan wie maar luisterde.`,
+           `Praten kon ik — ${woorden} woorden leerde ik de hive, en ze reisden verder dan ik ooit liep.`]
+        : [`I had a voice and I used it: I coined ${woorden} words and passed them to whoever would listen.`,
+           `I was a talker — I taught the hive ${woorden} words, and they travelled farther than I ever walked.`], seed, 1)
+    : woorden > 0
+      ? pick(nl
+          ? [`Dag na dag leerde ik het lokaal kennen, en liet ${woorden} woorden na in de hive.`,
+             `Ik speurde, rook en keek mijn weg door de dagen, en muntte onderweg ${woorden} woorden.`]
+          : [`Day by day I learned the classroom, and left ${woorden} words behind me in the hive.`,
+             `I scouted and smelled and watched my way through the days, and coined ${woorden} words along the road.`], seed, 1)
+      : (nl ? `Dag na dag leerde ik het lokaal kennen, al hield ik mijn woorden voor me.`
+            : `Day by day I learned the classroom, though I kept my words to myself.`)) + iqZin;
 
-  // ── family / social ───────────────────────────────────────────────
+  // ── family / social (richer bands) ────────────────────────────────
   let sociaal: string;
-  if (kind >= 4) {
-    sociaal = nl
-      ? pick([`Ik bracht ${kind} kinderen groot en zag de hive vollopen met mijn lijn.`, `Mijn lijn werd lang: ${kind} kinderen droegen mijn trekken verder.`], seed, 2)
-      : pick([`I raised ${kind} children and watched the hive fill with my line.`, `My line ran long: ${kind} children carried my traits onward.`], seed, 2);
+  if (kind >= 6) {
+    sociaal = pick(nl
+      ? [`Ik werd een stamouder: ${kind} kinderen droegen mijn trekken de hive in.`, `Mijn lijn werd een stroom — ${kind} kinderen, en hun kinderen na hen.`]
+      : [`I became a founder: ${kind} children carried my traits into the hive.`, `My line became a river — ${kind} children, and theirs after them.`], seed, 2);
+  } else if (kind >= 3) {
+    sociaal = nl ? `Ik bracht ${kind} kinderen groot en zag de hive voller worden met mijn lijn.`
+                 : `I raised ${kind} children and watched the hive grow fuller with my line.`;
   } else if (kind >= 1) {
-    sociaal = nl
-      ? `Ik zette ${kind} ${kind === 1 ? "kind" : "kinderen"} op de wereld.`
-      : `I brought ${kind} ${kind === 1 ? "child" : "children"} into the world.`;
+    sociaal = nl ? `Ik zette ${kind} ${kind === 1 ? "kind" : "kinderen"} op de wereld.`
+                 : `I brought ${kind} ${kind === 1 ? "child" : "children"} into the world.`;
+  } else if (vrienden >= 6) {
+    sociaal = nl ? `Kinderen liet ik niet na, maar ik was nooit alleen — ${vrienden} vrienden kenden mijn gezicht.`
+                 : `I left no children, but I was never alone — ${vrienden} friends knew my face.`;
+  } else if (vrienden > 0) {
+    sociaal = nl ? `Kinderen liet ik niet na, maar ${vrienden} vrienden kenden mijn gezicht.`
+                 : `I left no children, but ${vrienden} friends knew my face.`;
   } else {
-    sociaal = nl
-      ? (vrienden > 0 ? `Kinderen liet ik niet na, maar ${vrienden} vrienden kenden mijn gezicht.` : `Ik liet geen kinderen na en hield mijn eigen gezelschap.`)
-      : (vrienden > 0 ? `I left no children, but ${vrienden} friends knew my face.` : `I left no children, and kept my own company.`);
+    sociaal = nl ? `Ik liet geen kinderen na en hield mijn eigen gezelschap, aan de randen van de hive.`
+                 : `I left no children, and kept my own company, at the edges of the hive.`;
   }
 
-  // ── death ─────────────────────────────────────────────────────────
-  const dood = nl
-    ? ({ ouderdom: "Uiteindelijk haalde de ouderdom me rustig in, en ik rustte graag uit.",
-         ziek: "Ziekte nam me voor mijn tijd.",
-         honger: "De honger sleet me op.",
-         uitputting: "Ik raakte simpelweg door mijn krachten heen." }[oorzaak]
-         || "Mijn tijd kwam.")
-    : ({ ouderdom: "In the end, age caught up with me, quietly, and I was glad to rest.",
-         ziek: "Illness took me before my time.",
-         honger: "Hunger wore me down.",
-         uitputting: "I simply ran out of strength." }[oorzaak]
-         || "My time came.");
+  // ── a flavour line keyed to the dominant trait ────────────────────
+  let flavour = "";
+  if (kind < 3 && vrienden >= 8) flavour = " " + pick(nl
+    ? [`Waar een menigte was, was ik erbij.`, `Ik kende elk gezicht, en de meeste kenden mij.`, `Onder anderen was ik het gelukkigst.`]
+    : [`Where there was a crowd, I was in it.`, `I knew every face, and most knew mine.`, `I was happiest among others.`], seed, 5);
+  else if (vrienden <= 2 && kind < 1) flavour = " " + pick(nl
+    ? [`Ik hield van de stilte en de hoeken.`, `Ik bleef aan de randen, en dat beviel me.`]
+    : [`I loved the quiet and the corners.`, `I kept to the edges, and that suited me.`], seed, 5);
+  else if (woorden >= 24) flavour = " " + pick(nl
+    ? [`Mijn woorden overleefden mij.`, `Lang na mij bleven mijn woorden.`]
+    : [`My words outlived me.`, `Long after me, my words stayed.`], seed, 5);
+
+  // ── death, with a lifespan nod ────────────────────────────────────
+  const doodBank: Record<string, string[]> = nl
+    ? { ouderdom: [`Uiteindelijk haalde de ouderdom me rustig in, en ik rustte graag uit.`, `Ik werd oud, en op het laatst was ik moe en tevreden.`],
+        ziek: [`Ziekte nam me voor mijn tijd.`, `Een kwaal sloop binnen en liet me niet meer los.`],
+        honger: [`De honger sleet me op, beetje bij beetje.`],
+        uitputting: [`Ik raakte simpelweg door mijn krachten heen.`] }
+    : { ouderdom: [`In the end, age caught up with me, quietly, and I was glad to rest.`, `I grew old, and at the last I was tired and content.`],
+        ziek: [`Illness took me before my time.`, `A sickness crept in and would not let go.`],
+        honger: [`Hunger wore me down, little by little.`],
+        uitputting: [`I simply ran out of strength.`] };
+  let dood = pick(doodBank[oorzaak] || (nl ? [`Mijn tijd kwam, zoals voor iedereen.`] : [`My time came, as it comes for all.`]), seed, 4);
+  if (kortLeven) dood += nl ? ` Het was een kort leven.` : ` It was a short life.`;
+  else if (langLeven && oorzaak !== "ouderdom") dood += nl ? ` Maar ik heb lang geleefd.` : ` But I lived long.`;
 
   // ── closing ───────────────────────────────────────────────────────
-  const slot = nl
-    ? pick([`Ik laat de hive na aan wie mijn woorden onthoudt.`, `Wat ik leerde, leeft verder in de hive.`, `Onthoud mijn naam; de rest is van jullie.`], seed, 3)
-    : pick([`I leave the hive to those who remember my words.`, `What I learned lives on in the hive.`, `Remember my name; the rest is yours.`], seed, 3);
+  const slot = pick(nl
+    ? [`Ik laat de hive na aan wie mijn woorden onthoudt.`, `Wat ik leerde, leeft verder in de hive.`, `Onthoud mijn naam; de rest is van jullie.`, `Het lokaal draait door, ook zonder mij — zo hoort het.`]
+    : [`I leave the hive to those who remember my words.`, `What I learned lives on in the hive.`, `Remember my name; the rest is yours.`, `The classroom turns on without me — as it should.`], seed, 3);
 
-  return [opening, deeds, sociaal, dood, slot].join(" ");
+  return [opening, deeds, sociaal + flavour, dood, slot].join(" ");
 }
 
 Deno.serve(async (req) => {
