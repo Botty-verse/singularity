@@ -60,3 +60,7 @@ jobs:
       - name: notify-sweep deployen
         if: steps.guard.outputs.skip != 'true'
         run: supabase functions deploy notify-sweep --project-ref "$PROJECT_REF" --no-verify-jwt
+
+      - name: verhaal-sweep deployen
+        if: steps.guard.outputs.skip != 'true'
+        run: supabase functions deploy verhaal-sweep --project-ref "$PROJECT_REF" --no-verify-jwt
