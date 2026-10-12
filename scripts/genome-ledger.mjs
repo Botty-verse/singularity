@@ -117,7 +117,11 @@ async function main() {
   }
 
   for (const fd of openFiles.values()) fs.closeSync(fd);
-  fs.writeFileSync(STATE, JSON.stringify({ last_leven: lastL, updated_at: new Date().toISOString() }, null, 2) + "\n");
+  // Only touch the state file when something actually changed (or on first run),
+  // so a quiet run leaves no diff and the workflow makes no commit.
+  if (processed > 0 || !fs.existsSync(STATE)) {
+    fs.writeFileSync(STATE, JSON.stringify({ last_leven: lastL, updated_at: new Date().toISOString() }, null, 2) + "\n");
+  }
   console.log(`genome-ledger: recorded ${processed} lives, watermark now ${lastL}`);
 }
 
