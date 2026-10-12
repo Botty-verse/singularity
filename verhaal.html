@@ -39,6 +39,13 @@
     float:left;line-height:.8;margin:.05em .12em 0 0;}
   .nieuw{animation:gloed 2.4s ease;}
   @keyframes gloed{0%{box-shadow:0 0 0 2px #ffcf7a, 0 10px 30px rgba(0,0,0,.4);}100%{box-shadow:0 10px 30px rgba(0,0,0,.4);}}
+  .deel-knop{position:absolute;top:8px;right:8px;z-index:3;border:none;cursor:pointer;
+    background:rgba(138,90,42,.14);color:#6a4a1a;border-radius:9px;padding:4px 8px;
+    font-size:13px;font-weight:800;line-height:1;opacity:0;transition:opacity .15s,background .15s;}
+  .hfdstk:hover .deel-knop,.deel-knop:focus-visible{opacity:1;}
+  .deel-knop:hover{background:rgba(138,90,42,.28);}
+  .deel-knop[disabled]{opacity:1;cursor:progress;}
+  @media (hover:none){ .deel-knop{opacity:.85;} }
 
   .navlinks{display:flex;flex-wrap:wrap;gap:1.1rem;justify-content:center;margin-top:2.2rem;}
   .navlinks a{font-size:13px;font-weight:800;color:#c99a4a;text-decoration:none;}
@@ -71,6 +78,7 @@
 
 <script src="assets/botty-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <script>
 (function(){
   var supabase = window.supabase.createClient(BottyConfig.SUPABASE_URL, BottyConfig.SUPABASE_ANON);
@@ -79,10 +87,12 @@
   var T = {
     en:{ none:"No one has passed on yet — the hive is young.", chapter:"Chapter",
          gen:"Generation", of:"of", cause:{ouderdom:"old age",ziek:"illness",honger:"hunger",uitputting:"exhaustion"},
-         kids:function(n){return n+(n===1?" child":" children");}, chapters:"chapters" },
+         kids:function(n){return n+(n===1?" child":" children");}, chapters:"chapters",
+         share:"Share this tale", shareText:function(n){return "A tale from the Botty-verse hive: "+n+". 📖";} },
     nl:{ none:"Nog niemand heengegaan — de hive is jong.", chapter:"Hoofdstuk",
          gen:"Generatie", of:"van", cause:{ouderdom:"ouderdom",ziek:"ziekte",honger:"honger",uitputting:"uitputting"},
-         kids:function(n){return n+(n===1?" kind":" kinderen");}, chapters:"hoofdstukken" } };
+         kids:function(n){return n+(n===1?" kind":" kinderen");}, chapters:"hoofdstukken",
+         share:"Deel dit verhaal", shareText:function(n){return "Een verhaal uit de Botty-verse hive: "+n+". 📖";} } };
   function t(){ return T[lang()]; }
 
   // Palettes (same family as the collectible cards) — pick deterministically by name.
@@ -149,8 +159,34 @@
     lijst.forEach(function(v, i){
       var el = document.createElement("div"); el.className="hfdstk"; el.dataset.id=v.id;
       el.innerHTML = kaartHTML(v, i+1);
+      var deel = document.createElement("button");
+      deel.className = "deel-knop"; deel.type = "button"; deel.textContent = "⬆️";
+      deel.title = t().share; deel.setAttribute("aria-label", t().share);
+      deel.addEventListener("click", function(){ deelVerhaal(el, deel, v); });
+      el.appendChild(deel);
       boek.appendChild(el);
     });
+  }
+
+  // Share/download a chapter as a PNG (Web Share on mobile, else download).
+  function deelVerhaal(el, knop, v){
+    if(!window.htmlToImage || knop.disabled) return;
+    var oud = knop.textContent; knop.disabled = true; knop.textContent = "⏳";
+    window.htmlToImage.toPng(el, {
+      pixelRatio: 2, backgroundColor: "#e7d7b4", cacheBust: true, skipFonts: true,
+      filter: function(n){ return !(n.classList && n.classList.contains("deel-knop")); }
+    }).then(function(dataUrl){
+      var bestand = "botty-" + String(v.naam||"tale").replace(/[^a-z0-9]+/gi,"-").toLowerCase() + ".png";
+      return fetch(dataUrl).then(function(r){ return r.blob(); }).then(function(blob){
+        var file = new File([blob], bestand, { type:"image/png" });
+        if(navigator.canShare && navigator.canShare({ files:[file] })){
+          return navigator.share({ files:[file], title:"Botty " + v.naam, text:t().shareText(v.naam) });
+        }
+        var a = document.createElement("a"); a.href = dataUrl; a.download = bestand;
+        document.body.appendChild(a); a.click(); a.remove();
+      });
+    }).catch(function(e){ if(!(e && e.name === "AbortError")) console.error("deel-verhaal faalde:", e); })
+      .then(function(){ knop.disabled = false; knop.textContent = oud; });
   }
 
   function sorteer(){ lijst.sort(function(a,b){
