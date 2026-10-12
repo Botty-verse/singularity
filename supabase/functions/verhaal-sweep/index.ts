@@ -222,6 +222,7 @@ Deno.serve(async (req) => {
       geboren: d.geboren, gestorven: d.gestorven, leeftijd_sec: d.leeftijd_sec,
       oorzaak: d.oorzaak, piek_iq: d.piek_iq, vondsten: d.vondsten, kinderen: d.kinderen,
       woorden: d.woorden, vrienden: d.vrienden, niveau: d.niveau, genome: d.genome,
+      ouder_a: p.a, ouder_b: p.b,
       top_woorden: (d.bid && woordMap.get(d.bid)) || null,
       verhaal_en: verhaalVoor(d as Row, p, "en"),
       verhaal_nl: verhaalVoor(d as Row, p, "nl"),
