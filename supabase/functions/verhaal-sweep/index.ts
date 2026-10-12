@@ -152,11 +152,36 @@ function verhaalVoor(r: Row, p: Parents, lang: "en" | "nl"): string {
   return [opening, deeds, sociaal + flavour, dood, slot].join(" ");
 }
 
+// Pick up to 5 of a Botty's coined words — {w: invented word, c: concept key} —
+// objects first, then actions, then feelings; skip the names it made for others.
+function topWoorden(lexicon: any): { w: string; c: string }[] {
+  if (!lexicon || typeof lexicon !== "object") return [];
+  const prio = (k: string) => (k.startsWith("dr:") ? 2 : k.startsWith("act:") ? 1 : 0);
+  return Object.entries(lexicon)
+    .filter(([k, v]) => !k.startsWith("nm:") && typeof v === "string" && v)
+    .sort((a, b) => prio(a[0]) - prio(b[0]))
+    .slice(0, 5)
+    .map(([c, w]) => ({ w: w as string, c }));
+}
+
 Deno.serve(async (req) => {
   if (SWEEP_KEY && req.headers.get("x-sweep-key") !== SWEEP_KEY) {
     return new Response("forbidden", { status: 403 });
   }
   const supa = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+  // Snapshot living Bottys' coined words, so we still have them when they die.
+  try {
+    const { data: hs } = await supa.from("hive_state").select("bottys").eq("id", "main").single();
+    const living = (hs?.bottys ?? []) as any[];
+    const snap = living.filter((b) => b && b.bid).map((b) => ({
+      bid: b.bid, naam: b.naam, woorden: topWoorden(b.lexicon), updated_at: new Date().toISOString(),
+    }));
+    if (snap.length) await supa.from("botty_woorden").upsert(snap, { onConflict: "bid" });
+    await supa.from("botty_woorden").delete().lt("updated_at", new Date(Date.now() - 2 * 86400000).toISOString());
+  } catch (e) {
+    console.error("lexicon snapshot failed", (e as any)?.message || e);
+  }
 
   const { data: st } = await supa.from("verhaal_state").select("last_leven").eq("id", "main").single();
   const lastL: number = st?.last_leven ?? 0;
@@ -183,6 +208,13 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Last-known coined words, snapshotted while each Botty was alive.
+  const woordMap = new Map<string, any>();
+  if (bids.length) {
+    const { data: wr } = await supa.from("botty_woorden").select("bid,woorden").in("bid", bids);
+    for (const r of wr ?? []) woordMap.set(r.bid, r.woorden);
+  }
+
   const rows = doden.map((d) => {
     const p = (d.bid && parents.get(d.bid)) || { a: null, b: null, immigrant: false };
     return {
@@ -190,6 +222,7 @@ Deno.serve(async (req) => {
       geboren: d.geboren, gestorven: d.gestorven, leeftijd_sec: d.leeftijd_sec,
       oorzaak: d.oorzaak, piek_iq: d.piek_iq, vondsten: d.vondsten, kinderen: d.kinderen,
       woorden: d.woorden, vrienden: d.vrienden, niveau: d.niveau, genome: d.genome,
+      top_woorden: (d.bid && woordMap.get(d.bid)) || null,
       verhaal_en: verhaalVoor(d as Row, p, "en"),
       verhaal_nl: verhaalVoor(d as Row, p, "nl"),
       llm: false,
