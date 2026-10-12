@@ -1,0 +1,44 @@
+name: Genome ledger
+
+# Appends newly completed lives (one per deceased Botty: birth lineage + fixed
+# genome + decoded 16-gene profile + life outcomes) to monthly shards under
+# genomes/. Read-only against the sim — reads the public anon REST and commits.
+# Does NOT touch hive-tick.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: genome-ledger
+  cancel-in-progress: false
+
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Append new genomes
+        run: node scripts/genome-ledger.mjs
+
+      - name: Commit & push
+        run: |
+          git config user.name "botty-genome-ledger[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add genomes/
+          if git diff --cached --quiet; then
+            echo "No new genomes."
+          else
+            n=$(git status --porcelain genomes/ | wc -l)
+            git commit -m "Genome ledger: record new completed lives"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            git push
+          fi
