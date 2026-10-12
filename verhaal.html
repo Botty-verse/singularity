@@ -37,6 +37,10 @@
   .verhaal{font-size:15px;color:#2f2516;}
   .verhaal::first-letter{font-family:'Caveat',cursive;font-size:2.6em;font-weight:600;color:#8a5a2a;
     float:left;line-height:.8;margin:.05em .12em 0 0;}
+  .woorden{margin-top:.8rem;display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;}
+  .woorden-kop{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9a7b3a;margin-right:.1rem;}
+  .woord{font-size:12px;background:rgba(138,90,42,.1);border:1px solid rgba(138,90,42,.25);border-radius:8px;padding:2px 8px;color:#5a4420;}
+  .woord b{font-family:'Caveat',cursive;font-size:1.3em;color:#8a5a2a;font-weight:600;}
   .nieuw{animation:gloed 2.4s ease;}
   @keyframes gloed{0%{box-shadow:0 0 0 2px #ffcf7a, 0 10px 30px rgba(0,0,0,.4);}100%{box-shadow:0 10px 30px rgba(0,0,0,.4);}}
   .deel-knop{position:absolute;top:8px;right:8px;z-index:3;border:none;cursor:pointer;
@@ -95,6 +99,26 @@
          share:"Deel dit verhaal", shareText:function(n){return "Een verhaal uit de Botty-verse hive: "+n+". 📖";} } };
   function t(){ return T[lang()]; }
 
+  // Readable meaning for each lexicon concept key (invented word → meaning).
+  var CONCEPT = {
+    bord:{en:"the blackboard",nl:"het schoolbord"}, boekenkast:{en:"the bookcase",nl:"de boekenkast"},
+    laadkruk:{en:"the charging stool",nl:"de laadkruk"}, bloempot:{en:"the flowerpot",nl:"de bloempot"},
+    kastje:{en:"the cabinet",nl:"het kastje"}, raam:{en:"the window",nl:"het raam"}, klok:{en:"the clock",nl:"de klok"},
+    "act:aai":{en:"being stroked",nl:"aaien"}, "act:voer":{en:"food",nl:"eten"}, "act:medicijn":{en:"medicine",nl:"medicijn"},
+    "dr:blij":{en:"happy",nl:"blij"}, "dr:bang":{en:"scared",nl:"bang"}, "dr:eenzaam":{en:"lonely",nl:"eenzaam"},
+    "dr:moe":{en:"tired",nl:"moe"}, "dr:honger":{en:"hunger",nl:"honger"}, "dr:verveeld":{en:"bored",nl:"verveeld"}
+  };
+  function conceptLabel(c){
+    if(CONCEPT[c]) return CONCEPT[c][lang()];
+    return String(c||"").replace(/^act:/,"").replace(/^dr:/,"").replace(/^nm:/,"");
+  }
+  function woordenHTML(v){
+    var tw = v.top_woorden; if(!tw || !tw.length) return "";
+    var titel = lang()==="nl" ? "Zijn woorden" : "Its words";
+    var items = tw.map(function(x){ return '<span class="woord"><b>'+esc(x.w)+'</b> = '+esc(conceptLabel(x.c))+'</span>'; }).join("");
+    return '<div class="woorden"><span class="woorden-kop">🗣️ '+titel+'</span>'+items+'</div>';
+  }
+
   // Palettes (same family as the collectible cards) — pick deterministically by name.
   var PALETTEN = [
     { broek:"#2f8f86", broekRand:"#1f6b63", scherm:"#3a9d94", schermRand:"#2b8077", accent:"#2f8f86", oogje:"#bfe3df" },
@@ -148,7 +172,8 @@
       + '<div class="kop-tekst"><div class="hfdstk-nr">'+t().chapter+' '+nr+'</div>'
       + '<div class="hfdstk-naam">'+esc(v.naam)+'</div>'
       + '<div class="hfdstk-meta">'+esc(metaRegel(v))+'</div></div></div>'
-      + '<p class="verhaal">'+esc(prose)+'</p>';
+      + '<p class="verhaal">'+esc(prose)+'</p>'
+      + woordenHTML(v);
   }
 
   function render(){
