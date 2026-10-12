@@ -41,6 +41,8 @@
   .woorden-kop{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#9a7b3a;margin-right:.1rem;}
   .woord{font-size:12px;background:rgba(138,90,42,.1);border:1px solid rgba(138,90,42,.25);border-radius:8px;padding:2px 8px;color:#5a4420;}
   .woord b{font-family:'Caveat',cursive;font-size:1.3em;color:#8a5a2a;font-weight:600;}
+  .bullets{list-style:none;margin:.5rem 0 .7rem;padding:0;display:flex;flex-direction:column;gap:.18rem;}
+  .bullets li{font-size:12.5px;color:#4a3a20;line-height:1.35;}
   .nieuw{animation:gloed 2.4s ease;}
   @keyframes gloed{0%{box-shadow:0 0 0 2px #ffcf7a, 0 10px 30px rgba(0,0,0,.4);}100%{box-shadow:0 10px 30px rgba(0,0,0,.4);}}
   .deel-knop{position:absolute;top:8px;right:8px;z-index:3;border:none;cursor:pointer;
@@ -112,6 +114,24 @@
     if(CONCEPT[c]) return CONCEPT[c][lang()];
     return String(c||"").replace(/^act:/,"").replace(/^dr:/,"").replace(/^nm:/,"");
   }
+  // Three highlight bullets distilled from the same facts as the narrative.
+  function bulletsHTML(v){
+    var en = lang()==="en";
+    var gen = (en?"Generation ":"Generatie ")+(v.generatie||1);
+    var afk = (v.ouder_a && v.ouder_b) ? (en?"child of "+v.ouder_a+" & "+v.ouder_b : "kind van "+v.ouder_a+" & "+v.ouder_b)
+            : (v.ouder_a||v.ouder_b) ? (en?"child of "+(v.ouder_a||v.ouder_b) : "kind van "+(v.ouder_a||v.ouder_b))
+            : (en?"no known lineage":"geen bekende afkomst");
+    var leg = [];
+    leg.push(v.kinderen>0 ? t().kids(v.kinderen) : (en?"no children":"geen kinderen"));
+    if(v.woorden>0) leg.push(v.woorden+(en?" words coined":" woorden gemunt"));
+    if(v.vrienden>0) leg.push(v.vrienden+(en?" friends":" vrienden"));
+    var oorzaak = v.oorzaak ? (t().cause[v.oorzaak]||v.oorzaak) : (en?"unknown causes":"onbekende oorzaak");
+    var fate = (v.oorzaak==="ouderdom") ? (en?"Died of old age":"Op hoge leeftijd overleden")
+             : (en?"Died of "+oorzaak:"Overleden aan "+oorzaak);
+    var B = ["🧬 "+gen+" · "+afk, "🏆 "+leg.join(" · "), "🕯️ "+fate];
+    return '<ul class="bullets">'+B.map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>';
+  }
+
   function woordenHTML(v){
     var tw = v.top_woorden; if(!tw || !tw.length) return "";
     var titel = lang()==="nl" ? "Zijn woorden" : "Its words";
@@ -172,6 +192,7 @@
       + '<div class="kop-tekst"><div class="hfdstk-nr">'+t().chapter+' '+nr+'</div>'
       + '<div class="hfdstk-naam">'+esc(v.naam)+'</div>'
       + '<div class="hfdstk-meta">'+esc(metaRegel(v))+'</div></div></div>'
+      + bulletsHTML(v)
       + '<p class="verhaal">'+esc(prose)+'</p>'
       + woordenHTML(v);
   }
