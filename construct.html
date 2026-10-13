@@ -93,6 +93,16 @@
   #laag .botje.bang .expr-bang{opacity:1;}
   #laag .botje.eenzaam .expr-eenzaam{opacity:1;}
   .botje.sel .sprite{filter:drop-shadow(0 0 9px #ffe6a8) drop-shadow(0 0 20px rgba(246,199,90,.55));}
+  /* 🌟 Dream-glow (Laag A): een leer-/consolidatie-aura die met --gloed (0..1) meegroeit.
+     Je ziet dus aan een Botty hoeveel hij al geleerd en 's nachts verankerd heeft. Tijdens
+     het dromen pulseert de aura feller. Selectie (.sel, hierboven) wint — die klassen worden
+     in JS uit elkaar gehouden, dus deze filters botsen nooit met de selectie-markering. */
+  .botje.gloeit .sprite{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32)) drop-shadow(0 0 calc(var(--gloed,0) * 13px) rgba(150,226,255,.85));}
+  .botje.droomt .sprite{animation:droomGloed 3.6s ease-in-out infinite;}
+  @keyframes droomGloed{
+    0%,100%{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32)) drop-shadow(0 0 calc(var(--gloed,0) * 6px) rgba(150,226,255,.55));}
+    50%{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32)) drop-shadow(0 0 calc(var(--gloed,0) * 20px) rgba(180,240,255,1));}
+  }
   .botje.dim text{opacity:.35;}
   .bubbel{animation:bubbelIn .22s ease-out;pointer-events:none;}
   @keyframes bubbelIn{0%{opacity:0}100%{opacity:1}}
@@ -1188,6 +1198,14 @@
       var blij = (nd.blijTot && Date.now() < nd.blijTot) || b.humeur === "blij";
       var vrij = !b.ziek && !inSlaap && !blij;   // ziek/slaap/blij hebben voorrang
       nd.g.classList.toggle("slaap", !!inSlaap);
+      // 🌟 Dream-glow (Laag A): aura schaalt met b.gloed (hoeveel geleerd/verankerd).
+      // Feller + pulserend tijdens het dromen. Selectie heeft voorrang, dus bij een
+      // geselecteerde Botty laten we de aura-klassen los zodat de .sel-markering wint.
+      var gloed = Math.max(0, Math.min(1, +b.gloed || 0));
+      var gloedAan = gloed > 0.05 && sel !== b.naam;
+      nd.g.style.setProperty("--gloed", gloed.toFixed(2));
+      nd.g.classList.toggle("gloeit", gloedAan);
+      nd.g.classList.toggle("droomt", gloedAan && !!inSlaap);
       nd.g.classList.toggle("ziek", !!b.ziek && !inSlaap);
       nd.g.classList.toggle("blij", !!blij && !b.ziek && !inSlaap);
       nd.g.classList.toggle("bang", vrij && b.humeur === "bang");
