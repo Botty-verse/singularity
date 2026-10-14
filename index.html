@@ -117,12 +117,21 @@
   }
   .bw svg{
     display:block;
-    width:calc(var(--groei,1.0) * 80px);
+    /* Laag A: grootte groeit licht met hoeveel geleerd is (--gloed), bovenop --groei (gen+fase). */
+    width:calc(var(--groei,1.0) * (1 + var(--gloed,0) * 0.08) * 80px);
     height:auto;
     overflow:visible;
   }
   .bw.vitaal{filter:drop-shadow(0 0 6px rgba(57,255,133,.45));}
   .bw.ziek{filter:drop-shadow(0 0 8px rgba(181,39,24,.7));}
+  /* 🌟 Laag A op de hive-kaartjes: een leer-aura + kleur-levendigheid die met --gloed meegroeit.
+     Staat op de svg (niet op .bw), dus los van de vitaal/ziek-glow op .bw erboven — geen conflict.
+     Alleen actief bij .gloeit, zodat ongeleerde Botty's hun normale look houden. */
+  .kaart.gloeit .bw svg{
+    filter:drop-shadow(0 0 calc(var(--gloed,0) * 9px) rgba(150,226,255,.8))
+           saturate(calc(1 + var(--gloed,0) * 0.45))
+           brightness(calc(0.98 + var(--gloed,0) * 0.08));
+  }
   .bw .spier{transform-origin:center;transform:scale(var(--spier,1));}
   .bw.act{animation:hop .52s cubic-bezier(.36,.07,.19,.97);}
   @keyframes hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-12px)}60%{transform:translateY(-6px)}}
@@ -786,6 +795,13 @@
           floater(b, "+zorg", "#39ff85");
           armpjesOmhoog(b);
         }
+      }
+      // 🌟 Laag A: leer-aura/grootte/levendigheid op de kaart, voor nieuwe én bestaande.
+      var card = elMap[b.naam];
+      if(card && card.kaart){
+        var gl = Math.max(0, Math.min(1, +b.gloed || 0));
+        card.kaart.style.setProperty("--gloed", gl.toFixed(2));
+        card.kaart.classList.toggle("gloeit", gl > 0.05);
       }
     });
 
