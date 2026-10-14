@@ -154,6 +154,18 @@ const INSTINCT_ERVARING = 6;    // minimale leerervaring (breinN[drive]) vóór 
 const INSTINCT_VERVAL   = 0.55; // zakt het geloof hieronder → de reflex breekt (wereld veranderd)
 const INSTINCT_VOLG     = 0.90; // kans dat de reflex de keuze bepaalt (rest = ruimte om bij te leren)
 
+// ── Laag B: Baldwin-overerving van geleerd uiterlijk ────────────────────────────
+// Wat de ouders tijdens hun leven leerden (hun gloed, 0..1) kleurt licht het
+// ERFELIJKE uiterlijk van het kind. We centreren rond een basis-gloed: ouders die
+// bovengemiddeld leerden geven nakomelingen die van nature iets groter, uitgesprokener
+// en anders getint zijn; ondergemiddelde leerders drijven de andere kant op. Zo wordt
+// aangeleerd uiterlijk over generaties genetisch geassimileerd (Baldwin-effect / zachte
+// overerving), terwijl de centrering de populatie-variatie bewaart i.p.v. iedereen naar
+// de limiet te laten kruipen. Alleen de drie uiterlijk-genen schuiven — nooit overlevings-
+// of zorg-genen — en elke stap is klein en begrensd (0..255), dus het is een trage drift.
+const LEER_BASIS = 0.35;          // referentie-gloed: hierboven duwt leren het uiterlijk op, eronder omlaag
+const LEER_ERF = { 12: 8, 13: 14, 14: 10 } as Record<number, number>; // kracht per uiterlijk-gen (tint, grootte, expressie)
+
 function breinGeloof(b: any, drive: string, objId: string): number {
   return b.brein?.[drive]?.[objId] ?? BREIN_NEUTRAAL;
 }
@@ -2021,11 +2033,32 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   // Genoom kruisen + muteren — hart van de evolutie
   const kruis = genoomKruis(ouderA.genome, ouderB.genome);
   const mutatie = genoomMuteer(kruis.genoom);
-  const kindGenoom = mutatie.genoom;
+  let kindGenoom = mutatie.genoom;
   // §3.4: extra genen erven (recombinatie + mutatie/duplicatie/deletie)
   const eg = erfGenen(ouderA, ouderB);
-  const erfenis = { vanA: kruis.vanA, vanB: kruis.vanB, mutaties: mutatie.aantalMutaties,
+  const erfenis: any = { vanA: kruis.vanA, vanB: kruis.vanB, mutaties: mutatie.aantalMutaties,
     genDup: eg.dup, genNieuw: eg.nieuw, genDel: eg.del, genTotaal: eg.genen.length };
+
+  // Laag B — Baldwin: geleerd uiterlijk van de ouders wordt licht in het kindgenoom
+  // geassimileerd. Drijf = (gemiddelde ouder-gloed − basis); >0 duwt de uiterlijk-genen
+  // op, <0 omlaag. Alleen de genen 12 (tint), 13 (grootte) en 14 (expressie) schuiven,
+  // elk begrensd op 0..255. Gebeurt vóór kleur/grootte worden afgeleid, zodat het kind
+  // meteen zijn geërfde-geleerde uiterlijk draagt én het aan zíjn kinderen doorgeeft.
+  {
+    const leerA = Math.max(0, Math.min(1, +ouderA.gloed || 0));
+    const leerB = Math.max(0, Math.min(1, +ouderB.gloed || 0));
+    const drijf = (leerA + leerB) / 2 - LEER_BASIS;
+    if (drijf !== 0) {
+      const kb = genoomBytes(kindGenoom);
+      for (const i of [12, 13, 14]) {
+        kb[i] = Math.max(0, Math.min(255, Math.round(kb[i] + drijf * LEER_ERF[i])));
+      }
+      kindGenoom = bytesNaarGenoom(kb);
+    }
+    erfenis.leerErf = +(((leerA + leerB) / 2)).toFixed(3);   // gemiddelde ouder-gloed (observatie)
+    erfenis.leerDrijf = +drijf.toFixed(3);                   // richting/sterkte van de uiterlijk-assimilatie
+  }
+
   const G = exprGenoom(kindGenoom);
 
   // Kleur: basis van één ouder, dan genoom-tint → kleuren driften over generaties
