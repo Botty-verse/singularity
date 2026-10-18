@@ -189,6 +189,14 @@
   .kit-anat-glow[data-kamer="taal"]       {left:41.4%;top:63.7%;color:#ffa64d;}
   .kit-anat-glow[data-kamer="temperament"]{left:62.2%;top:63.7%;color:#6bb6ff;}
   .kit-anat-glow.puls{animation:anatPuls 1.1s ease-out;}
+  /* Levende anatomie: signaalroutes door de buizen, oplichtende ringen, knipperende ogen */
+  .kit-anat-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+  .kit-anat-fx .ring{fill:none;stroke:currentColor;stroke-width:5;opacity:0;transition:opacity .9s ease;}
+  .kit-anat-fx .ring.aan{opacity:.95;transition:opacity .08s ease;filter:drop-shadow(0 0 8px currentColor);}
+  .kit-anat-fx .oog{transform-box:fill-box;transform-origin:center;transition:transform .12s ease, opacity .6s ease, fill .6s ease;}
+  .kit-anat-fx .oog.knip{transform:scaleY(.08);}
+  .kit-anat-fx .oog.slaap{transform:scaleY(.12);opacity:.25;}
+  @media (prefers-reduced-motion:reduce){ .kit-anat-fx .puls-dot{display:none;} }
   @keyframes anatPuls{0%{filter:brightness(2.4)}100%{filter:brightness(1)}}
   #kit-brein-svg{width:100%;max-width:720px;height:auto;display:block;margin:0 auto;}
   /* Levend neuronennet (Creatures Science Kit-stijl): driften → conceptlaag → objecten */
@@ -489,6 +497,7 @@
           <div class="kit-anat-glow" data-kamer="geheugen"       title="Memory — stored learning experiences" data-nl-title="Geheugen — opgeslagen leerervaringen"></div>
           <div class="kit-anat-glow" data-kamer="taal"           title="Language lobe — vocabulary" data-nl-title="Taal-lobe — woordenschat"></div>
           <div class="kit-anat-glow" data-kamer="temperament"    title="Temperament — nature &amp; mood" data-nl-title="Temperament — aard &amp; humeur"></div>
+          <svg class="kit-anat-fx" id="kit-anat-fx" viewBox="0 0 1535 1024" preserveAspectRatio="none" aria-hidden="true"></svg>
         </div>
         <svg id="kit-brein-svg" viewBox="0 0 640 330" preserveAspectRatio="xMidYMid meet" aria-label="brain graph"></svg>
         <div class="nn-nu" id="nn-nu" aria-live="polite"></div>
@@ -1804,7 +1813,103 @@
         el.classList.remove("puls"); void el.offsetWidth; el.classList.add("puls");
       }
     });
-    anatPrev[b.naam] = { leer: leer };
+    anatFx(b, act, geleerd, lex, prev);
+    anatPrev[b.naam] = { leer: leer, lex: lex };
+  }
+
+  // ── Levende anatomie: signalen door de buizen van brein.png ─────────────────
+  // Coördinaten in pixels van brein.png (1535×1024). De ringen zijn de koppelstukken
+  // op de plaat; routes lopen van kamer via ringen naar kamer. Wat er stroomt volgt
+  // de echte toestand: denken als hij een doel heeft, leren als er een leerervaring
+  // bijkomt, taal als zijn woordenschat groeit, zintuigen als hij iets waarneemt.
+  var ANAT_RING = {
+    wL:[462,227], wc:[708,224], cb:[940,224], bR:[1188,227], wT:[592,113], cT:[828,107], bT:[1027,113],
+    wBel:[592,348], cBio:[828,348], bGeh:[1048,348], belL:[462,446], belBio:[710,446], bioGeh:[955,446], gehR:[1200,446],
+    belTaal:[592,558], bioO:[828,558], gehTemp:[1052,558], taalL:[490,642], taalR:[766,642], tempL:[830,642], tempR:[1103,645],
+    taalO:[617,760], tempO:[965,760]
+  };
+  var ANAT_KAMER = { w:[577,240], c:[837,240], b:[1075,240], bel:[597,440], bio:[835,440], geh:[1075,440], taal:[636,652], temp:[955,652] };
+  var ANAT_ROUTE = {
+    denken:  { kleur:"#ffe066", dur:2.6, pts:["wL","K:w","wc","K:c","cb","K:b","bGeh","K:geh","gehTemp","K:temp","tempO"] },
+    leren:   { kleur:"#66c8ff", dur:1.8, pts:["belL","K:bel","belBio","K:bio","bioGeh","K:geh","gehR"] },
+    concept: { kleur:"#ffd84d", dur:1.2, pts:["cT","K:c","cBio","K:bio","bioO"] },
+    taal:    { kleur:"#ffa64d", dur:1.6, pts:["wBel","K:bel","belTaal","K:taal","taalO"] },
+    zien:    { kleur:"#7bff9a", dur:1.0, pts:["wT","K:w","wBel"] },
+    gemoed:  { kleur:"#6bb6ff", dur:1.6, pts:["tempL","K:temp","tempR"] }
+  };
+  var anatFxBouw = false, anatRingEl = {}, anatOgen = [], anatLaatst = {}, anatKnipT = null;
+  var anatReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function anatPunt(k){ return k.indexOf("K:") === 0 ? ANAT_KAMER[k.slice(2)] : ANAT_RING[k]; }
+  function anatBouw(){
+    var svg = document.getElementById("kit-anat-fx"); if(!svg) return null;
+    if(anatFxBouw) return svg;
+    anatFxBouw = true;
+    var p = ['<defs><filter id="oogGloed" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9"/></filter></defs>'];
+    // ogen (gloeiend groen, zoals op de plaat)
+    [[262,463],[362,463]].forEach(function(o, i){
+      p.push('<g class="oog" id="anat-oog-' + i + '"><ellipse cx="' + o[0] + '" cy="' + o[1] + '" rx="30" ry="44" fill="#7dff4a" opacity=".55" filter="url(#oogGloed)"/>'
+        + '<ellipse cx="' + o[0] + '" cy="' + o[1] + '" rx="17" ry="30" fill="#b6ff6a" opacity=".55"/></g>');
+    });
+    Object.keys(ANAT_RING).forEach(function(k){
+      var r = ANAT_RING[k];
+      p.push('<circle class="ring" id="anat-r-' + k + '" cx="' + r[0] + '" cy="' + r[1] + '" r="13"/>');
+    });
+    svg.innerHTML = p.join("");
+    Object.keys(ANAT_RING).forEach(function(k){ anatRingEl[k] = document.getElementById("anat-r-" + k); });
+    anatOgen = [document.getElementById("anat-oog-0"), document.getElementById("anat-oog-1")];
+    anatKnipper();
+    return svg;
+  }
+  function anatKnipper(){
+    clearTimeout(anatKnipT);
+    anatKnipT = setTimeout(function(){
+      if(!anatReduced) anatOgen.forEach(function(o){ if(o && !o.classList.contains("slaap")){ o.classList.add("knip"); setTimeout(function(){ o.classList.remove("knip"); }, 140); } });
+      anatKnipper();
+    }, 2600 + Math.random() * 4200);
+  }
+  function anatVuur(naam){
+    var svg = anatBouw(); if(!svg || anatReduced) return;
+    var nu = Date.now(), r = ANAT_ROUTE[naam];
+    if(nu - (anatLaatst[naam] || 0) < r.dur * 700) return;   // niet stapelen
+    anatLaatst[naam] = nu;
+    var pts = r.pts.map(anatPunt), lens = [0], tot = 0;
+    for(var i = 1; i < pts.length; i++){ tot += Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]); lens.push(tot); }
+    var d = "M" + pts.map(function(q){ return q[0] + "," + q[1]; }).join(" L");
+    var c = document.createElementNS(SVGNS, "circle");
+    c.setAttribute("r", "11"); c.setAttribute("fill", r.kleur); c.setAttribute("class", "puls-dot");
+    c.setAttribute("style", "filter:drop-shadow(0 0 10px " + r.kleur + ")");
+    var am = document.createElementNS(SVGNS, "animateMotion");
+    am.setAttribute("dur", r.dur + "s"); am.setAttribute("path", d); am.setAttribute("begin", "indefinite"); am.setAttribute("fill", "remove");
+    c.appendChild(am); svg.appendChild(c);
+    try{ am.beginElement(); }catch(e){}
+    setTimeout(function(){ if(c.parentNode) c.parentNode.removeChild(c); }, r.dur * 1000 + 80);
+    // ringen langs de route lichten op als de puls erlangs komt
+    r.pts.forEach(function(k, idx){
+      var el = anatRingEl[k]; if(!el) return;
+      setTimeout(function(){
+        el.style.color = r.kleur; el.classList.add("aan");
+        setTimeout(function(){ el.classList.remove("aan"); }, 260);
+      }, tot ? (lens[idx] / tot) * r.dur * 1000 : 0);
+    });
+  }
+  function anatFx(b, act, geleerd, lex, prev){
+    if(!anatBouw()) return;
+    // ogen: dicht als hij slaapt, rood als hij ziek is
+    var slaapt = !!(b.doel && b.doel.soort === "slapen");
+    anatOgen.forEach(function(o){
+      if(!o) return;
+      o.classList.toggle("slaap", slaapt);
+      o.querySelectorAll("ellipse").forEach(function(e, i){ e.setAttribute("fill", b.ziek ? (i ? "#ffb08a" : "#ff6b4a") : (i ? "#b6ff6a" : "#7dff4a")); });
+    });
+    if(slaapt || document.hidden) return;
+    // ±2 aanroepen per seconde: kans per aanroep schaalt met de activiteit van de kamer
+    if(Math.random() < act.beslislaag * 0.35) anatVuur("denken");
+    if(Math.random() < act.waarneming * 0.25) anatVuur("zien");
+    if(Math.random() < act.conceptlaag * 0.12) anatVuur("concept");
+    if(Math.random() < act.biochemie * 0.08) anatVuur("gemoed");
+    if(geleerd){ anatVuur("leren"); setTimeout(function(){ anatVuur("concept"); }, 500); }
+    if(prev && prev.lex != null && lex > prev.lex) anatVuur("taal");
+    else if(Math.random() < act.taal * 0.05) anatVuur("taal");
   }
 
   // Biochemie-strook: de stofjes/hormonen ónder het gedrag (leest b.chem uit de
