@@ -218,6 +218,22 @@
   .kit-bpm{font-size:.72rem;color:#7fffb0;margin-top:.3rem;font-family:monospace;}
 
   /* Gereedschapsbalk voor de Hand */
+  /* ── Gebeurtenissen: Creatures' event-lijst (geboorte, dood, ziek, levensfase) ──
+     In Creatures selecteert een dubbelklik op een gebeurtenis meteen die Norn. Hier:
+     één klik op een levende Botty selecteert hem en opent de kit. */
+  .log{margin:.6rem .2rem 0;background:#1a120a;border:1px solid #3a2a18;border-radius:12px;padding:.45rem .6rem;}
+  .log-kop{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-weight:900;color:#f6c75a;
+           font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;user-select:none;}
+  .log-kop .log-n{color:#b89a6a;font-weight:700;text-transform:none;letter-spacing:0;}
+  .log-lijst{list-style:none;margin:.35rem 0 0;padding:0;max-height:9.6rem;overflow-y:auto;}
+  .log.dicht .log-lijst{display:none;}
+  .log-lijst li{display:flex;gap:.5rem;align-items:baseline;font-size:.8rem;color:#e8d6b4;padding:.12rem .25rem;border-radius:6px;}
+  .log-lijst li.klikbaar{cursor:pointer;}
+  .log-lijst li.klikbaar:hover{background:#2a1d10;color:#ffe6a8;}
+  .log-lijst li.nieuw{animation:logNieuw 2.4s ease-out;}
+  @keyframes logNieuw{0%{background:#4a3416}100%{background:transparent}}
+  .log-lijst .log-t{color:#8a7350;font-variant-numeric:tabular-nums;flex:0 0 auto;}
+  .log-lijst .log-leeg{color:#b89a6a;font-style:italic;}
   .gereedschap{margin:.6rem .2rem 0;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;}
   .gereedschap .tools{display:flex;gap:.4rem;flex-wrap:wrap;}
   .tool{font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;
@@ -261,7 +277,7 @@
   /* ── Landschap-modus: op een liggend (mobiel) scherm alleen het speelveld ── */
   @media (orientation:landscape) and (max-height:600px){
     html,body{height:100%;overflow:hidden;background:#000;}
-    header,.status,#gereedschap,#kit,footer{display:none !important;}
+    header,.status,#gereedschap,#kit,#log,footer{display:none !important;}
     main{padding:0;margin:0;max-width:none;width:100%;height:100%;}
     .kamer-wrap{position:fixed;inset:0;margin:0;padding:0;border:0;border-radius:0;background:#000;overflow:hidden;}
     svg.kamer{width:100%;height:100%;border-radius:0;}
@@ -377,6 +393,14 @@
   <div class="status">
     <span id="st-links" data-nl="🏫 Verbinden met de hive…">🏫 Connecting to the hive…</span>
     <span id="st-rechts"></span>
+  </div>
+
+  <!-- Gebeurtenissen (Creatures-stijl event-lijst): wat er gebeurde en wie het was -->
+  <div class="log" id="log">
+    <div class="log-kop" id="log-kop" role="button" tabindex="0" aria-expanded="true">
+      <span data-nl="📜 Gebeurtenissen">📜 Events</span><span class="log-n" id="log-n"></span>
+    </div>
+    <ul class="log-lijst" id="log-lijst" aria-live="polite"><li class="log-leeg" data-nl="Nog niets gebeurd…">Nothing has happened yet…</li></ul>
   </div>
 
   <!-- Gereedschap voor de Hand: kies wat je doet, klik dan op een Botty -->
@@ -713,6 +737,7 @@
     if(nieuweBottys) bottys = nieuweBottys.filter(function(b){ return b && b.naam; });
     if(nieuweEieren){ eieren = nieuweEieren; }
     renderEieren();
+    if(nieuweBottys) logVergelijk(bottys, eieren);
     var en = lang()==="en";
     document.getElementById("st-links").textContent = (nacht ? (en?"🌙 The hive sleeps · ":"🌙 De hive slaapt · ") : "🏫 ")
       + bottys.length + (en?" Bottys in the classroom":" Botty's in het klaslokaal")
@@ -1867,6 +1892,146 @@
     refreshAdopt(naam, adoptHuidig && adoptHuidig.bid);
   }
 
+
+  // ── Gebeurtenissen (naar Creatures' event-lijst) ──────────────────────────
+  // Bij het openen: de laatste geboortes (`geboorten`) en overlijdens (`levens`).
+  // Daarna live door opeenvolgende snapshots te vergelijken: ei gelegd, geboren,
+  // overleden, ziek/beter en een nieuwe levensfase. Sleutel is `bid`, want namen
+  // worden hergebruikt (er kan een nieuwe Flux geboren worden als de oude net weg is).
+  var LOG_MAX = 40;
+  var logItems = [];          // { k, t, soort, bid, naam, ... }, nieuwste eerst
+  var logGezien = {};         // sleutel → true, tegen dubbele meldingen
+  var logVorig = null;        // vorig snapshot: { bottys:{bid→{naam,ziek,stage}}, eieren:{id→true} }
+  var logNieuwK = {};         // sleutels die net binnenkwamen (voor de oplicht-animatie)
+  var LOG_FASE = {
+    en:{ born:"newborn", young:"young", teen:"a teenager", adult:"an adult", elder:"elderly", sage:"a sage" },
+    nl:{ born:"pasgeboren", young:"jong", teen:"tiener", adult:"volwassen", elder:"oud", sage:"wijs" }
+  };
+  var LOG_OORZAAK = { en:{ ouderdom:"old age", ziekte:"illness" }, nl:{ ouderdom:"ouderdom", ziekte:"ziekte" } };
+
+  // Postgres geeft microseconden ("…00.689592+00:00"); niet elke browser parseert die.
+  function logTs(ts){ return Date.parse(String(ts).replace(/(\.\d{3})\d+/, "$1")); }
+  function logVoeg(item, live){
+    if(logGezien[item.k]) return;
+    logGezien[item.k] = true;
+    if(live) logNieuwK[item.k] = true;
+    logItems.push(item);
+    logItems.sort(function(a, c){ return c.t - a.t; });
+    if(logItems.length > LOG_MAX) logItems.length = LOG_MAX;
+  }
+  function logTekst(it){
+    var en = lang() === "en";
+    var fase = LOG_FASE[lang()];
+    switch(it.soort){
+      case "ei":     return "🥚 " + (en ? it.a + " & " + it.b + " laid an egg" : it.a + " & " + it.b + " legden een ei");
+      case "geb":    return "🐣 " + it.naam + (en ? " was born" : " is geboren")
+                       + (it.a ? (en ? " — child of " : " — kind van ") + it.a + " & " + it.b : (it.immigrant ? (en ? " — an immigrant" : " — een immigrant") : ""))
+                       + (it.gen ? " · gen " + it.gen : "");
+      case "dood": {
+        var oz = it.oorzaak ? ((LOG_OORZAAK[lang()] || {})[it.oorzaak] || it.oorzaak) : "";
+        var extra = [];
+        if(it.leeftijd) extra.push(Math.round(it.leeftijd / 60) + " min");
+        if(it.kinderen) extra.push(it.kinderen + (en ? (it.kinderen === 1 ? " child" : " children") : (it.kinderen === 1 ? " kind" : " kinderen")));
+        if(it.woorden) extra.push(it.woorden + (en ? " words" : " woorden"));
+        return "🪦 " + it.naam + (en ? " passed away" : " is overleden") + (oz ? " (" + oz + ")" : "")
+          + (extra.length ? " · " + extra.join(" · ") : "");
+      }
+      case "ziek":   return "🤒 " + it.naam + (en ? " fell ill" : " werd ziek");
+      case "beter":  return "💚 " + it.naam + (en ? " is better again" : " is weer beter");
+      case "fase":   return "🌱 " + it.naam + (en ? " is now " : " is nu ") + (fase[it.stage] || it.stage);
+    }
+    return "";
+  }
+  function renderLog(){
+    var ul = document.getElementById("log-lijst"); if(!ul) return;
+    var en = lang() === "en";
+    var levend = {};
+    bottys.forEach(function(b){ if(b.bid) levend[b.bid] = b.naam; });
+    document.getElementById("log-n").textContent = logItems.length ? String(logItems.length) : "";
+    if(!logItems.length){
+      ul.innerHTML = '<li class="log-leeg">' + (en ? "Nothing has happened yet…" : "Nog niets gebeurd…") + "</li>";
+      return;
+    }
+    ul.innerHTML = logItems.map(function(it){
+      var tijd = new Date(it.t).toLocaleTimeString(numLocale(), { hour:"2-digit", minute:"2-digit" });
+      var klik = it.soort !== "dood" && it.bid && levend[it.bid];
+      var cls = (klik ? "klikbaar" : "") + (logNieuwK[it.k] ? " nieuw" : "");
+      return '<li class="' + cls + '"' + (klik ? ' data-bid="' + esc(it.bid) + '" title="' + (en ? "Select " : "Selecteer ") + esc(levend[it.bid]) + '"' : "")
+        + '><span class="log-t">' + tijd + "</span><span>" + esc(logTekst(it)) + "</span></li>";
+    }).join("");
+    logNieuwK = {};
+  }
+  // Snapshot-diff. De eerste aanroep legt alleen de beginstand vast.
+  function logVergelijk(lijst, eis){
+    var nu = { bottys:{}, eieren:{} };
+    (lijst || []).forEach(function(b){ if(b && b.bid) nu.bottys[b.bid] = { naam:b.naam, ziek:!!b.ziek, stage:b.stage }; });
+    (eis || []).forEach(function(e){ if(e && e.id) nu.eieren[e.id] = { a:e.ouderA, b:e.ouderB }; });
+    var v = logVorig; logVorig = nu;
+    if(!v) { renderLog(); return; }
+    var t = Date.now(), veranderd = false;
+    Object.keys(nu.eieren).forEach(function(id){
+      if(!v.eieren[id]){ logVoeg({ k:"ei:"+id, t:t, soort:"ei", a:nu.eieren[id].a, b:nu.eieren[id].b }, true); veranderd = true; }
+    });
+    Object.keys(nu.bottys).forEach(function(bid){
+      var n = nu.bottys[bid], o = v.bottys[bid];
+      if(!o){ logVoeg({ k:"geb:"+bid, t:t, soort:"geb", bid:bid, naam:n.naam }, true); veranderd = true; return; }
+      if(n.ziek !== o.ziek){ logVoeg({ k:(n.ziek?"ziek:":"beter:")+bid+":"+t, t:t, soort:n.ziek?"ziek":"beter", bid:bid, naam:n.naam }, true); veranderd = true; }
+      if(n.stage && o.stage && n.stage !== o.stage){ logVoeg({ k:"fase:"+bid+":"+n.stage, t:t, soort:"fase", bid:bid, naam:n.naam, stage:n.stage }, true); veranderd = true; }
+    });
+    Object.keys(v.bottys).forEach(function(bid){
+      if(nu.bottys[bid]) return;
+      logVoeg({ k:"dood:"+bid, t:t, soort:"dood", bid:bid, naam:v.bottys[bid].naam }, true); veranderd = true;
+      // Het grafschrift (oorzaak, leeftijd, kinderen) staat even later in `levens`.
+      setTimeout(function(){ logVerrijkDood(bid); }, 6000);
+    });
+    if(veranderd) renderLog();
+  }
+  function logVerrijkDood(bid){
+    supabase.from("levens").select("bid,oorzaak,leeftijd_sec,kinderen,woorden").eq("bid", bid).limit(1)
+      .then(function(res){
+        var r = res && res.data && res.data[0]; if(!r) return;
+        logItems.forEach(function(it){
+          if(it.k === "dood:"+bid){ it.oorzaak = r.oorzaak; it.leeftijd = r.leeftijd_sec; it.kinderen = r.kinderen; it.woorden = r.woorden; }
+        });
+        renderLog();
+      });
+  }
+  // Beginstand: de recente geschiedenis, zodat een terugkerende kijker ziet wat er gebeurde.
+  function laadLogGeschiedenis(){
+    Promise.all([
+      supabase.from("geboorten").select("ts,kind_id,kind_naam,generatie,oudera_naam,ouderb_naam,immigrant").order("id", { ascending:false }).limit(8),
+      supabase.from("levens").select("ts,bid,naam,oorzaak,leeftijd_sec,kinderen,woorden").order("id", { ascending:false }).limit(8)
+    ]).then(function(rs){
+      ((rs[0] && rs[0].data) || []).forEach(function(r){
+        logVoeg({ k:"geb:"+r.kind_id, t:logTs(r.ts), soort:"geb", bid:r.kind_id, naam:r.kind_naam,
+                  a:r.oudera_naam, b:r.ouderb_naam, gen:r.generatie, immigrant:r.immigrant }, false);
+      });
+      ((rs[1] && rs[1].data) || []).forEach(function(r){
+        logVoeg({ k:"dood:"+r.bid, t:logTs(r.ts), soort:"dood", bid:r.bid, naam:r.naam,
+                  oorzaak:r.oorzaak, leeftijd:r.leeftijd_sec, kinderen:r.kinderen, woorden:r.woorden }, false);
+      });
+      renderLog();
+    }).catch(function(e){ console.warn("gebeurtenissen laden faalde:", (e && e.message) || e); });
+  }
+  document.getElementById("log-lijst").addEventListener("click", function(ev){
+    var li = ev.target.closest("li[data-bid]"); if(!li) return;
+    var b = bottys.filter(function(x){ return x.bid === li.dataset.bid; })[0]; if(!b) return;
+    sel = b.naam; updateKit();
+    kamerEl.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  });
+  (function(){
+    var log = document.getElementById("log"), kop = document.getElementById("log-kop");
+    function wissel(){
+      var dicht = log.classList.toggle("dicht");
+      kop.setAttribute("aria-expanded", dicht ? "false" : "true");
+      try{ localStorage.setItem("construct-log-dicht", dicht ? "1" : "0"); }catch(e){}
+    }
+    kop.addEventListener("click", wissel);
+    kop.addEventListener("keydown", function(ev){ if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); wissel(); } });
+    try{ if(localStorage.getItem("construct-log-dicht") === "1"){ log.classList.add("dicht"); kop.setAttribute("aria-expanded","false"); } }catch(e){}
+  })();
+  laadLogGeschiedenis();
+
   if(adoptKnop) adoptKnop.addEventListener("click", doeAdopt);
 
   // Taalwissel: labels, statusbalk en de kit meteen in de nieuwe taal zetten.
@@ -1874,6 +2039,7 @@
     window.SiteLang.onChange(function(){
       updateDriveLabels();
       toonState();
+      renderLog();
       if(sel) updateKit();
     });
   }
