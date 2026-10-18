@@ -140,6 +140,32 @@
   @keyframes armLUp{0%,100%{transform:rotate(0deg)}25%,75%{transform:rotate(-130deg)}}
   @keyframes armRUp{0%,100%{transform:rotate(0deg)}25%,75%{transform:rotate(130deg)}}
 
+  /* 🧬 DNA-uitklap per kaart: de 16 genen als staafjes-strip (hoogte = waarde, kleur =
+     categorie), met de drie uiterlijk-genen gemarkeerd. Puur het genoom dat al in het
+     slanke snapshot meereist — geen extra data nodig. */
+  .dna-toggle{margin-top:9px;width:100%;font:700 11px Nunito,sans-serif;letter-spacing:.3px;
+    color:#bcd3ee;background:#17202e;border:1px solid #2a3a52;border-radius:9px;padding:4px 9px;cursor:pointer;}
+  .dna-toggle:hover{background:#1f2c40;color:#eaf2ff;}
+  .dna-toggle.open{color:#eaf2ff;border-color:#4a6; background:#1b2a24;}
+  .dna{margin-top:7px;padding:9px;background:#10161f;border:1px solid #223146;border-radius:11px;}
+  .helix{position:relative;display:flex;align-items:flex-end;gap:3px;height:52px;}
+  /* neutraal-lijn (128) zodat je ziet welke genen boven/onder gemiddeld zitten */
+  .helix::before{content:"";position:absolute;left:0;right:0;bottom:calc(2px + 42px*128/255);
+    border-top:1px dashed #3a4a63;opacity:.6;pointer-events:none;}
+  .gseg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:help;}
+  .gbar{width:100%;min-height:3px;border-radius:2px 2px 0 0;}
+  .glab{font:9px/1 Nunito,sans-serif;color:#89a;margin-top:3px;white-space:nowrap;}
+  .gseg.guit .gbar{outline:1.5px solid #c79bff;outline-offset:1px;}
+  .gseg.guit .glab{color:#c79bff;font-weight:700;}
+  .dna-app{font:600 11px Nunito,sans-serif;color:#d7c2ff;margin-top:8px;}
+  .dna-meta{font:11px Nunito,sans-serif;color:#9fb3cc;margin-top:5px;}
+  .dmut{display:inline-block;background:#2a1f3a;color:#e0ccff;border-radius:6px;padding:1px 6px;margin:0 3px 2px 0;font-size:10px;}
+  .dna-none{color:#667;}
+  .dna-raw{font:10px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;color:#6f8097;margin-top:6px;word-break:break-all;}
+  .dna-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px;font:10px Nunito,sans-serif;color:#8ba;}
+  .dna-legend span{display:inline-flex;align-items:center;gap:4px;}
+  .dna-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
   /* Afscheid: een ouder zwaait gedag en verlaat de hive */
   .bw.weg{animation:weg 1.45s forwards cubic-bezier(.4,0,.6,1);}
   @keyframes weg{0%{opacity:1;transform:scale(1)}60%{opacity:.3;transform:scale(.7) translateY(10px)}100%{opacity:0;transform:scale(.4) translateY(30px)}}
@@ -691,6 +717,53 @@
          + '<span class="bar '+kl+'" data-m="'+meter+'"><span style="width:0%"></span></span></div>';
   }
 
+  // ── 🧬 DNA-weergave per kaart ───────────────────────────────────────────────
+  // Het leesbare effect van één gen-byte (0..255). Uiterlijk-genen hebben een eigen
+  // schaal: 12 = hue-tint (−30°..+30°), 13 = grootte (0.80×..1.20×). De rest is een
+  // multiplier rond 1.0 (0.5×..1.5×), net als in de edge function.
+  function dnaEffect(i, v){
+    if(i === 12){ var d = Math.round((v - 128) / 128 * 30); return (d >= 0 ? "+" : "") + d + "°"; }
+    if(i === 13){ return (0.80 + v / 255 * 0.40).toFixed(2) + "×"; }
+    return (0.5 + v / 255).toFixed(2) + "×";
+  }
+  var DNA_UITERLIJK = { 12:1, 13:1, 14:1 };   // de drie uiterlijk-genen (gemarkeerd)
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function dnaHtml(b){
+    var by = BottyGenome.genoomBytes(b.genome);
+    var L = lang();
+    var meta = BottyGenome.genMetaFor(L);
+    var kleur = BottyGenome.genKleur;
+    var catLab = BottyGenome.catLabelFor(L);
+    var strip = "";
+    for(var i = 0; i < 16; i++){
+      var v = by[i], m = meta[i], h = Math.max(3, Math.round(v / 255 * 42));
+      var tip = m[0] + " · " + m[1] + ": " + v + "/255 (" + dnaEffect(i, v) + ")";
+      strip += '<div class="gseg' + (DNA_UITERLIJK[i] ? ' guit' : '') + '" title="' + esc(tip) + '">'
+             +   '<div class="gbar" style="height:' + h + 'px;background:' + kleur[m[2]] + '"></div>'
+             +   '<div class="glab">' + m[0] + '</div>'
+             + '</div>';
+    }
+    var appLabel = (L === "en" ? "appearance" : "uiterlijk");
+    var app = '🎨 ' + dnaEffect(12, by[12]) + ' · 📏 ' + dnaEffect(13, by[13])
+            + ' · 😯 ' + dnaEffect(14, by[14]);
+    var muts = (b.mutaties && b.mutaties.length)
+      ? b.mutaties.map(function(m){ return '<span class="dmut">' + esc(m) + '</span>'; }).join("")
+      : '<span class="dna-none">—</span>';
+    var extra = (b.genen && b.genen.length) ? (' · +' + b.genen.length + (L === "en" ? " extra genes" : " extra genen")) : '';
+    var legend = Object.keys(catLab).map(function(c){
+      return '<span><i style="background:' + kleur[c] + '"></i>' + catLab[c] + '</span>';
+    }).join("");
+    var mutLabel = (L === "en" ? "mutations" : "mutaties");
+    return '<button class="dna-toggle" type="button" aria-expanded="false">🧬 DNA</button>'
+         + '<div class="dna" hidden>'
+         +   '<div class="helix">' + strip + '</div>'
+         +   '<div class="dna-legend">' + legend + '</div>'
+         +   '<div class="dna-app"><b>' + appLabel + ':</b> ' + app + '</div>'
+         +   '<div class="dna-meta">' + mutLabel + ': ' + muts + extra + '</div>'
+         +   '<div class="dna-raw">' + esc(b.genome || "—") + '</div>'
+         + '</div>';
+  }
+
   var kaartEls = []; // gesorteerde DOM kaartverwijzingen
   function vulKaart(kaart, b){
     var p = b.kleur || paletten[0];
@@ -711,7 +784,8 @@
       +   barRij("💾","b-data","data")
       +   barRij("🏃","b-fit","fit")
       +   barRij("😊","b-geluk","geluk")
-      + '</div>';
+      + '</div>'
+      + dnaHtml(b);
     return {
       wrap: kaart.querySelector(".bw"),
       floaters: kaart.querySelector(".floaters"),
@@ -939,6 +1013,18 @@
     tickerIdx++;
   }
   setInterval(cycleTicker, 5000);
+
+  // 🧬 DNA-uitklap: één gedelegeerde listener voor alle (huidige én toekomstige) kaarten.
+  document.addEventListener("click", function(e){
+    var t = e.target && e.target.closest ? e.target.closest(".dna-toggle") : null;
+    if(!t) return;
+    var panel = t.nextElementSibling;
+    if(!panel || !panel.classList.contains("dna")) return;
+    e.stopPropagation();
+    var dicht = panel.hasAttribute("hidden");
+    if(dicht){ panel.removeAttribute("hidden"); t.classList.add("open"); t.setAttribute("aria-expanded","true"); }
+    else { panel.setAttribute("hidden",""); t.classList.remove("open"); t.setAttribute("aria-expanded","false"); }
+  });
 
   // Taalwissel: kaarten volledig herbouwen zodat labels/titels meteen vertalen
   if(window.SiteLang){
