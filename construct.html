@@ -93,6 +93,21 @@
   #laag .botje.bang .expr-bang{opacity:1;}
   #laag .botje.eenzaam .expr-eenzaam{opacity:1;}
   .botje.sel .sprite{filter:drop-shadow(0 0 9px #ffe6a8) drop-shadow(0 0 20px rgba(246,199,90,.55));}
+  /* 🌟 Dream-glow (Laag A): een leer-/consolidatie-aura die met --gloed (0..1) meegroeit.
+     Je ziet dus aan een Botty hoeveel hij al geleerd en 's nachts verankerd heeft. Tijdens
+     het dromen pulseert de aura feller. Selectie (.sel, hierboven) wint — die klassen worden
+     in JS uit elkaar gehouden, dus deze filters botsen nooit met de selectie-markering. */
+  .botje.gloeit .sprite{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32)) drop-shadow(0 0 calc(var(--gloed,0) * 13px) rgba(150,226,255,.85));}
+  .botje.droomt .sprite{animation:droomGloed 3.6s ease-in-out infinite;}
+  @keyframes droomGloed{
+    0%,100%{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32)) drop-shadow(0 0 calc(var(--gloed,0) * 6px) rgba(150,226,255,.55));}
+    50%{filter:drop-shadow(1px 3px 2px rgba(20,12,6,.32)) drop-shadow(0 0 calc(var(--gloed,0) * 20px) rgba(180,240,255,1));}
+  }
+  /* 🎨 Laag A — kleur-levendigheid volgt het leren: een veel-geleerde Botty oogt
+     voller en iets helderder, een groentje wat valer. Staat op de sprite-afbeelding
+     zelf (niet op de .sprite-groep), dus los van de gloed-/selectie-filters erboven —
+     ze botsen nooit. Schaalt continu met --gloed, die van .botje naar beneden erft. */
+  .botje .sprite image{filter:saturate(calc(0.82 + var(--gloed,0) * 0.6)) brightness(calc(0.95 + var(--gloed,0) * 0.13));}
   .botje.dim text{opacity:.35;}
   .bubbel{animation:bubbelIn .22s ease-out;pointer-events:none;}
   @keyframes bubbelIn{0%{opacity:0}100%{opacity:1}}
@@ -174,8 +189,29 @@
   .kit-anat-glow[data-kamer="taal"]       {left:41.4%;top:63.7%;color:#ffa64d;}
   .kit-anat-glow[data-kamer="temperament"]{left:62.2%;top:63.7%;color:#6bb6ff;}
   .kit-anat-glow.puls{animation:anatPuls 1.1s ease-out;}
+  /* Levende anatomie: signaalroutes door de buizen, oplichtende ringen, knipperende ogen */
+  .kit-anat-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+  .kit-anat-fx .ring{fill:none;stroke:currentColor;stroke-width:5;opacity:0;transition:opacity .9s ease;}
+  .kit-anat-fx .ring.aan{opacity:.95;transition:opacity .08s ease;filter:drop-shadow(0 0 8px currentColor);}
+  .kit-anat-fx .oog{transform-box:fill-box;transform-origin:center;transition:transform .12s ease, opacity .6s ease, fill .6s ease;}
+  .kit-anat-fx .oog.knip{transform:scaleY(.08);}
+  .kit-anat-fx .oog.slaap{transform:scaleY(.12);opacity:.25;}
+  @media (prefers-reduced-motion:reduce){ .kit-anat-fx .puls-dot{display:none;} }
   @keyframes anatPuls{0%{filter:brightness(2.4)}100%{filter:brightness(1)}}
-  #kit-brein-svg{width:100%;height:206px;display:block;}
+  #kit-brein-svg{width:100%;max-width:720px;height:auto;display:block;margin:0 auto;}
+  /* Levend neuronennet (Creatures Science Kit-stijl): driften → conceptlaag → objecten */
+  .nn-drift-halo{transform-box:fill-box;transform-origin:center;}
+  .nn-drift-halo.nood{animation:nnNood 1.6s ease-in-out infinite;}
+  @keyframes nnNood{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+  .nn-edge.flits{animation:nnFlits 1.4s ease-out;}
+  @keyframes nnFlits{0%{stroke:#fff;filter:drop-shadow(0 0 6px #fff)}100%{filter:none}}
+  .nn-edge.flits-neg{animation:nnFlitsNeg 1.4s ease-out;}
+  @keyframes nnFlitsNeg{0%{stroke:#ffb3bd;filter:drop-shadow(0 0 6px #ff6b7a)}100%{filter:none}}
+  .nn-verken{animation:nnVerken 1.2s linear infinite;}
+  @keyframes nnVerken{to{stroke-dashoffset:-14}}
+  .nn-nu{font-size:.8rem;color:#ffe6a8;margin:.1rem 0 .2rem;min-height:1.2em;}
+  .nn-nu b{color:#f6c75a;}
+  @media (prefers-reduced-motion:reduce){ .nn-drift-halo.nood,.nn-verken,.nn-edge.flits,.nn-edge.flits-neg{animation:none;} }
   .kit-brein-noot{font-size:.72rem;color:#7fb89a;line-height:1.35;margin-top:.25rem;}
   .kit-biochem-kop{font-weight:700;color:#a3ffce;font-size:.86rem;margin:.6rem 0 .3rem;}
   .kit-biochem{display:grid;grid-template-columns:repeat(2,1fr);gap:.28rem .6rem;}
@@ -203,6 +239,22 @@
   .kit-bpm{font-size:.72rem;color:#7fffb0;margin-top:.3rem;font-family:monospace;}
 
   /* Gereedschapsbalk voor de Hand */
+  /* ── Gebeurtenissen: Creatures' event-lijst (geboorte, dood, ziek, levensfase) ──
+     In Creatures selecteert een dubbelklik op een gebeurtenis meteen die Norn. Hier:
+     één klik op een levende Botty selecteert hem en opent de kit. */
+  .log{margin:.6rem .2rem 0;background:#1a120a;border:1px solid #3a2a18;border-radius:12px;padding:.45rem .6rem;}
+  .log-kop{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-weight:900;color:#f6c75a;
+           font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;user-select:none;}
+  .log-kop .log-n{color:#b89a6a;font-weight:700;text-transform:none;letter-spacing:0;}
+  .log-lijst{list-style:none;margin:.35rem 0 0;padding:0;max-height:9.6rem;overflow-y:auto;}
+  .log.dicht .log-lijst{display:none;}
+  .log-lijst li{display:flex;gap:.5rem;align-items:baseline;font-size:.8rem;color:#e8d6b4;padding:.12rem .25rem;border-radius:6px;}
+  .log-lijst li.klikbaar{cursor:pointer;}
+  .log-lijst li.klikbaar:hover{background:#2a1d10;color:#ffe6a8;}
+  .log-lijst li.nieuw{animation:logNieuw 2.4s ease-out;}
+  @keyframes logNieuw{0%{background:#4a3416}100%{background:transparent}}
+  .log-lijst .log-t{color:#8a7350;font-variant-numeric:tabular-nums;flex:0 0 auto;}
+  .log-lijst .log-leeg{color:#b89a6a;font-style:italic;}
   .gereedschap{margin:.6rem .2rem 0;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;}
   .gereedschap .tools{display:flex;gap:.4rem;flex-wrap:wrap;}
   .tool{font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;
@@ -246,7 +298,7 @@
   /* ── Landschap-modus: op een liggend (mobiel) scherm alleen het speelveld ── */
   @media (orientation:landscape) and (max-height:600px){
     html,body{height:100%;overflow:hidden;background:#000;}
-    header,.status,#gereedschap,#kit,footer{display:none !important;}
+    header,.status,#gereedschap,#kit,#log,footer{display:none !important;}
     main{padding:0;margin:0;max-width:none;width:100%;height:100%;}
     .kamer-wrap{position:fixed;inset:0;margin:0;padding:0;border:0;border-radius:0;background:#000;overflow:hidden;}
     svg.kamer{width:100%;height:100%;border-radius:0;}
@@ -364,6 +416,14 @@
     <span id="st-rechts"></span>
   </div>
 
+  <!-- Gebeurtenissen (Creatures-stijl event-lijst): wat er gebeurde en wie het was -->
+  <div class="log" id="log">
+    <div class="log-kop" id="log-kop" role="button" tabindex="0" aria-expanded="true">
+      <span data-nl="📜 Gebeurtenissen">📜 Events</span><span class="log-n" id="log-n"></span>
+    </div>
+    <ul class="log-lijst" id="log-lijst" aria-live="polite"><li class="log-leeg" data-nl="Nog niets gebeurd…">Nothing has happened yet…</li></ul>
+  </div>
+
   <!-- Gereedschap voor de Hand: kies wat je doet, klik dan op een Botty -->
   <div class="gereedschap" id="gereedschap">
     <div class="tools">
@@ -437,10 +497,12 @@
           <div class="kit-anat-glow" data-kamer="geheugen"       title="Memory — stored learning experiences" data-nl-title="Geheugen — opgeslagen leerervaringen"></div>
           <div class="kit-anat-glow" data-kamer="taal"           title="Language lobe — vocabulary" data-nl-title="Taal-lobe — woordenschat"></div>
           <div class="kit-anat-glow" data-kamer="temperament"    title="Temperament — nature &amp; mood" data-nl-title="Temperament — aard &amp; humeur"></div>
+          <svg class="kit-anat-fx" id="kit-anat-fx" viewBox="0 0 1535 1024" preserveAspectRatio="none" aria-hidden="true"></svg>
         </div>
-        <svg id="kit-brein-svg" viewBox="0 0 300 210" preserveAspectRatio="xMidYMid meet" aria-label="brain graph"></svg>
-        <div class="kit-brein-noot t en">Drive ↔ object. Thicker &amp; greener = more strongly learned that this object relieves that need; dull/red = learned that it does <em>not</em> help. A lit-up line was just strengthened — by doing it, or because a peer told it in language. That's how knowledge spreads through the hive.</div>
-        <div class="kit-brein-noot t nl">Drift ↔ object. Dikker &amp; groener = sterker geleerd dat dít object die behoefte stilt; dof/rood = geleerd dat het níét helpt. Een oplichtende lijn is zojuist versterkt — door het zelf te doen, óf doordat een soortgenoot het hem in taal vertelde. Zo verspreidt kennis zich door de hive.</div>
+        <svg id="kit-brein-svg" viewBox="0 0 640 330" preserveAspectRatio="xMidYMid meet" aria-label="brain graph"></svg>
+        <div class="nn-nu" id="nn-nu" aria-live="polite"></div>
+        <div class="kit-brein-noot t en">Left the drives (a neuron glows brighter the more it needs something), right the objects, in between the concept layer where it links the two. A thick green dendrite = it learned that this object relieves that need; a red dashed one = learned that it does <em>not</em> help. ★ = its favourite per need. Pulses run along the link it is acting on right now; a dendrite flashes when it was just strengthened — by doing it, or because a peer told it in language. A crawling dotted line means it is <em>trying something new</em>.</div>
+        <div class="kit-brein-noot t nl">Links de driften (een neuron gloeit feller naarmate de behoefte groter is), rechts de objecten, ertussen de conceptlaag waar hij die twee aan elkaar knoopt. Een dikke groene dendriet = geleerd dat dít object die behoefte stilt; rood gestippeld = geleerd dat het níét helpt. ★ = zijn favoriet per behoefte. Over het verband waar hij nú mee bezig is lopen pulsjes; een dendriet flitst op als hij zojuist versterkt is — door het zelf te doen, óf doordat een soortgenoot het hem in taal vertelde. Een kruipende stippellijn betekent dat hij <em>iets nieuws uitprobeert</em>.</div>
         <div class="kit-biochem-kop"><span data-nl="🧪 Biochemie — stofjes &amp; hormonen">🧪 Biochemistry — substances &amp; hormones</span></div>
         <div class="kit-biochem" id="kit-biochem" aria-label="biochemistry"></div>
         <div class="kit-brein-noot t en">The chemistry <em>beneath</em> behaviour: metabolism (glucose/reserve), stress substances and hormones. Each substance rises through the world — eating/charging, company, learning at the board (learning hunger), illness — and ebbs away at its own pace. <strong>Age counts</strong>: an older body has a slower metabolism, tires faster and holds stress (cortisol) longer. Together they steer mood, choices and the face.</div>
@@ -698,6 +760,7 @@
     if(nieuweBottys) bottys = nieuweBottys.filter(function(b){ return b && b.naam; });
     if(nieuweEieren){ eieren = nieuweEieren; }
     renderEieren();
+    if(nieuweBottys) logVergelijk(bottys, eieren);
     var en = lang()==="en";
     document.getElementById("st-links").textContent = (nacht ? (en?"🌙 The hive sleeps · ":"🌙 De hive slaapt · ") : "🏫 ")
       + bottys.length + (en?" Bottys in the classroom":" Botty's in het klaslokaal")
@@ -909,7 +972,7 @@
              niveau:startNiv, doelNiveau:startNiv, doelX:sx, klim:null, pauze:0, loopFase:0, linksom:false,
              traagMs:0, wakerX:sx,
              faseNum: nameRnd(b.naam+"br")*6.28, volgendeKnipper:0, knipperTot:0, blijTot:0,
-             snelheid: 0.9 + nameRnd(b.naam+"snel")*1.3, b:b };
+             snelheid: 0.9 + nameRnd(b.naam+"snel")*1.3, b:b, bid:b.bid };
     zetInner(nd, b);   // eerste sprite (pixel of SVG) plaatsen
     return nd;
   }
@@ -1043,7 +1106,13 @@
     // verwijder vertrokken Botty's
     Object.keys(nodes).forEach(function(n){ if(!bottys.find(function(b){return b.naam===n;})){ laag.removeChild(nodes[n].g); delete nodes[n]; } });
     bottys.forEach(function(b){
-      var nd = nodes[b.naam]; if(!nd){ nd = nodes[b.naam] = maakNode(b); }
+      var nd = nodes[b.naam];
+      // Naam-hergebruik: als een Botty sterft en een pasgeborene dezelfde (vrijgekomen)
+      // naam krijgt in dezelfde tick, blijft de naam onafgebroken aanwezig en zou de
+      // oude node hergebruikt worden — met de avatar/sekse van de vórige drager. Bind
+      // de node daarom opnieuw zodra de stabiele bid wisselt → altijd een verse avatar.
+      if(nd && nd.bid && b.bid && nd.bid !== b.bid){ laag.removeChild(nd.g); delete nodes[b.naam]; nd = null; }
+      if(!nd){ nd = nodes[b.naam] = maakNode(b); }
       nd.b = b;
       var r = nd.render;
       var was = r.x;
@@ -1148,8 +1217,10 @@
         }
       }
 
-      // grootte per fase (afgestemd op de nieuwe wereld)
-      var schaalBasis = ({born:0.38,young:0.46,teen:0.50,adult:0.56,elder:0.58,sage:0.64}[b.stage] || 0.54) * (b.grootte||1);
+      // grootte per fase (afgestemd op de nieuwe wereld); wie meer geleerd/verankerd
+      // heeft (gloed) wordt een ietsje groter — uiterlijk dat met leren meebeweegt (Laag A).
+      var gloed = Math.max(0, Math.min(1, +b.gloed || 0));
+      var schaalBasis = ({born:0.38,young:0.46,teen:0.50,adult:0.56,elder:0.58,sage:0.64}[b.stage] || 0.54) * (b.grootte||1) * (1 + gloed*0.08);
       var w = 200*schaalBasis, h = 250*schaalBasis;
       // loop-huppel + ademhaling (squash-&-stretch, voeten blijven op de vloer);
       // nd.loopFase is hierboven al bijgewerkt zodat huppel en frame synchroon lopen.
@@ -1188,6 +1259,14 @@
       var blij = (nd.blijTot && Date.now() < nd.blijTot) || b.humeur === "blij";
       var vrij = !b.ziek && !inSlaap && !blij;   // ziek/slaap/blij hebben voorrang
       nd.g.classList.toggle("slaap", !!inSlaap);
+      // 🌟 Dream-glow (Laag A): aura schaalt met b.gloed (hoeveel geleerd/verankerd).
+      // Feller + pulserend tijdens het dromen. Selectie heeft voorrang, dus bij een
+      // geselecteerde Botty laten we de aura-klassen los zodat de .sel-markering wint.
+      // gloed is hierboven al berekend (bij schaalBasis)
+      var gloedAan = gloed > 0.05 && sel !== b.naam;
+      nd.g.style.setProperty("--gloed", gloed.toFixed(2));
+      nd.g.classList.toggle("gloeit", gloedAan);
+      nd.g.classList.toggle("droomt", gloedAan && !!inSlaap);
       nd.g.classList.toggle("ziek", !!b.ziek && !inSlaap);
       nd.g.classList.toggle("blij", !!blij && !b.ziek && !inSlaap);
       nd.g.classList.toggle("bang", vrij && b.humeur === "bang");
@@ -1512,45 +1591,195 @@
   var kitStageLabelNL = { born:"Baby", young:"Jong", teen:"Tiener", adult:"Volwassen", elder:"Oudere", sage:"Wijze" };
   var kitStageLabelEN = { born:"Baby", young:"Young", teen:"Teen", adult:"Adult", elder:"Elder", sage:"Sage" };
   function kitStageLabelNu(){ return lang()==="en" ? kitStageLabelEN : kitStageLabelNL; }
-  // ── Brein-graaf: leert-ie welk object welke behoefte stilt? ──────────────────
-  // Bipartiete graaf: links de vier driften, rechts de objecten. De lijn-dikte en
-  // -kleur tonen het geleerde geloof b.brein[drift][object] (0..1). Groen = "helpt",
-  // rood = "helpt niet", dof = neutraal/onbekend. Versterkt een verband sinds de
-  // vorige verversing, dan licht de lijn kort op — leren wordt live zichtbaar.
+  // ── Brein: levend neuronennet (naar de Science Kit van Creatures) ─────────────
+  // Links de vier driften, rechts de objecten, ertussen de conceptlaag. Elke dendriet
+  // toont het geleerde geloof b.brein[drift][object] (0..1): groen = "helpt", rood
+  // gestippeld = "helpt niet", neutraal = niet getekend. Een driftneuron gloeit naar
+  // de behoefte. Over het verband van het huidige doel lopen pulsjes; een dendriet
+  // die sinds de vorige meting versterkt (of verzwakt) is, flitst op.
+  // updateKitLive roept dit ±2x per seconde aan. Het SVG wordt alleen opnieuw
+  // opgebouwd als de verbanden, het doel, de taal of de breedte veranderen; anders
+  // werken we alleen de gloed bij, zodat lopende animaties niet herstarten.
   var DRIFT_KNOOP = [["energie","⚡"],["data","💾"],["fit","🏃"],["geluk","😊"]];
-  var breinPrev = {};
+  var NN_DRIFT_NAAM = { en:{ energie:"energy", data:"data", fit:"fitness", geluk:"happiness" },
+                        nl:{ energie:"energie", data:"data", fit:"fit", geluk:"geluk" } };
+  var NN_OBJ_NAAM = {
+    en:{ laadkruk:"charger", bord:"blackboard", boekenkast:"bookcase", lessenaar:"desk", kastje:"cabinet",
+         kruk:"stool", stolp:"bell jar", bloempot:"flowerpot", bal:"globe", deur:"open door" },
+    nl:{ laadkruk:"laadcomputer", bord:"schoolbord", boekenkast:"boekenkast", lessenaar:"lessenaar", kastje:"kastje",
+         kruk:"kruk", stolp:"stolp", bloempot:"bloempot", bal:"wereldbol", deur:"open deur" }
+  };
+  var NN_NEUTRAAL = 0.045;
+  var nn = { sig:null, naam:null, prev:{}, edges:{}, halo:{}, ambientT:0 };
+  var nnReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function nnDoel(b){
+    // Welk verband is hij nu aan het "uitvoeren"? zelfzorg/nieuwsgierig dragen stat+obj;
+    // priemjacht gaat naar het schoolbord (data).
+    var d = b && b.doel; if(!d) return null;
+    if(d.obj && d.stat) return { drift:d.stat, obj:d.obj, tekst:d.tekst || "" };
+    if(d.soort === "priemjacht") return { drift:"data", obj:"bord", tekst:d.tekst || "" };
+    return null;
+  }
+  function nnPuls(pad, kleur, dur, herhaal, vertraging){
+    var svg = document.getElementById("kit-brein-svg"); if(!svg || nnReduced) return;
+    var c = document.createElementNS(SVGNS, "circle");
+    c.setAttribute("r", herhaal ? "3.2" : "4"); c.setAttribute("fill", kleur);
+    c.setAttribute("style", "filter:drop-shadow(0 0 4px " + kleur + ")"); c.setAttribute("class", "nn-puls");
+    var am = document.createElementNS(SVGNS, "animateMotion");
+    am.setAttribute("dur", dur + "s"); am.setAttribute("path", pad);
+    am.setAttribute("begin", "indefinite"); am.setAttribute("fill", "remove");
+    if(herhaal) am.setAttribute("repeatCount", "indefinite");
+    c.appendChild(am); svg.appendChild(c);
+    setTimeout(function(){ try{ am.beginElement(); }catch(e){} }, (vertraging || 0) * 1000);
+    if(!herhaal) setTimeout(function(){ if(c.parentNode) c.parentNode.removeChild(c); }, (dur + (vertraging || 0)) * 1000 + 100);
+  }
+
   function renderBrein(b){
     var svg = document.getElementById("kit-brein-svg"); if(!svg) return;
+    var L = lang();
     var objs = OBJECTEN.map(function(o){ return { id:o.id, icoon:o.icoon }; });
-    var W=300,H=210, lx=32, rx=268, mx=150;
-    var dy = DRIFT_KNOOP.map(function(_,i){ return 34 + i*(H-68)/(DRIFT_KNOOP.length-1); });
-    var oy = objs.map(function(_,i){ return objs.length>1 ? 15 + i*(H-30)/(objs.length-1) : H/2; });
-    var brein = b.brein||{}, prev = breinPrev[b.naam]||{}, p=[];
-    DRIFT_KNOOP.forEach(function(d,di){
-      var row = brein[d[0]]||{};
-      objs.forEach(function(o,oi){
-        var w = row[o.id]; if(w==null) return;
-        var dev = w-0.5; if(Math.abs(dev)<0.045) return;      // neutraal → niet tekenen
-        var col = dev>0 ? "#39ff85" : "#e0556b";
-        var op = Math.min(1, Math.abs(dev)*2.2).toFixed(2);
-        var sw = (0.4 + Math.abs(dev)*4.2).toFixed(2);
-        var pw = (prev[d[0]]||{})[o.id];
-        var puls = (pw!=null && w-pw>0.012) ? " puls" : "";
-        p.push('<path class="brein-edge'+puls+'" d="M'+lx+','+dy[di].toFixed(1)+' C'+mx+','+dy[di].toFixed(1)+' '+mx+','+oy[oi].toFixed(1)+' '+rx+','+oy[oi].toFixed(1)+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'" opacity="'+op+'" stroke-linecap="round"/>');
+    var brein = b.brein || {};
+    var doel = nnDoel(b);
+    // Teken in echte pixels, zodat namen ook op een telefoon leesbaar blijven.
+    // (clientWidth van een <svg> is in sommige browsers 0; meet daarom het paneel eromheen)
+    var breed = (svg.parentNode && svg.parentNode.clientWidth) || svg.getBoundingClientRect().width || 640;
+    var W = Math.round(Math.max(330, Math.min(720, breed)));
+    var smal = W < 470;
+    var rijen = Math.max(objs.length, 4);
+    var H = Math.round(Math.max(250, 30 + rijen * (smal ? 30 : 32)));
+    var sig = [b.naam, L, W, objs.map(function(o){ return o.id; }).join(","),
+      DRIFT_KNOOP.map(function(d){ var r = brein[d[0]] || {};
+        return objs.map(function(o){ return r[o.id] == null ? "" : Math.round(r[o.id] * 100); }).join("."); }).join("|"),
+      doel ? doel.drift + ">" + doel.obj : ""].join("~");
+
+    if(sig !== nn.sig){
+      var vorigeNaam = nn.naam, prev = nn.prev;
+      nn.sig = sig; nn.naam = b.naam; nn.edges = {}; nn.halo = {};
+      svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+      var lx = smal ? 34 : 70, rx = smal ? W - 118 : W - 190, mx = (lx + rx) / 2;
+      var dy = DRIFT_KNOOP.map(function(_, i){ return 46 + i * (H - 92) / (DRIFT_KNOOP.length - 1); });
+      var oy = objs.map(function(_, i){ return objs.length > 1 ? 18 + i * (H - 36) / (objs.length - 1) : H / 2; });
+      var p = [];
+      p.push('<defs><radialGradient id="nnKern" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="#2d7a5a"/><stop offset="1" stop-color="#0b2419"/></radialGradient></defs>');
+      // conceptlaag: een zachte band in het midden
+      p.push('<rect x="' + (mx - 34) + '" y="6" width="68" height="' + (H - 12) + '" rx="30" fill="#0f3a2c" opacity="0.35"/>');
+      p.push('<text x="' + mx + '" y="' + (H - 4) + '" text-anchor="middle" font-size="9" fill="#5f9c82" letter-spacing="1">'
+        + (L === "en" ? "CONCEPT LAYER" : "CONCEPTLAAG") + '</text>');
+
+      // favoriet per drift (hoogste positieve geloof)
+      var fav = {};
+      DRIFT_KNOOP.forEach(function(d){
+        var r = brein[d[0]] || {}, best = null, bw = 0.5 + NN_NEUTRAAL;
+        objs.forEach(function(o){ var w = r[o.id]; if(w != null && w > bw){ bw = w; best = o.id; } });
+        if(best) fav[d[0]] = { obj:best, w:bw };
       });
+      var objFav = {};   // object → [driften waarvoor het favoriet is]
+      Object.keys(fav).forEach(function(k){ (objFav[fav[k].obj] = objFav[fav[k].obj] || []).push(k); });
+
+      var flitsen = [];
+      DRIFT_KNOOP.forEach(function(d, di){
+        var r = brein[d[0]] || {};
+        objs.forEach(function(o, oi){
+          var w = r[o.id], actief = doel && doel.drift === d[0] && doel.obj === o.id;
+          var y1 = dy[di], y2 = oy[oi];
+          var pad = "M" + (lx + 22) + "," + y1.toFixed(1) + " C" + mx + "," + y1.toFixed(1) + " " + mx + "," + y2.toFixed(1) + " " + (rx - 14) + "," + y2.toFixed(1);
+          var naam = (NN_DRIFT_NAAM[L][d[0]] || d[0]) + " ↔ " + ((NN_OBJ_NAAM[L] || {})[o.id] || o.id);
+          if(w == null || Math.abs(w - 0.5) < NN_NEUTRAAL){
+            if(actief){   // geen geleerd verband, maar hij probeert het: verkennen
+              p.push('<path class="nn-verken" d="' + pad + '" fill="none" stroke="#ffe066" stroke-width="1.6" stroke-dasharray="3 4" opacity="0.85"><title>'
+                + esc(naam) + (L === "en" ? " — trying it out" : " — probeert het uit") + '</title></path>');
+              nn.edges[d[0] + ">" + o.id] = pad;
+            }
+            return;
+          }
+          var dev = w - 0.5, pos = dev > 0;
+          var sterk = Math.min(1, Math.abs(dev) * 2.2);
+          var col = pos ? "#39ff85" : "#e0556b";
+          var sw = (pos ? 1 + sterk * 5 : 0.8 + sterk * 2.2).toFixed(2);
+          var op = (0.25 + sterk * 0.75).toFixed(2);
+          var id = "nn-e-" + d[0] + "-" + o.id;
+          p.push('<path id="' + id + '" class="nn-edge" d="' + pad + '" fill="none" stroke="' + col + '" stroke-width="' + sw + '" opacity="' + op + '"'
+            + (pos ? "" : ' stroke-dasharray="4 4"') + ' stroke-linecap="round"><title>' + esc(naam) + ": " + Math.round(w * 100) + "% — "
+            + (pos ? (L === "en" ? "helps" : "helpt") : (L === "en" ? "does not help" : "helpt niet")) + '</title></path>');
+          // synaps in de conceptlaag (midden van de Bézier: t = 0.5)
+          var sx = 0.125 * (lx + 22) + 0.75 * mx + 0.125 * (rx - 14), sy = (y1 + y2) / 2;
+          if(sterk > 0.3) p.push('<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="' + (1.5 + sterk * 2.5).toFixed(1) + '" fill="' + col + '" opacity="' + op + '"/>');
+          nn.edges[d[0] + ">" + o.id] = pad;
+          // geleerd sinds vorige meting? (alleen bij dezelfde Botty)
+          var pw = vorigeNaam === b.naam ? (prev[d[0]] || {})[o.id] : null;
+          if(pw != null && Math.abs(w - pw) > 0.012) flitsen.push({ id:id, pad:pad, op:w > pw });
+        });
+      });
+
+      // driftneuronen
+      DRIFT_KNOOP.forEach(function(d, di){
+        var y = dy[di];
+        p.push('<circle id="nn-h-' + d[0] + '" class="nn-drift-halo" cx="' + lx + '" cy="' + y.toFixed(1) + '" r="30" fill="#ffd54a" opacity="0"/>');
+        p.push('<circle cx="' + lx + '" cy="' + y.toFixed(1) + '" r="21" fill="url(#nnKern)" stroke="#39c88a" stroke-width="1.8"/>');
+        p.push('<text x="' + lx + '" y="' + (y + 6).toFixed(1) + '" text-anchor="middle" font-size="17">' + d[1] + '</text>');
+        p.push('<text x="' + lx + '" y="' + (y + 36).toFixed(1) + '" text-anchor="middle" font-size="' + (smal ? 9.5 : 11) + '" fill="#a3ffce">'
+          + esc(NN_DRIFT_NAAM[L][d[0]]) + '</text>');
+      });
+      // objectneuronen
+      objs.forEach(function(o, oi){
+        var y = oy[oi], f = objFav[o.id], actief = doel && doel.obj === o.id;
+        var besteW = 0; DRIFT_KNOOP.forEach(function(d){ var w = (brein[d[0]] || {})[o.id]; if(w != null && w > besteW) besteW = w; });
+        var bekend = besteW >= 0.5 + NN_NEUTRAAL;
+        if(actief) p.push('<circle cx="' + rx + '" cy="' + y.toFixed(1) + '" r="19" fill="none" stroke="#ffe066" stroke-width="1.5" opacity="0.9"><animate attributeName="r" values="15;21;15" dur="1.6s" repeatCount="indefinite"/></circle>');
+        p.push('<circle cx="' + rx + '" cy="' + y.toFixed(1) + '" r="13" fill="url(#nnKern)" stroke="' + (f ? "#f6c75a" : (bekend ? "#2f8f86" : "#1c4a3a")) + '" stroke-width="' + (f ? 2 : 1.2) + '"/>');
+        p.push('<text x="' + rx + '" y="' + (y + 4.5).toFixed(1) + '" text-anchor="middle" font-size="13">' + (o.icoon || "•") + '</text>');
+        var label = smal ? "" : esc((NN_OBJ_NAAM[L] || {})[o.id] || o.id);
+        var pct = bekend ? Math.round(besteW * 100) + "%" : "";
+        p.push('<text x="' + (rx + 20) + '" y="' + (y + 4).toFixed(1) + '" font-size="' + (smal ? 10 : 11.5) + '" fill="' + (bekend ? "#e8f6ec" : "#5f7f72") + '">'
+          + label + (label && pct ? " " : "") + (pct ? '<tspan fill="#8fe0b4">' + pct + '</tspan>' : "")
+          + (f ? '<tspan fill="#f6c75a"> ★</tspan>' : "") + '</text>');
+      });
+      svg.innerHTML = p.join("");
+      nn.prev = JSON.parse(JSON.stringify(brein));
+
+      // pulsjes over het actieve verband (doorlopend) + flitsen voor wat net geleerd is
+      if(doel && nn.edges[doel.drift + ">" + doel.obj]){
+        var ap = nn.edges[doel.drift + ">" + doel.obj];
+        nnPuls(ap, "#ffe066", 1.6, true, 0); nnPuls(ap, "#ffe066", 1.6, true, 0.8);
+      }
+      flitsen.forEach(function(fl){
+        var el = document.getElementById(fl.id); if(el){ el.classList.add(fl.op ? "flits" : "flits-neg"); }
+        nnPuls(fl.pad, fl.op ? "#ffffff" : "#ff9aa6", 1.1, false, 0);
+      });
+
+      // bijschrift: waar is hij nu mee bezig?
+      var nu = document.getElementById("nn-nu");
+      if(nu){
+        if(doel){
+          var bekendVerband = Math.abs(((brein[doel.drift] || {})[doel.obj] || 0.5) - 0.5) >= NN_NEUTRAAL;
+          nu.innerHTML = "✦ " + (bekendVerband ? (L === "en" ? "Now: " : "Nu: ") : (L === "en" ? "Trying out: " : "Probeert uit: "))
+            + "<b>" + esc(doel.tekst || ((NN_OBJ_NAAM[L] || {})[doel.obj] || doel.obj)) + "</b>"
+            + " <span style=\"color:#8fe0b4\">(" + esc(NN_DRIFT_NAAM[L][doel.drift] || doel.drift) + ")</span>";
+        } else nu.textContent = "";
+      }
+    }
+
+    // goedkoop, elke aanroep: gloed van de driftneuronen = hoe groot de behoefte is
+    DRIFT_KNOOP.forEach(function(d){
+      var h = document.getElementById("nn-h-" + d[0]); if(!h) return;
+      var nood = Math.max(0, Math.min(1, 1 - (b[d[0]] || 0) / 100));
+      h.setAttribute("opacity", (nood * 0.55).toFixed(2));
+      h.classList.toggle("nood", nood > 0.5);
     });
-    DRIFT_KNOOP.forEach(function(d,di){
-      p.push('<circle cx="'+lx+'" cy="'+dy[di].toFixed(1)+'" r="12" fill="#0e2f1e" stroke="#2f8f86" stroke-width="1.6"/>');
-      p.push('<text x="'+lx+'" y="'+(dy[di]+4).toFixed(1)+'" text-anchor="middle" font-size="13">'+d[1]+'</text>');
-    });
-    objs.forEach(function(o,oi){
-      p.push('<circle cx="'+rx+'" cy="'+oy[oi].toFixed(1)+'" r="9" fill="#0e2f1e" stroke="#1c5b42" stroke-width="1.2"/>');
-      p.push('<text x="'+rx+'" y="'+(oy[oi]+3.5).toFixed(1)+'" text-anchor="middle" font-size="10">'+(o.icoon||"•")+'</text>');
-    });
-    svg.innerHTML = p.join("");
-    breinPrev[b.naam] = JSON.parse(JSON.stringify(brein));
-    var tot = b.breinN ? Object.keys(b.breinN).reduce(function(s,k){ return s+(b.breinN[k]||0); },0) : 0;
-    var nEl = document.getElementById("kit-brein-n"); if(nEl) nEl.textContent = tot ? "· "+tot+" leerervaringen" : "";
+    // af en toe een zacht pulsje over een sterk verband: het net "leeft"
+    var nu2 = Date.now();
+    if(!nnReduced && nu2 - nn.ambientT > 3500){
+      nn.ambientT = nu2;
+      var sterk2 = [];
+      DRIFT_KNOOP.forEach(function(d){ var r = brein[d[0]] || {};
+        Object.keys(r).forEach(function(o){ if(r[o] > 0.6 && nn.edges[d[0] + ">" + o]) sterk2.push(nn.edges[d[0] + ">" + o]); }); });
+      if(sterk2.length) nnPuls(sterk2[Math.floor(Math.random() * sterk2.length)], "#9dffc8", 2.2, false, 0);
+    }
+
+    var tot = b.breinN ? Object.keys(b.breinN).reduce(function(s, k){ return s + (b.breinN[k] || 0); }, 0) : 0;
+    var nEl = document.getElementById("kit-brein-n");
+    if(nEl) nEl.textContent = tot ? "· " + tot + (L === "en" ? " learning experiences" : " leerervaringen") : "";
   }
 
   // De 8 breinkamers uit brein.png lichten live op naar mate ze actief zijn: de
@@ -1584,7 +1813,103 @@
         el.classList.remove("puls"); void el.offsetWidth; el.classList.add("puls");
       }
     });
-    anatPrev[b.naam] = { leer: leer };
+    anatFx(b, act, geleerd, lex, prev);
+    anatPrev[b.naam] = { leer: leer, lex: lex };
+  }
+
+  // ── Levende anatomie: signalen door de buizen van brein.png ─────────────────
+  // Coördinaten in pixels van brein.png (1535×1024). De ringen zijn de koppelstukken
+  // op de plaat; routes lopen van kamer via ringen naar kamer. Wat er stroomt volgt
+  // de echte toestand: denken als hij een doel heeft, leren als er een leerervaring
+  // bijkomt, taal als zijn woordenschat groeit, zintuigen als hij iets waarneemt.
+  var ANAT_RING = {
+    wL:[462,227], wc:[708,224], cb:[940,224], bR:[1188,227], wT:[592,113], cT:[828,107], bT:[1027,113],
+    wBel:[592,348], cBio:[828,348], bGeh:[1048,348], belL:[462,446], belBio:[710,446], bioGeh:[955,446], gehR:[1200,446],
+    belTaal:[592,558], bioO:[828,558], gehTemp:[1052,558], taalL:[490,642], taalR:[766,642], tempL:[830,642], tempR:[1103,645],
+    taalO:[617,760], tempO:[965,760]
+  };
+  var ANAT_KAMER = { w:[577,240], c:[837,240], b:[1075,240], bel:[597,440], bio:[835,440], geh:[1075,440], taal:[636,652], temp:[955,652] };
+  var ANAT_ROUTE = {
+    denken:  { kleur:"#ffe066", dur:2.6, pts:["wL","K:w","wc","K:c","cb","K:b","bGeh","K:geh","gehTemp","K:temp","tempO"] },
+    leren:   { kleur:"#66c8ff", dur:1.8, pts:["belL","K:bel","belBio","K:bio","bioGeh","K:geh","gehR"] },
+    concept: { kleur:"#ffd84d", dur:1.2, pts:["cT","K:c","cBio","K:bio","bioO"] },
+    taal:    { kleur:"#ffa64d", dur:1.6, pts:["wBel","K:bel","belTaal","K:taal","taalO"] },
+    zien:    { kleur:"#7bff9a", dur:1.0, pts:["wT","K:w","wBel"] },
+    gemoed:  { kleur:"#6bb6ff", dur:1.6, pts:["tempL","K:temp","tempR"] }
+  };
+  var anatFxBouw = false, anatRingEl = {}, anatOgen = [], anatLaatst = {}, anatKnipT = null;
+  var anatReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function anatPunt(k){ return k.indexOf("K:") === 0 ? ANAT_KAMER[k.slice(2)] : ANAT_RING[k]; }
+  function anatBouw(){
+    var svg = document.getElementById("kit-anat-fx"); if(!svg) return null;
+    if(anatFxBouw) return svg;
+    anatFxBouw = true;
+    var p = ['<defs><filter id="oogGloed" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9"/></filter></defs>'];
+    // ogen (gloeiend groen, zoals op de plaat)
+    [[262,463],[362,463]].forEach(function(o, i){
+      p.push('<g class="oog" id="anat-oog-' + i + '"><ellipse cx="' + o[0] + '" cy="' + o[1] + '" rx="30" ry="44" fill="#7dff4a" opacity=".55" filter="url(#oogGloed)"/>'
+        + '<ellipse cx="' + o[0] + '" cy="' + o[1] + '" rx="17" ry="30" fill="#b6ff6a" opacity=".55"/></g>');
+    });
+    Object.keys(ANAT_RING).forEach(function(k){
+      var r = ANAT_RING[k];
+      p.push('<circle class="ring" id="anat-r-' + k + '" cx="' + r[0] + '" cy="' + r[1] + '" r="13"/>');
+    });
+    svg.innerHTML = p.join("");
+    Object.keys(ANAT_RING).forEach(function(k){ anatRingEl[k] = document.getElementById("anat-r-" + k); });
+    anatOgen = [document.getElementById("anat-oog-0"), document.getElementById("anat-oog-1")];
+    anatKnipper();
+    return svg;
+  }
+  function anatKnipper(){
+    clearTimeout(anatKnipT);
+    anatKnipT = setTimeout(function(){
+      if(!anatReduced) anatOgen.forEach(function(o){ if(o && !o.classList.contains("slaap")){ o.classList.add("knip"); setTimeout(function(){ o.classList.remove("knip"); }, 140); } });
+      anatKnipper();
+    }, 2600 + Math.random() * 4200);
+  }
+  function anatVuur(naam){
+    var svg = anatBouw(); if(!svg || anatReduced) return;
+    var nu = Date.now(), r = ANAT_ROUTE[naam];
+    if(nu - (anatLaatst[naam] || 0) < r.dur * 700) return;   // niet stapelen
+    anatLaatst[naam] = nu;
+    var pts = r.pts.map(anatPunt), lens = [0], tot = 0;
+    for(var i = 1; i < pts.length; i++){ tot += Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]); lens.push(tot); }
+    var d = "M" + pts.map(function(q){ return q[0] + "," + q[1]; }).join(" L");
+    var c = document.createElementNS(SVGNS, "circle");
+    c.setAttribute("r", "11"); c.setAttribute("fill", r.kleur); c.setAttribute("class", "puls-dot");
+    c.setAttribute("style", "filter:drop-shadow(0 0 10px " + r.kleur + ")");
+    var am = document.createElementNS(SVGNS, "animateMotion");
+    am.setAttribute("dur", r.dur + "s"); am.setAttribute("path", d); am.setAttribute("begin", "indefinite"); am.setAttribute("fill", "remove");
+    c.appendChild(am); svg.appendChild(c);
+    try{ am.beginElement(); }catch(e){}
+    setTimeout(function(){ if(c.parentNode) c.parentNode.removeChild(c); }, r.dur * 1000 + 80);
+    // ringen langs de route lichten op als de puls erlangs komt
+    r.pts.forEach(function(k, idx){
+      var el = anatRingEl[k]; if(!el) return;
+      setTimeout(function(){
+        el.style.color = r.kleur; el.classList.add("aan");
+        setTimeout(function(){ el.classList.remove("aan"); }, 260);
+      }, tot ? (lens[idx] / tot) * r.dur * 1000 : 0);
+    });
+  }
+  function anatFx(b, act, geleerd, lex, prev){
+    if(!anatBouw()) return;
+    // ogen: dicht als hij slaapt, rood als hij ziek is
+    var slaapt = !!(b.doel && b.doel.soort === "slapen");
+    anatOgen.forEach(function(o){
+      if(!o) return;
+      o.classList.toggle("slaap", slaapt);
+      o.querySelectorAll("ellipse").forEach(function(e, i){ e.setAttribute("fill", b.ziek ? (i ? "#ffb08a" : "#ff6b4a") : (i ? "#b6ff6a" : "#7dff4a")); });
+    });
+    if(slaapt || document.hidden) return;
+    // ±2 aanroepen per seconde: kans per aanroep schaalt met de activiteit van de kamer
+    if(Math.random() < act.beslislaag * 0.35) anatVuur("denken");
+    if(Math.random() < act.waarneming * 0.25) anatVuur("zien");
+    if(Math.random() < act.conceptlaag * 0.12) anatVuur("concept");
+    if(Math.random() < act.biochemie * 0.08) anatVuur("gemoed");
+    if(geleerd){ anatVuur("leren"); setTimeout(function(){ anatVuur("concept"); }, 500); }
+    if(prev && prev.lex != null && lex > prev.lex) anatVuur("taal");
+    else if(Math.random() < act.taal * 0.05) anatVuur("taal");
   }
 
   // Biochemie-strook: de stofjes/hormonen ónder het gedrag (leest b.chem uit de
@@ -1634,7 +1959,7 @@
     document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
     document.getElementById("kit-naam").textContent = b.naam;
     refreshAdopt(b.naam, b.bid || null);
-    delete breinPrev[b.naam];   // verse selectie → geen valse puls
+    nn.sig = null; nn.naam = null;   // verse selectie → opnieuw opbouwen, geen valse flits
     try { metBrein(b); renderBrein(b); renderBreinAnat(b); renderBiochem(b); }
     catch(e){ console.error("brein-paneel fout:", e); }
     if(!breinDetail[b.naam]) laadBreinDetail();   // nog geen detail gecacht → haal op
@@ -1836,6 +2161,146 @@
     refreshAdopt(naam, adoptHuidig && adoptHuidig.bid);
   }
 
+
+  // ── Gebeurtenissen (naar Creatures' event-lijst) ──────────────────────────
+  // Bij het openen: de laatste geboortes (`geboorten`) en overlijdens (`levens`).
+  // Daarna live door opeenvolgende snapshots te vergelijken: ei gelegd, geboren,
+  // overleden, ziek/beter en een nieuwe levensfase. Sleutel is `bid`, want namen
+  // worden hergebruikt (er kan een nieuwe Flux geboren worden als de oude net weg is).
+  var LOG_MAX = 40;
+  var logItems = [];          // { k, t, soort, bid, naam, ... }, nieuwste eerst
+  var logGezien = {};         // sleutel → true, tegen dubbele meldingen
+  var logVorig = null;        // vorig snapshot: { bottys:{bid→{naam,ziek,stage}}, eieren:{id→true} }
+  var logNieuwK = {};         // sleutels die net binnenkwamen (voor de oplicht-animatie)
+  var LOG_FASE = {
+    en:{ born:"newborn", young:"young", teen:"a teenager", adult:"an adult", elder:"elderly", sage:"a sage" },
+    nl:{ born:"pasgeboren", young:"jong", teen:"tiener", adult:"volwassen", elder:"oud", sage:"wijs" }
+  };
+  var LOG_OORZAAK = { en:{ ouderdom:"old age", ziekte:"illness" }, nl:{ ouderdom:"ouderdom", ziekte:"ziekte" } };
+
+  // Postgres geeft microseconden ("…00.689592+00:00"); niet elke browser parseert die.
+  function logTs(ts){ return Date.parse(String(ts).replace(/(\.\d{3})\d+/, "$1")); }
+  function logVoeg(item, live){
+    if(logGezien[item.k]) return;
+    logGezien[item.k] = true;
+    if(live) logNieuwK[item.k] = true;
+    logItems.push(item);
+    logItems.sort(function(a, c){ return c.t - a.t; });
+    if(logItems.length > LOG_MAX) logItems.length = LOG_MAX;
+  }
+  function logTekst(it){
+    var en = lang() === "en";
+    var fase = LOG_FASE[lang()];
+    switch(it.soort){
+      case "ei":     return "🥚 " + (en ? it.a + " & " + it.b + " laid an egg" : it.a + " & " + it.b + " legden een ei");
+      case "geb":    return "🐣 " + it.naam + (en ? " was born" : " is geboren")
+                       + (it.a ? (en ? " — child of " : " — kind van ") + it.a + " & " + it.b : (it.immigrant ? (en ? " — an immigrant" : " — een immigrant") : ""))
+                       + (it.gen ? " · gen " + it.gen : "");
+      case "dood": {
+        var oz = it.oorzaak ? ((LOG_OORZAAK[lang()] || {})[it.oorzaak] || it.oorzaak) : "";
+        var extra = [];
+        if(it.leeftijd) extra.push(Math.round(it.leeftijd / 60) + " min");
+        if(it.kinderen) extra.push(it.kinderen + (en ? (it.kinderen === 1 ? " child" : " children") : (it.kinderen === 1 ? " kind" : " kinderen")));
+        if(it.woorden) extra.push(it.woorden + (en ? " words" : " woorden"));
+        return "🪦 " + it.naam + (en ? " passed away" : " is overleden") + (oz ? " (" + oz + ")" : "")
+          + (extra.length ? " · " + extra.join(" · ") : "");
+      }
+      case "ziek":   return "🤒 " + it.naam + (en ? " fell ill" : " werd ziek");
+      case "beter":  return "💚 " + it.naam + (en ? " is better again" : " is weer beter");
+      case "fase":   return "🌱 " + it.naam + (en ? " is now " : " is nu ") + (fase[it.stage] || it.stage);
+    }
+    return "";
+  }
+  function renderLog(){
+    var ul = document.getElementById("log-lijst"); if(!ul) return;
+    var en = lang() === "en";
+    var levend = {};
+    bottys.forEach(function(b){ if(b.bid) levend[b.bid] = b.naam; });
+    document.getElementById("log-n").textContent = logItems.length ? String(logItems.length) : "";
+    if(!logItems.length){
+      ul.innerHTML = '<li class="log-leeg">' + (en ? "Nothing has happened yet…" : "Nog niets gebeurd…") + "</li>";
+      return;
+    }
+    ul.innerHTML = logItems.map(function(it){
+      var tijd = new Date(it.t).toLocaleTimeString(numLocale(), { hour:"2-digit", minute:"2-digit" });
+      var klik = it.soort !== "dood" && it.bid && levend[it.bid];
+      var cls = (klik ? "klikbaar" : "") + (logNieuwK[it.k] ? " nieuw" : "");
+      return '<li class="' + cls + '"' + (klik ? ' data-bid="' + esc(it.bid) + '" title="' + (en ? "Select " : "Selecteer ") + esc(levend[it.bid]) + '"' : "")
+        + '><span class="log-t">' + tijd + "</span><span>" + esc(logTekst(it)) + "</span></li>";
+    }).join("");
+    logNieuwK = {};
+  }
+  // Snapshot-diff. De eerste aanroep legt alleen de beginstand vast.
+  function logVergelijk(lijst, eis){
+    var nu = { bottys:{}, eieren:{} };
+    (lijst || []).forEach(function(b){ if(b && b.bid) nu.bottys[b.bid] = { naam:b.naam, ziek:!!b.ziek, stage:b.stage }; });
+    (eis || []).forEach(function(e){ if(e && e.id) nu.eieren[e.id] = { a:e.ouderA, b:e.ouderB }; });
+    var v = logVorig; logVorig = nu;
+    if(!v) { renderLog(); return; }
+    var t = Date.now(), veranderd = false;
+    Object.keys(nu.eieren).forEach(function(id){
+      if(!v.eieren[id]){ logVoeg({ k:"ei:"+id, t:t, soort:"ei", a:nu.eieren[id].a, b:nu.eieren[id].b }, true); veranderd = true; }
+    });
+    Object.keys(nu.bottys).forEach(function(bid){
+      var n = nu.bottys[bid], o = v.bottys[bid];
+      if(!o){ logVoeg({ k:"geb:"+bid, t:t, soort:"geb", bid:bid, naam:n.naam }, true); veranderd = true; return; }
+      if(n.ziek !== o.ziek){ logVoeg({ k:(n.ziek?"ziek:":"beter:")+bid+":"+t, t:t, soort:n.ziek?"ziek":"beter", bid:bid, naam:n.naam }, true); veranderd = true; }
+      if(n.stage && o.stage && n.stage !== o.stage){ logVoeg({ k:"fase:"+bid+":"+n.stage, t:t, soort:"fase", bid:bid, naam:n.naam, stage:n.stage }, true); veranderd = true; }
+    });
+    Object.keys(v.bottys).forEach(function(bid){
+      if(nu.bottys[bid]) return;
+      logVoeg({ k:"dood:"+bid, t:t, soort:"dood", bid:bid, naam:v.bottys[bid].naam }, true); veranderd = true;
+      // Het grafschrift (oorzaak, leeftijd, kinderen) staat even later in `levens`.
+      setTimeout(function(){ logVerrijkDood(bid); }, 6000);
+    });
+    if(veranderd) renderLog();
+  }
+  function logVerrijkDood(bid){
+    supabase.from("levens").select("bid,oorzaak,leeftijd_sec,kinderen,woorden").eq("bid", bid).limit(1)
+      .then(function(res){
+        var r = res && res.data && res.data[0]; if(!r) return;
+        logItems.forEach(function(it){
+          if(it.k === "dood:"+bid){ it.oorzaak = r.oorzaak; it.leeftijd = r.leeftijd_sec; it.kinderen = r.kinderen; it.woorden = r.woorden; }
+        });
+        renderLog();
+      });
+  }
+  // Beginstand: de recente geschiedenis, zodat een terugkerende kijker ziet wat er gebeurde.
+  function laadLogGeschiedenis(){
+    Promise.all([
+      supabase.from("geboorten").select("ts,kind_id,kind_naam,generatie,oudera_naam,ouderb_naam,immigrant").order("id", { ascending:false }).limit(8),
+      supabase.from("levens").select("ts,bid,naam,oorzaak,leeftijd_sec,kinderen,woorden").order("id", { ascending:false }).limit(8)
+    ]).then(function(rs){
+      ((rs[0] && rs[0].data) || []).forEach(function(r){
+        logVoeg({ k:"geb:"+r.kind_id, t:logTs(r.ts), soort:"geb", bid:r.kind_id, naam:r.kind_naam,
+                  a:r.oudera_naam, b:r.ouderb_naam, gen:r.generatie, immigrant:r.immigrant }, false);
+      });
+      ((rs[1] && rs[1].data) || []).forEach(function(r){
+        logVoeg({ k:"dood:"+r.bid, t:logTs(r.ts), soort:"dood", bid:r.bid, naam:r.naam,
+                  oorzaak:r.oorzaak, leeftijd:r.leeftijd_sec, kinderen:r.kinderen, woorden:r.woorden }, false);
+      });
+      renderLog();
+    }).catch(function(e){ console.warn("gebeurtenissen laden faalde:", (e && e.message) || e); });
+  }
+  document.getElementById("log-lijst").addEventListener("click", function(ev){
+    var li = ev.target.closest("li[data-bid]"); if(!li) return;
+    var b = bottys.filter(function(x){ return x.bid === li.dataset.bid; })[0]; if(!b) return;
+    sel = b.naam; updateKit();
+    kamerEl.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  });
+  (function(){
+    var log = document.getElementById("log"), kop = document.getElementById("log-kop");
+    function wissel(){
+      var dicht = log.classList.toggle("dicht");
+      kop.setAttribute("aria-expanded", dicht ? "false" : "true");
+      try{ localStorage.setItem("construct-log-dicht", dicht ? "1" : "0"); }catch(e){}
+    }
+    kop.addEventListener("click", wissel);
+    kop.addEventListener("keydown", function(ev){ if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); wissel(); } });
+    try{ if(localStorage.getItem("construct-log-dicht") === "1"){ log.classList.add("dicht"); kop.setAttribute("aria-expanded","false"); } }catch(e){}
+  })();
+  laadLogGeschiedenis();
+
   if(adoptKnop) adoptKnop.addEventListener("click", doeAdopt);
 
   // Taalwissel: labels, statusbalk en de kit meteen in de nieuwe taal zetten.
@@ -1843,6 +2308,7 @@
     window.SiteLang.onChange(function(){
       updateDriveLabels();
       toonState();
+      renderLog();
       if(sel) updateKit();
     });
   }

@@ -142,6 +142,30 @@ const BREIN_EPS_MIN  = 0.06;  // exploratiekans van een expert
 const BREIN_OPGEVEN  = 3;     // mislukte pogingen bij één object → iets anders proberen
 const BREIN_ATROFIE  = 0.012; // ongebruikte overtuigingen zakken langzaam terug naar neutraal
 
+// ── Instincten (aangeleerd tijdens slaap) ───────────────────────────────────────
+// Een instinct is een gekristalliseerde reflex: situatie(drive)→actie(object). Het
+// ontstaat NIET bij de geboorte maar wordt 's nachts gevormd, wanneer een Botty een
+// drive→object-verband sterk én consistent genoeg geleerd heeft. Daarna kort de
+// reflex de afweging af (de Botty gaat vrijwel meteen naar het juiste object, zonder
+// de exploratie-loterij). Verandert de wereld en faalt de reflex herhaaldelijk, dan
+// slijt het instinct weer weg en leert de Botty opnieuw.
+const INSTINCT_DREMPEL  = 0.85; // geloof dat het top-object nodig heeft om reflex te worden
+const INSTINCT_ERVARING = 6;    // minimale leerervaring (breinN[drive]) vóór kristallisatie
+const INSTINCT_VERVAL   = 0.55; // zakt het geloof hieronder → de reflex breekt (wereld veranderd)
+const INSTINCT_VOLG     = 0.90; // kans dat de reflex de keuze bepaalt (rest = ruimte om bij te leren)
+
+// ── Laag B: Baldwin-overerving van geleerd uiterlijk ────────────────────────────
+// Wat de ouders tijdens hun leven leerden (hun gloed, 0..1) kleurt licht het
+// ERFELIJKE uiterlijk van het kind. We centreren rond een basis-gloed: ouders die
+// bovengemiddeld leerden geven nakomelingen die van nature iets groter, uitgesprokener
+// en anders getint zijn; ondergemiddelde leerders drijven de andere kant op. Zo wordt
+// aangeleerd uiterlijk over generaties genetisch geassimileerd (Baldwin-effect / zachte
+// overerving), terwijl de centrering de populatie-variatie bewaart i.p.v. iedereen naar
+// de limiet te laten kruipen. Alleen de drie uiterlijk-genen schuiven — nooit overlevings-
+// of zorg-genen — en elke stap is klein en begrensd (0..255), dus het is een trage drift.
+const LEER_BASIS = 0.35;          // referentie-gloed: hierboven duwt leren het uiterlijk op, eronder omlaag
+const LEER_ERF = { 12: 8, 13: 14, 14: 10 } as Record<number, number>; // kracht per uiterlijk-gen (tint, grootte, expressie)
+
 function breinGeloof(b: any, drive: string, objId: string): number {
   return b.brein?.[drive]?.[objId] ?? BREIN_NEUTRAAL;
 }
@@ -422,6 +446,17 @@ function voorkeurObject(b: any): string | null {
 
 function kiesObjectVoor(b: any, drive: string) {
   const n = b.breinN?.[drive] ?? 0;
+  // Instinct: een in de slaap vastgelegde reflex kort de afweging af. Werkt hij niet
+  // meer (wereld veranderd, geloof weggezakt), dan breekt de reflex en leert de Botty
+  // opnieuw; anders volgt hij hem bijna altijd — met een kiertje om te blijven bijstellen.
+  const inst = b.instinct?.[drive];
+  if (inst) {
+    if (breinGeloof(b, drive, inst) < INSTINCT_VERVAL) { delete b.instinct[drive]; }
+    else if (Math.random() < INSTINCT_VOLG) {
+      const o = OBJECTEN.find((x: any) => x.id === inst);
+      if (o) return o;
+    }
+  }
   // v13 §6: bij schaarse ervaring beslist één geslaagde herinnering, vóór de
   // exploratie-loterij hieronder. Met genoeg ervaring neemt de statistiek het over.
   if (n < EPISODISCH_TOT) { const ep = episodischeKeus(b, drive); if (ep) return ep; }
@@ -1175,6 +1210,47 @@ function droom(b: any): string {
     }
   }
   return tekst;
+}
+
+// Instinct-vorming tijdens de slaap: wat een Botty overdag sterk genoeg leerde, wordt
+// 's nachts een reflex. Per drive met voldoende ervaring en een zeer sterk top-geloof
+// kristalliseert het verband situatie→actie uit tot b.instinct[drive]. Additief en
+// behoudend: vormt alleen nieuwe reflexen, breekt niets af (dat doet kiesObjectVoor).
+function vormInstinct(b: any, events?: any[]) {
+  if (!b.brein) return;
+  b.instinct = b.instinct || {};
+  for (const drive of Object.keys(b.brein)) {
+    if (b.instinct[drive]) continue;                     // al een reflex voor deze drive
+    if ((b.breinN?.[drive] ?? 0) < INSTINCT_ERVARING) continue;  // nog te weinig ervaring
+    const w = b.brein[drive]; if (!w || typeof w !== "object") continue;
+    let top: string | null = null, tw = -Infinity;
+    for (const id of Object.keys(w)) { const v = w[id] ?? 0; if (v > tw) { tw = v; top = id; } }
+    if (!top || tw < INSTINCT_DREMPEL) continue;
+    b.instinct[drive] = top;
+    const objKort = OBJECTEN.find((o: any) => o.id === top)?.kort || top;
+    const tegen = DRIVE_LABEL[drive] || drive;
+    onthoud(b, "instinct", "in mijn slaap werd het een reflex: " + objKort + " helpt tegen " + tegen);
+    if (events && Math.random() < 0.5) events.push({ soort: "instinct", naam: b.naam,
+      tekst: "✨ <b>" + b.naam + "</b> vormt in de slaap een instinct: <i>" + objKort + "</i> tegen " + tegen });
+  }
+}
+
+// Gloed (0..1): een licht, meereizend signaal van hoeveel een Botty geleerd én
+// verankerd heeft — gemiddeld meesterschap over de driften plus een bonus per
+// gevormd instinct. De client tekent hieruit een aura (feller tijdens het dromen).
+// Enkel afgeleid (read-only) uit het brein; stuurt het gedrag niet.
+function gloedVan(b: any): number {
+  let som = 0, k = 0;
+  if (b.brein) for (const drive of Object.keys(b.brein)) {
+    const w = b.brein[drive]; if (!w || typeof w !== "object") continue;
+    let tw = -Infinity;
+    for (const id of Object.keys(w)) { const v = w[id] ?? 0; if (v > tw) tw = v; }
+    if (tw > -Infinity) { som += Math.max(0, (tw - 0.5) / 0.5); k++; }   // 0.5→0, 1.0→1
+  }
+  const meesterschap = k ? som / k : 0;
+  const instincten = b.instinct ? Object.keys(b.instinct).length : 0;
+  const instinctBonus = Math.min(0.4, instincten * 0.13);
+  return Math.max(0, Math.min(1, meesterschap * 0.75 + instinctBonus));
 }
 
 // ─── Bewustzijn: innerlijke gedachte + episodisch geheugen ──────────────────────
@@ -1957,11 +2033,32 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   // Genoom kruisen + muteren — hart van de evolutie
   const kruis = genoomKruis(ouderA.genome, ouderB.genome);
   const mutatie = genoomMuteer(kruis.genoom);
-  const kindGenoom = mutatie.genoom;
+  let kindGenoom = mutatie.genoom;
   // §3.4: extra genen erven (recombinatie + mutatie/duplicatie/deletie)
   const eg = erfGenen(ouderA, ouderB);
-  const erfenis = { vanA: kruis.vanA, vanB: kruis.vanB, mutaties: mutatie.aantalMutaties,
+  const erfenis: any = { vanA: kruis.vanA, vanB: kruis.vanB, mutaties: mutatie.aantalMutaties,
     genDup: eg.dup, genNieuw: eg.nieuw, genDel: eg.del, genTotaal: eg.genen.length };
+
+  // Laag B — Baldwin: geleerd uiterlijk van de ouders wordt licht in het kindgenoom
+  // geassimileerd. Drijf = (gemiddelde ouder-gloed − basis); >0 duwt de uiterlijk-genen
+  // op, <0 omlaag. Alleen de genen 12 (tint), 13 (grootte) en 14 (expressie) schuiven,
+  // elk begrensd op 0..255. Gebeurt vóór kleur/grootte worden afgeleid, zodat het kind
+  // meteen zijn geërfde-geleerde uiterlijk draagt én het aan zíjn kinderen doorgeeft.
+  {
+    const leerA = Math.max(0, Math.min(1, +ouderA.gloed || 0));
+    const leerB = Math.max(0, Math.min(1, +ouderB.gloed || 0));
+    const drijf = (leerA + leerB) / 2 - LEER_BASIS;
+    if (drijf !== 0) {
+      const kb = genoomBytes(kindGenoom);
+      for (const i of [12, 13, 14]) {
+        kb[i] = Math.max(0, Math.min(255, Math.round(kb[i] + drijf * LEER_ERF[i])));
+      }
+      kindGenoom = bytesNaarGenoom(kb);
+    }
+    erfenis.leerErf = +(((leerA + leerB) / 2)).toFixed(3);   // gemiddelde ouder-gloed (observatie)
+    erfenis.leerDrijf = +drijf.toFixed(3);                   // richting/sterkte van de uiterlijk-assimilatie
+  }
+
   const G = exprGenoom(kindGenoom);
 
   // Kleur: basis van één ouder, dan genoom-tint → kleuren driften over generaties
@@ -2061,7 +2158,7 @@ async function broadcast(payload: object) {
 // Zware leer-/geheugenvelden: alleen het construct-breinpaneel gebruikt deze, en
 // dan nog enkel voor de geselecteerde Botty. Ze vormen ~80% van elke rij, dus we
 // laten ze wég uit de live-broadcast en laten de client ze on-demand ophalen.
-const ZWARE_VELDEN = ["brein", "breinN", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag", "tom", "episodes", "competentie"];
+const ZWARE_VELDEN = ["brein", "breinN", "instinct", "lexicon", "herinneringen", "relaties", "chem", "erfenis", "zelfzorgGeleerd", "groei", "leerfoutSnel", "leerfoutTraag", "tom", "episodes", "competentie"];
 function slankeBottys(bottys: any[]): any[] {
   return bottys.map((b) => { const s: any = { ...b }; for (const k of ZWARE_VELDEN) delete s[k]; return s; });
 }
@@ -2131,6 +2228,7 @@ Deno.serve(async (req) => {
     if (!Array.isArray(b.genen)) b.genen = [];   // §3.4: variabel-lang genoom (extra genen)
     b.temperament = temperament(b);   // persoonlijkheid (nature) — voor sim + client
     b.voorkeurObj = voorkeurObject(b);   // favoriet object (voorkeur)
+    b.gloed = +gloedVan(b).toFixed(3);   // leer-/consolidatie-aura (licht veld → reist mee)
     if (!b.dimorf) { b.grootte = sekseGrootte(exprVan(b).grootte, b.sekse); b.dimorf = true; }   // dimorfisme één keer toepassen
     if (typeof b.iq !== "number") b.iq = 100;   // IQ-spel: iedereen start op 100
     if (typeof b.levenskracht !== "number") b.levenskracht = 100;   // sterfelijkheid
@@ -2418,6 +2516,7 @@ Deno.serve(async (req) => {
       const dtekst = droom(b);
       if (Math.random() < 0.35) events.push({ soort: "droom", naam: b.naam,
         tekst: "💤 <b>" + b.naam + "</b> droomt: \u201c" + dtekst + "\u201d" });
+      vormInstinct(b, events);   // in de slaap verankerd leren kristalliseert tot reflex
     }
   }
 
