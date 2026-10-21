@@ -2696,6 +2696,52 @@ Deno.serve(async (req) => {
         }
       }
 
+      // 4a) TIKJE — de tegenhanger van aaien (Creatures: "slap"). Corrigeert wat de Botty
+      //     NU doet: staat hij bij een object voor een drive, dan leert hij dat dat
+      //     object die drive níét stilt. Geen pijn, wel een beetje stress — zo kan een
+      //     bezoeker bijgeloof afleren. Kost een interactie-token, net als aaien.
+      else if (vraag.actie === "tik") {
+        const b = vindBot(vraag.bot);
+        if (b) {
+          kost();
+          b.chem = b.chem || {};
+          b.chem.stress = Math.min(100, (b.chem.stress ?? 0) + 8);
+          b.stemming = klem((b.stemming ?? 50) - 4);
+          let leer = "";
+          if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && b.doel.obj) {
+            breinLeer(b, b.doel.stat, b.doel.obj, false);   // "nee, dat niet"
+            const o = OBJECTEN.find(x => x.id === b.doel.obj);
+            if (o) leer = " — leert dat " + o.kort + " niet helpt";
+          }
+          onthoud(b, "gecorrigeerd", "een hand gaf me een tikje");
+          iaEvent = { ok: true, soort: "tik", naam: b.naam,
+            tekst: "👆 <b>" + b.naam + "</b> krijgt een tikje" + leer };
+        }
+      }
+
+      // 4b) NOEMEN — leer één Botty een woord voor het ding waar hij nu mee bezig is
+      //     (Creatures: woorden leren via gedeelde aandacht). Het woord landt onder het
+      //     object-id in zijn lexicon, dus het reist daarna mee met de bestaande
+      //     kennisdeling (deelKennis / praat) door de hive.
+      else if (vraag.actie === "noem") {
+        const b = vindBot(vraag.bot);
+        const woord = String(vraag.woord ?? "").trim().slice(0, 16).replace(/[<>&"]/g, "");
+        const objId = b && (b.doel?.obj || (b.doel?.soort === "priemjacht" ? "bord" : null));
+        const o = objId ? OBJECTEN.find(x => x.id === objId) : null;
+        if (b && woord && o) {
+          kost();
+          b.lexicon = b.lexicon || {};
+          const jong = huidigeStage(b) === "born" || huidigeStage(b) === "young";
+          b.lexicon[o.id] = jong && Math.random() < 0.5 ? muteerWoord(woord) : woord;
+          boostEndorfine(b, 5);
+          onthoud(b, "woord-geleerd", "een mens leerde me dat " + o.kort + " “" + b.lexicon[o.id] + "” heet");
+          iaEvent = { ok: true, soort: "noem", naam: b.naam, obj: o.id, woord: b.lexicon[o.id],
+            tekst: "🏷️ <b>" + b.naam + "</b> leert dat " + o.kort + " “" + b.lexicon[o.id] + "” heet" };
+        } else if (b && woord) {
+          iaEvent = { ok: false, reden: "niets om te noemen" };
+        }
+      }
+
       // 4) WOORD ROEPEN — je leert de hive een woord bij het schoolbord. Wie wakker en
       //    dichtbij genoeg is pikt het op (baby's verbasteren het). Het woord landt in
       //    hun lexicon → telt mee in hun woordenschat en grafschrift-nalatenschap.

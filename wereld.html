@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="assets/i18n.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Botty-verse — The World</title>
+<meta name="theme-color" content="#1c130b" />
+<meta name="description" content="The World: a Creatures-inspired window on the hive — scroll through the classroom, raise the Bottys with your Hand, and open the kits." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥚</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  /* ── De Wereld — Creatures-geïnspireerde interface (eigen vormgeving) ───────
+     Indeling naar het Creatures-venster: werkbalk boven, een wereld die groter is
+     dan het scherm in het midden, statusbalk onder, kits als zwevende vensters. */
+  :root{
+    --hout:#2a1c10; --hout2:#3a2816; --rand:#6b4a2b; --koper:#c98a3c; --koper2:#f6c75a;
+    --licht:#f3e6cf; --zacht:#b89a6a; --groen:#39ff85; --rood:#e0556b; --blauw:#5ec6ff;
+    --tb-h:52px; --sb-h:30px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;background:#0d0904;color:var(--licht);font-family:'Nunito',sans-serif;}
+  #app{position:fixed;inset:0;display:grid;grid-template-rows:var(--tb-h) 1fr var(--sb-h);}
+
+  /* Werkbalk */
+  .werkbalk{display:flex;align-items:center;gap:.35rem;padding:0 64px 0 .5rem;overflow-x:auto;overflow-y:hidden;
+    background:linear-gradient(180deg,#3a2816,#241810);border-bottom:2px solid var(--rand);
+    box-shadow:inset 0 1px 0 rgba(255,230,168,.15);scrollbar-width:none;}
+  .werkbalk::-webkit-scrollbar{display:none;}
+  .merk{font-weight:900;color:var(--koper2);white-space:nowrap;font-size:.95rem;margin-right:.3rem;text-decoration:none;}
+  .sep{width:1px;align-self:stretch;margin:.55rem .2rem;background:#5a3e22;flex:0 0 auto;}
+  .knop{flex:0 0 auto;display:inline-flex;align-items:center;gap:.3rem;height:36px;padding:0 .6rem;border-radius:9px;cursor:pointer;
+    font:700 .82rem 'Nunito',sans-serif;color:#e8d6b4;background:linear-gradient(180deg,#4a3420,#2e1f12);
+    border:1px solid #6b4a2b;box-shadow:inset 0 1px 0 rgba(255,230,168,.18);white-space:nowrap;}
+  .knop:hover{color:#fff1d0;border-color:var(--koper);}
+  .knop.actief{background:linear-gradient(180deg,#7a5228,#4a3018);color:#fff3d6;border-color:var(--koper2);box-shadow:0 0 10px rgba(246,199,90,.35),inset 0 1px 0 rgba(255,230,168,.3);}
+  .knop .ico{font-size:1.05rem;}
+  .knop.klein{padding:0 .5rem;}
+  select.knop{appearance:none;padding-right:1.4rem;background-image:linear-gradient(45deg,transparent 50%,#e8d6b4 50%),linear-gradient(135deg,#e8d6b4 50%,transparent 50%),linear-gradient(180deg,#4a3420,#2e1f12);
+    background-position:calc(100% - 12px) 16px,calc(100% - 7px) 16px,0 0;background-size:5px 5px,5px 5px,100% 100%;background-repeat:no-repeat;}
+  @media (max-width:700px){ .knop .lbl{display:none;} .merk .lbl{display:none;} }
+
+  /* Wereld */
+  #wereld{position:relative;overflow:hidden;background:#0a0703;touch-action:none;cursor:none;}
+  #scene{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  #hand{position:absolute;left:0;top:0;pointer-events:none;font-size:34px;line-height:1;transform:translate(-6px,-4px);
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));transition:transform .08s;z-index:5;}
+  #hand.aait{animation:handAai .6s ease-in-out;}
+  #hand.tikt{animation:handTik .35s ease-in-out;}
+  @keyframes handAai{0%,100%{transform:translate(-6px,-4px) rotate(0)}25%{transform:translate(-6px,-4px) rotate(-14deg)}75%{transform:translate(-6px,-4px) rotate(12deg)}}
+  @keyframes handTik{0%,100%{transform:translate(-6px,-4px)}50%{transform:translate(-6px,6px) scale(.9)}}
+  .floater{font-size:26px;pointer-events:none;animation:floatOp 1.3s ease-out forwards;}
+  @keyframes floatOp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+  .botty-naam{font:800 15px 'Nunito',sans-serif;fill:#fff7e4;paint-order:stroke;stroke:#1a1006;stroke-width:4px;stroke-linejoin:round;}
+  .botty.sel .ring{opacity:1;}
+  .ring{opacity:0;transition:opacity .3s;}
+  .bubbel rect{fill:#fffaf0;stroke:#6b4a2b;stroke-width:2;}
+  .bubbel text{font:700 15px 'Nunito',sans-serif;fill:#2a1c10;}
+  .navknop{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:64px;border-radius:10px;z-index:4;
+    background:rgba(42,28,16,.72);border:1px solid #6b4a2b;color:#f6c75a;font-size:1.3rem;cursor:pointer;}
+  .navknop:hover{background:rgba(74,52,32,.9);}
+  #nav-l{left:8px;} #nav-r{right:8px;}
+  #wereld-melding{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:6;max-width:min(560px,92%);
+    background:rgba(28,19,11,.92);border:1px solid #6b4a2b;border-radius:12px;padding:.5rem .8rem;font-size:.85rem;
+    color:#ffe6a8;display:none;text-align:center;}
+  #noem-pop{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:7;display:none;
+    background:linear-gradient(180deg,#3a2816,#241810);border:2px solid var(--koper);border-radius:14px;padding:.7rem .8rem;
+    box-shadow:0 10px 30px rgba(0,0,0,.6);width:min(420px,92%);}
+  #noem-pop p{font-size:.88rem;margin-bottom:.45rem;}
+  #noem-pop form{display:flex;gap:.4rem;}
+  #noem-pop input{flex:1;min-width:0;font:700 .9rem 'Nunito',sans-serif;background:#14100a;color:#f3e6cf;border:1px solid #6b4a2b;border-radius:8px;padding:.45rem .6rem;}
+
+  /* Statusbalk */
+  .statusbalk{display:flex;align-items:center;gap:.6rem;padding:0 .6rem;font-size:.78rem;color:#cbb189;white-space:nowrap;overflow:hidden;
+    background:linear-gradient(180deg,#241810,#1a1209);border-top:2px solid var(--rand);}
+  .sb-vak{display:inline-flex;align-items:center;gap:.3rem;padding:0 .5rem;height:20px;border:1px solid #4a3420;border-radius:5px;background:#140e07;flex:0 0 auto;}
+  #sb-event{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;border:none;background:none;cursor:pointer;color:#e8d6b4;}
+  .sb-meter{width:56px;height:7px;border-radius:4px;background:#2a1c10;overflow:hidden;}
+  .sb-meter i{display:block;height:100%;background:linear-gradient(90deg,#e0556b,#f6c75a,#39ff85);}
+  @media (max-width:600px){ #sb-score,#sb-tijd{display:none;} }
+  #eventlog{position:fixed;left:8px;bottom:calc(var(--sb-h) + 6px);z-index:30;width:min(460px,calc(100vw - 16px));max-height:45vh;overflow:auto;display:none;
+    background:#1a1209;border:1px solid #6b4a2b;border-radius:10px;padding:.4rem;box-shadow:0 10px 30px rgba(0,0,0,.6);}
+  #eventlog li{list-style:none;font-size:.8rem;padding:.2rem .3rem;border-bottom:1px solid #2a1c10;color:#e8d6b4;}
+  #eventlog li span{color:#8a7350;margin-right:.4rem;font-variant-numeric:tabular-nums;}
+
+  /* Kits als vensters */
+  .kitv{position:fixed;z-index:20;width:330px;max-width:calc(100vw - 16px);max-height:calc(100vh - var(--tb-h) - var(--sb-h) - 16px);
+    display:none;flex-direction:column;background:linear-gradient(180deg,#2a1d11,#1c130b);border:2px solid var(--rand);border-radius:14px;
+    box-shadow:0 14px 40px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,230,168,.12);}
+  .kitv.open{display:flex;}
+  .kitv-kop{display:flex;align-items:center;gap:.45rem;padding:.45rem .6rem;cursor:grab;user-select:none;touch-action:none;
+    background:linear-gradient(180deg,#4a3420,#2e1f12);border-bottom:1px solid #6b4a2b;border-radius:12px 12px 0 0;}
+  .kitv-kop .lampje{width:8px;height:8px;border-radius:50%;background:var(--groen);box-shadow:0 0 6px var(--groen);}
+  .kitv-kop b{flex:1;font-weight:900;color:var(--koper2);font-size:.86rem;letter-spacing:.04em;text-transform:uppercase;}
+  .kitv-kop button{background:none;border:none;color:#e8d6b4;font-size:1.1rem;cursor:pointer;line-height:1;}
+  .kitv-body{padding:.6rem .7rem .7rem;overflow:auto;font-size:.84rem;}
+  .kitv-leeg{color:var(--zacht);font-style:italic;}
+  .kit-rij{display:flex;align-items:center;gap:.5rem;margin:.18rem 0;}
+  .kit-rij .l{flex:0 0 112px;color:#cbb189;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .kit-rij .v{flex:0 0 34px;text-align:right;font-variant-numeric:tabular-nums;color:#e8d6b4;}
+  .balk{flex:1;height:9px;border-radius:5px;background:#120c06;border:1px solid #3a2816;overflow:hidden;}
+  .balk i{display:block;height:100%;border-radius:4px;transition:width .5s ease;}
+  .kit-kop2{margin:.6rem 0 .25rem;font-weight:900;color:#a3ffce;font-size:.8rem;letter-spacing:.03em;}
+  .portret{display:flex;gap:.7rem;align-items:center;margin-bottom:.4rem;}
+  .portret svg{width:82px;height:100px;flex:0 0 auto;background:radial-gradient(circle at 50% 70%,#3a2816,#140e07);border-radius:10px;border:1px solid #4a3420;}
+  .portret .n{font-size:1.15rem;font-weight:900;color:#fff3d6;}
+  .portret .s{font-size:.78rem;color:#cbb189;line-height:1.35;}
+  .gedachte{margin-top:.35rem;font-style:italic;color:#ffe6a8;}
+  .opv-nu{background:#140e07;border:1px solid #4a3420;border-radius:10px;padding:.5rem .6rem;margin-bottom:.5rem;}
+  .opv-knoppen{display:flex;gap:.4rem;margin-top:.45rem;flex-wrap:wrap;}
+  .opv-knoppen .knop{height:32px;}
+  .woordjes{display:flex;flex-wrap:wrap;gap:.3rem;}
+  .woordje{background:#140e07;border:1px solid #4a3420;border-radius:999px;padding:.12rem .5rem;font-size:.78rem;}
+  .lesboek li{list-style:none;font-size:.78rem;padding:.18rem 0;border-bottom:1px dashed #3a2816;}
+  .lesboek li b{color:#ffe6a8;}
+  .noot{font-size:.74rem;color:#9a8460;line-height:1.4;margin-top:.45rem;}
+  #sk-net{width:100%;height:auto;display:block;background:#060f0d;border:1px solid #14403c;border-radius:8px;}
+  #sk-grafiek{width:100%;height:90px;display:block;background:#060f0d;border:1px solid #14403c;border-radius:8px;}
+  @media (max-width:700px){
+    .kitv{left:8px !important;right:8px !important;width:auto;top:auto !important;bottom:calc(var(--sb-h) + 8px);max-height:58vh;}
+    .kitv-kop{cursor:default;}
+  }
+  @media (prefers-reduced-motion:reduce){ #hand.aait,#hand.tikt,.floater{animation:none;} }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Werkbalk: gereedschap voor de Hand, Botty-keuze, kits, camera, geluid -->
+  <nav class="werkbalk" aria-label="toolbar">
+    <a class="merk" href="./" title="Back to the hive" data-nl-title="Terug naar de hive">🥚 <span class="lbl">Botty-verse</span></a>
+    <div class="sep"></div>
+    <button class="knop actief" data-tool="kijk" title="Look — select a Botty" data-nl-title="Kijk — kies een Botty"><span class="ico">👁️</span><span class="lbl t en">Look</span><span class="lbl t nl">Kijk</span></button>
+    <button class="knop" data-tool="aai" title="Stroke — rewards what it is doing now" data-nl-title="Aaien — beloont wat hij nu doet"><span class="ico">🖐</span><span class="lbl t en">Stroke</span><span class="lbl t nl">Aaien</span></button>
+    <button class="knop" data-tool="tik" title="Tap — corrects what it is doing now" data-nl-title="Tikje — corrigeert wat hij nu doet"><span class="ico">👆</span><span class="lbl t en">Tap</span><span class="lbl t nl">Tikje</span></button>
+    <button class="knop" data-tool="voer" title="Feed" data-nl-title="Voeren"><span class="ico">🍎</span><span class="lbl t en">Feed</span><span class="lbl t nl">Voeren</span></button>
+    <button class="knop" data-tool="medicijn" title="Medicine" data-nl-title="Medicijn"><span class="ico">💊</span><span class="lbl t en">Medicine</span><span class="lbl t nl">Medicijn</span></button>
+    <button class="knop" data-tool="noem" title="Name — teach a word for what it is busy with" data-nl-title="Noem — leer een woord voor waar hij mee bezig is"><span class="ico">🏷️</span><span class="lbl t en">Name</span><span class="lbl t nl">Noem</span></button>
+    <div class="sep"></div>
+    <select class="knop" id="botsel" aria-label="Botty"></select>
+    <div class="sep"></div>
+    <button class="knop klein" data-kit="eigenaar" title="Owner kit" data-nl-title="Eigenaarskit"><span class="ico">👤</span><span class="lbl t en">Owner</span><span class="lbl t nl">Eigenaar</span></button>
+    <button class="knop klein" data-kit="gezondheid" title="Health kit" data-nl-title="Gezondheidskit"><span class="ico">❤️</span><span class="lbl t en">Health</span><span class="lbl t nl">Gezondheid</span></button>
+    <button class="knop klein" data-kit="wetenschap" title="Science kit" data-nl-title="Wetenschapskit"><span class="ico">🧠</span><span class="lbl t en">Science</span><span class="lbl t nl">Wetenschap</span></button>
+    <button class="knop klein" data-kit="opvoeden" title="Raising kit" data-nl-title="Opvoedkit"><span class="ico">🎓</span><span class="lbl t en">Raise</span><span class="lbl t nl">Opvoeden</span></button>
+    <div class="sep"></div>
+    <select class="knop" id="plekken" aria-label="Places" title="Favourite places" data-nl-title="Favoriete plekken"></select>
+    <button class="knop klein" id="volgknop" title="Follow the selected Botty" data-nl-title="Volg de gekozen Botty"><span class="ico">🎥</span><span class="lbl t en">Follow</span><span class="lbl t nl">Volg</span></button>
+    <button class="knop klein" id="zoom-uit" title="Zoom out" data-nl-title="Uitzoomen">−</button>
+    <button class="knop klein" id="zoom-in" title="Zoom in" data-nl-title="Inzoomen">+</button>
+    <button class="knop klein" id="geluidknop" title="Sound on/off" data-nl-title="Geluid aan/uit" aria-pressed="false"><span class="ico">🔇</span></button>
+  </nav>
+
+  <!-- De wereld: groter dan het scherm, de camera schuift -->
+  <main id="wereld" aria-label="The World">
+    <svg id="scene" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" role="img" aria-label="The classroom with the Bottys">
+      <defs>
+        <radialGradient id="selGloed" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffe066" stop-opacity=".55"/><stop offset="1" stop-color="#ffe066" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect x="-2000" y="-1000" width="5500" height="2844" fill="#0a0703"/>
+      <image href="assets/construct-achtergrond.webp" x="0" y="0" width="1500" height="844" preserveAspectRatio="none"/>
+      <g id="objlaag"></g>
+      <g id="bottylaag"></g>
+      <g id="fxlaag"></g>
+      <rect id="nachtlaag" x="0" y="0" width="1500" height="844" fill="#0b1533" opacity="0" style="mix-blend-mode:multiply;transition:opacity 4s" pointer-events="none"/>
+    </svg>
+    <div id="hand">🖐</div>
+    <button class="navknop" id="nav-l" aria-label="Scroll left" title="Scroll left" data-nl-title="Naar links">‹</button>
+    <button class="navknop" id="nav-r" aria-label="Scroll right" title="Scroll right" data-nl-title="Naar rechts">›</button>
+    <div id="wereld-melding" role="status" aria-live="polite"></div>
+    <div id="noem-pop">
+      <p id="noem-vraag"></p>
+      <form id="noem-form" autocomplete="off">
+        <input id="noem-input" maxlength="16" required />
+        <button class="knop" type="submit">🏷️ OK</button>
+        <button class="knop" type="button" id="noem-annuleer">✕</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Statusbalk: gebeurtenis, levenskracht, score, tijd -->
+  <footer class="statusbalk">
+    <button class="sb-vak" id="sb-event" title="Show recent events" data-nl-title="Toon recente gebeurtenissen">📜 …</button>
+    <span class="sb-vak" id="sb-sel">—</span>
+    <span class="sb-vak" id="sb-life"><span class="t en">Life force</span><span class="t nl">Levenskracht</span> <span class="sb-meter"><i id="sb-life-i" style="width:0%"></i></span> <b id="sb-life-v">—</b></span>
+    <span class="sb-vak" id="sb-score">🏆 —</span>
+    <span class="sb-vak" id="sb-tijd">—</span>
+  </footer>
+</div>
+<ul id="eventlog"></ul>
+
+<!-- Kits -->
+<section class="kitv" data-kitv="eigenaar" style="left:12px;top:70px">
+  <div class="kitv-kop"><span class="lampje"></span><b><span class="t en">Owner kit</span><span class="t nl">Eigenaarskit</span></b><button aria-label="close">✕</button></div>
+  <div class="kitv-body" id="kit-eigenaar"></div>
+</section>
+<section class="kitv" data-kitv="gezondheid" style="left:356px;top:70px">
+  <div class="kitv-kop"><span class="lampje"></span><b><span class="t en">Health kit</span><span class="t nl">Gezondheidskit</span></b><button aria-label="close">✕</button></div>
+  <div class="kitv-body" id="kit-gezondheid"></div>
+</section>
+<section class="kitv" data-kitv="wetenschap" style="right:12px;top:70px">
+  <div class="kitv-kop"><span class="lampje"></span><b><span class="t en">Science kit</span><span class="t nl">Wetenschapskit</span></b><button aria-label="close">✕</button></div>
+  <div class="kitv-body" id="kit-wetenschap"></div>
+</section>
+<section class="kitv" data-kitv="opvoeden" style="right:356px;top:70px">
+  <div class="kitv-kop"><span class="lampje"></span><b><span class="t en">Raising kit</span><span class="t nl">Opvoedkit</span></b><button aria-label="close">✕</button></div>
+  <div class="kitv-body" id="kit-opvoeden"></div>
+</section>
+
+<script src="assets/botty-config.js"></script>
+<script src="assets/botty-render.js"></script>
+<script src="assets/botty-sprites.js"></script>
+<script src="assets/botty-audio.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  // ── Basis ──────────────────────────────────────────────────────────────────
+  var SVGNS = "http://www.w3.org/2000/svg";
+  var supabase = window.supabase.createClient(BottyConfig.SUPABASE_URL, BottyConfig.SUPABASE_ANON);
+  var TICK_URL = BottyConfig.SUPABASE_URL + "/functions/v1/hive-tick";
+  function lang(){ return (window.SiteLang && SiteLang.get()) || "en"; }
+  function T(en, nl){ return lang() === "nl" ? nl : en; }
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+  function klem01(x){ return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function kies(a){ return a[Math.floor(Math.random() * a.length)]; }
+  function hashF(s){ var h = 2166136261; for (var i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967295; }
+  var opslag = { get: function(k, d){ try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+                 zet: function(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+  // ── De wereld (zelfde maten en vloeren als de Construct) ────────────────────
+  var W_B = 1500, W_H = 844;
+  var NIVEAUS = [{ vloer:405, xlo:70, xhi:1430 }, { vloer:662, xlo:110, xhi:1390 }];
+  var TRAP_X = 565;
+  var RUST = { x:1250, niv:1 };
+  // Schaal per levensfase, gelijk aan de Construct (sprite-vak 200×250).
+  var SCHAAL = { born:0.38, young:0.46, teen:0.50, adult:0.56, elder:0.58, sage:0.64 };
+  function schaalVan(b){ return (SCHAAL[b.stage] || 0.54) * (b.grootte || 1); }
+  function hoogteVan(b){ return 250 * schaalVan(b); }
+  var PIX = { young:1, teen:1, adult:1, elder:1, sage:1 };
+  var DRIFT = [["energie","⚡"],["data","💾"],["fit","🏃"],["geluk","😊"]];
+  var DRIFT_NAAM = { en:{ energie:"energy", data:"data", fit:"fitness", geluk:"happiness" }, nl:{ energie:"energie", data:"data", fit:"fit", geluk:"geluk" } };
+  var OBJ_NAAM = {
+    en:{ laadkruk:"the charger", bord:"the blackboard", boekenkast:"the bookcase", lessenaar:"the desk", kastje:"the cabinet", kruk:"the stool", stolp:"the bell jar", bloempot:"the flowerpot", bal:"the globe", deur:"the open door" },
+    nl:{ laadkruk:"de laadcomputer", bord:"het schoolbord", boekenkast:"de boekenkast", lessenaar:"de lessenaar", kastje:"het kastje", kruk:"de kruk", stolp:"de stolp", bloempot:"de bloempot", bal:"de wereldbol", deur:"de open deur" }
+  };
+  function objNaam(id){ return (OBJ_NAAM[lang()] || {})[id] || id; }
+  var paletten = BottyRender.paletten, sprites = BottySprites.set;
+
+  var scene = document.getElementById("scene"), wereld = document.getElementById("wereld");
+  var objlaag = document.getElementById("objlaag"), bottylaag = document.getElementById("bottylaag"), fxlaag = document.getElementById("fxlaag");
+
+  // ── Objecten uit de centrale agent-catalogus ────────────────────────────────
+  var OBJECTEN = [];
+  fetch("agents.json").then(function(r){ return r.json(); }).then(function(cat){
+    (cat.agents || []).forEach(function(a){
+      if (!a || !a.wereld || !a.sprite) return;
+      var w = a.wereld, im = document.createElementNS(SVGNS, "image");
+      im.setAttribute("href", "assets/klas/" + a.sprite + ".png");
+      im.setAttribute("x", w.x); im.setAttribute("y", w.y); im.setAttribute("width", w.w); im.setAttribute("height", w.h);
+      objlaag.appendChild(im);
+      OBJECTEN.push({ id:a.id, icoon:a.icoon, stat:a.stat, x:Math.round(w.x + w.w / 2), niv:w.niveau });
+    });
+    vulPlekken();
+  }).catch(function(){});
+
+  // ── Camera: zoom + schuiven, volgt de gekozen Botty ─────────────────────────
+  var cam = { cx:W_B / 2, cy:W_H / 2, zoom:opslag.get("wereld-zoom", 1.35) };
+  var doelCam = { cx:cam.cx, cy:cam.cy };
+  var volgen = opslag.get("wereld-volgen", true);
+  function camMaat(){
+    var r = wereld.getBoundingClientRect(), hgt = r.height || 600, brd = r.width || 800, s = (hgt / W_H) * cam.zoom;
+    return { w:brd / s, h:hgt / s, s:s, px:brd, py:hgt };
+  }
+  function klemCam(c){
+    var m = camMaat();
+    c.cx = m.w >= W_B ? W_B / 2 : Math.max(m.w / 2, Math.min(W_B - m.w / 2, c.cx));
+    c.cy = m.h >= W_H ? W_H / 2 : Math.max(m.h / 2, Math.min(W_H - m.h / 2, c.cy));
+  }
+  function zetViewBox(){
+    var m = camMaat();
+    scene.setAttribute("viewBox", (cam.cx - m.w / 2).toFixed(1) + " " + (cam.cy - m.h / 2).toFixed(1) + " " + m.w.toFixed(1) + " " + m.h.toFixed(1));
+  }
+  function schermNaarWereld(clientX, clientY){
+    var r = wereld.getBoundingClientRect(), m = camMaat();
+    return { x:cam.cx - m.w / 2 + (clientX - r.left) / m.s, y:cam.cy - m.h / 2 + (clientY - r.top) / m.s };
+  }
+  function zetVolgen(v){ volgen = v; opslag.zet("wereld-volgen", v); document.getElementById("volgknop").classList.toggle("actief", v); }
+  zetVolgen(volgen);
+  document.getElementById("volgknop").addEventListener("click", function(){ zetVolgen(!volgen); });
+  function zoom(f){ cam.zoom = Math.max(0.9, Math.min(3, cam.zoom * f)); opslag.zet("wereld-zoom", cam.zoom); klemCam(doelCam); }
+  document.getElementById("zoom-in").addEventListener("click", function(){ zoom(1.2); });
+  document.getElementById("zoom-uit").addEventListener("click", function(){ zoom(1 / 1.2); });
+  function schuif(dx){ zetVolgen(false); doelCam.cx += dx; klemCam(doelCam); }
+  document.getElementById("nav-l").addEventListener("click", function(){ schuif(-camMaat().w * 0.6); });
+  document.getElementById("nav-r").addEventListener("click", function(){ schuif(camMaat().w * 0.6); });
+  wereld.addEventListener("wheel", function(ev){
+    ev.preventDefault();
+    if (ev.ctrlKey){ zoom(ev.deltaY < 0 ? 1.08 : 1 / 1.08); return; }
+    var m = camMaat(); zetVolgen(false);
+    doelCam.cx += (Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ? ev.deltaX : ev.deltaY) / m.s;
+    klemCam(doelCam);
+  }, { passive:false });
+  document.addEventListener("keydown", function(ev){
+    if (ev.target && /INPUT|SELECT|TEXTAREA/.test(ev.target.tagName)) return;
+    if (ev.key === "ArrowLeft") schuif(-80); else if (ev.key === "ArrowRight") schuif(80);
+    else if (ev.key === "+" || ev.key === "=") zoom(1.2); else if (ev.key === "-") zoom(1 / 1.2);
+  });
+
+  // Favoriete plekken (Creatures: Camera > favourite places)
+  function vulPlekken(){
+    var sel = document.getElementById("plekken");
+    var plekken = [{ id:"", t:T("📍 Places", "📍 Plekken") },
+      { id:"tuin", t:T("🌳 Garden", "🌳 Tuin"), x:300, y:330 },
+      { id:"kamer", t:T("🏫 Classroom", "🏫 Klaslokaal"), x:760, y:560 },
+      { id:"rust", t:T("🛏️ Resting corner", "🛏️ Rusthoek"), x:RUST.x, y:560 }];
+    OBJECTEN.forEach(function(o){ plekken.push({ id:o.id, t:o.icoon + " " + objNaam(o.id), x:o.x, y:NIVEAUS[o.niv].vloer - 80 }); });
+    sel.innerHTML = plekken.map(function(p){ return '<option value="' + esc(p.id) + '">' + esc(p.t) + "</option>"; }).join("");
+    sel.onchange = function(){
+      var p = plekken.filter(function(q){ return q.id === sel.value; })[0];
+      if (p && p.x != null){ zetVolgen(false); doelCam.cx = p.x; doelCam.cy = p.y; klemCam(doelCam); }
+      sel.value = "";
+    };
+  }
+
+  // ── Toestand van de hive ────────────────────────────────────────────────────
+  var bottys = [], eieren = [], nodes = {}, sel = opslag.get("wereld-sel", null), detail = {}, laatsteStaat = 0;
+  function toonState(nb, ne){
+    laatsteStaat = Date.now();
+    if (nb) bottys = nb.filter(function(b){ return b && b.naam && !b.bezigEi; });
+    if (ne) eieren = ne;
+    if (sel && !bottys.some(function(b){ return b.naam === sel; })) sel = null;
+    if (!sel && bottys.length) kiesBotty(bottys[0].naam, false);
+    vulBotSel(); synchroniseerNodes(); werkKitsBij(true); werkStatusBij();
+  }
+  function laad(){
+    return supabase.rpc("hive_slim").then(function(res){ if (res.data) toonState(res.data.bottys || [], res.data.eieren || []); });
+  }
+  function laadDetail(){
+    if (!sel) return Promise.resolve();
+    return supabase.rpc("hive_detail", { p_naam: sel }).then(function(res){
+      (res.data || []).forEach(function(b){ if (b && b.naam) detail[b.naam] = b; });
+      werkKitsBij(true);
+    }).catch(function(){});
+  }
+  function bot(naam){ return bottys.filter(function(b){ return b.naam === naam; })[0] || null; }
+
+  function vulBotSel(){
+    var s = document.getElementById("botsel");
+    var html = bottys.map(function(b){ return '<option value="' + esc(b.naam) + '"' + (b.naam === sel ? " selected" : "") + ">" + (b.sekse === "v" ? "♀ " : "♂ ") + esc(b.naam) + (b.ziek ? " 🤒" : "") + "</option>"; }).join("");
+    if (s._html !== html){ s._html = html; s.innerHTML = html; }
+  }
+  document.getElementById("botsel").addEventListener("change", function(ev){ kiesBotty(ev.target.value, true); });
+  function kiesBotty(naam, volg){
+    sel = naam; opslag.zet("wereld-sel", naam);
+    Object.keys(nodes).forEach(function(k){ nodes[k].g.classList.toggle("sel", k === naam); });
+    if (volg) zetVolgen(true);
+    vulBotSel(); laadDetail(); werkKitsBij(true); werkStatusBij();
+  }
+
+  // ── Botty's tekenen en laten lopen (client-side, naar hun doel) ─────────────
+  function spriteHref(b, pose){
+    var sx = b.sekse === "v" ? "v" : "m", st = b.stage;
+    return "assets/sprites/" + sx + "/" + st + "/" + st + "_" + pose + ".png?v=2";
+  }
+  var voorgeladen = {};
+  function laadFramesVoor(b){
+    var k = (b.sekse === "v" ? "v" : "m") + b.stage; if (voorgeladen[k] || !PIX[b.stage]) return; voorgeladen[k] = true;
+    ["idle_0","walkL_0","walkL_1","walkR_0","walkR_1","lieL_0","lieR_0"].forEach(function(p){ var im = new Image(); im.src = spriteHref(b, p); });
+  }
+  function maakNode(b){
+    laadFramesVoor(b);
+    var g = document.createElementNS(SVGNS, "g"); g.setAttribute("class", "botty");
+    var ring = document.createElementNS(SVGNS, "ellipse"); ring.setAttribute("class", "ring"); ring.setAttribute("rx", 54); ring.setAttribute("ry", 14); ring.setAttribute("fill", "url(#selGloed)");
+    var lijf = document.createElementNS(SVGNS, "g");
+    var naam = document.createElementNS(SVGNS, "text"); naam.setAttribute("class", "botty-naam"); naam.setAttribute("text-anchor", "middle");
+    g.appendChild(ring); g.appendChild(lijf); g.appendChild(naam);
+    bottylaag.appendChild(g);
+    var niv = hashF(b.naam) < 0.5 ? 0 : 1, lv = NIVEAUS[niv];
+    return { b:b, g:g, ring:ring, lijf:lijf, naam:naam, x:lv.xlo + hashF(b.naam + "x") * (lv.xhi - lv.xlo), niv:niv, y:lv.vloer,
+             doelX:null, doelNiv:niv, richting:1, beweegt:false, klim:null, frame:0, pose:"", dwaalTot:0, bub:null, bubTot:0, laatsteGedachte:"" };
+  }
+  function synchroniseerNodes(){
+    var gezien = {};
+    bottys.forEach(function(b){
+      gezien[b.naam] = true;
+      var nd = nodes[b.naam] || (nodes[b.naam] = maakNode(b));
+      nd.b = b;
+      nd.naam.textContent = b.naam;
+      nd.g.classList.toggle("sel", b.naam === sel);
+      if (b.gedachte && b.gedachte !== nd.laatsteGedachte){
+        if (nd.laatsteGedachte && Math.random() < 0.35) zeg(nd, b.gedachte.length > 34 ? b.gedachte.slice(0, 32) + "…" : b.gedachte);
+        nd.laatsteGedachte = b.gedachte;
+      }
+    });
+    Object.keys(nodes).forEach(function(k){ if (!gezien[k]){ bottylaag.removeChild(nodes[k].g); delete nodes[k]; } });
+  }
+  function isNacht(){ var h = new Date().getHours(); return h >= 22 || h < 7; }
+  function doelVan(nd){
+    var b = nd.b, d = b.doel || {}, nu = Date.now();
+    if (d.obj){ var o = OBJECTEN.filter(function(q){ return q.id === d.obj; })[0]; if (o) return { x:o.x + (hashF(b.naam) - 0.5) * 50, niv:o.niv }; }
+    if (d.soort === "priemjacht"){ var bo = OBJECTEN.filter(function(q){ return q.id === "bord"; })[0]; if (bo) return { x:bo.x, niv:bo.niv }; }
+    if (d.soort === "slapen" || d.soort === "herstellen" || d.soort === "bijkomen") return { x:RUST.x + (hashF(b.naam) - 0.5) * 120, niv:RUST.niv };
+    if ((d.soort === "gezelschap" || d.soort === "voortplanting") && d.naar && nodes[d.naar]){ var o2 = nodes[d.naar]; return { x:o2.x + (o2.x > 750 ? -60 : 60), niv:o2.niv }; }
+    if (nu > nd.dwaalTot || nd.doelX == null){
+      var niv = isNacht() ? 1 : (hashF(b.naam + Math.floor(nu / 60000)) < 0.6 ? 0 : 1), lv = NIVEAUS[niv];
+      nd.dwaalDoel = { x:lv.xlo + Math.random() * (lv.xhi - lv.xlo), niv:niv };
+      nd.dwaalTot = nu + 7000 + Math.random() * 9000;
+    }
+    return nd.dwaalDoel;
+  }
+  var vorigeT = performance.now();
+  function frame(t){
+    var dt = Math.min(0.1, (t - vorigeT) / 1000); vorigeT = t;
+    Object.keys(nodes).forEach(function(k){ beweeg(nodes[k], dt, t); });
+    // camera
+    if (volgen && sel && nodes[sel]){ doelCam.cx = nodes[sel].x; doelCam.cy = nodes[sel].y - 120; klemCam(doelCam); }
+    else klemCam(doelCam);
+    if (!isFinite(doelCam.cx) || !isFinite(doelCam.cy)){ doelCam.cx = W_B / 2; doelCam.cy = W_H / 2; }
+    if (!isFinite(cam.cx) || !isFinite(cam.cy)){ cam.cx = doelCam.cx; cam.cy = doelCam.cy; }
+    cam.cx += (doelCam.cx - cam.cx) * Math.min(1, dt * 4); cam.cy += (doelCam.cy - cam.cy) * Math.min(1, dt * 4);
+    zetViewBox();
+    if (handPos) plaatsHand();
+    document.getElementById("nachtlaag").setAttribute("opacity", isNacht() ? "0.45" : "0");
+    requestAnimationFrame(frame);
+  }
+  function beweeg(nd, dt, t){
+    var b = nd.b, doel = doelVan(nd), slaapt = b.doel && b.doel.soort === "slapen";
+    var snel = (b.adrenalinePiek ? 120 : 70) * (b.stage === "born" ? 0.6 : 1);
+    if (nd.klim){                                   // op de trap: verticaal tussen de vloeren
+      nd.klim.t += dt / 1.6;
+      var a = NIVEAUS[nd.klim.van].vloer, z = NIVEAUS[nd.klim.naar].vloer;
+      nd.y = a + (z - a) * klem01(nd.klim.t); nd.x = TRAP_X;
+      if (nd.klim.t >= 1){ nd.niv = nd.klim.naar; nd.y = z; nd.klim = null; }
+      nd.beweegt = true;
+    } else {
+      var doelX = doel.niv === nd.niv ? doel.x : TRAP_X;
+      var dx = doelX - nd.x;
+      if (Math.abs(dx) > 4){ nd.x += Math.sign(dx) * Math.min(Math.abs(dx), snel * dt); nd.richting = dx > 0 ? 1 : -1; nd.beweegt = true; }
+      else {
+        nd.beweegt = false;
+        if (doel.niv !== nd.niv) nd.klim = { van:nd.niv, naar:doel.niv, t:0 };
+      }
+      nd.y = NIVEAUS[nd.niv].vloer;
+    }
+    // sprite: één <image> per Botty, alleen de href wisselt (geen herladen per frame)
+    var sc = schaalVan(b), h = 250 * sc;
+    var pose;
+    if (slaapt && !nd.beweegt) pose = nd.richting > 0 ? "lieR_0" : "lieL_0";
+    else if (nd.beweegt) pose = (nd.richting > 0 ? "walkR_" : "walkL_") + (Math.floor(t / 260) % 2);
+    else pose = "idle_0";
+    if (nd.lijf._stage !== b.stage){
+      nd.lijf._stage = b.stage; nd.pose = "";
+      if (PIX[b.stage]){
+        nd.lijf.innerHTML = '<image x="-50" y="0" width="300" height="300" preserveAspectRatio="xMidYMax meet"/>';
+        nd.img = nd.lijf.firstChild;
+      } else {
+        nd.img = null;
+        nd.lijf.innerHTML = (sprites.baby || sprites.volwassen)(b.kleur || paletten[0]);
+      }
+    }
+    if (nd.img && pose !== nd.pose){ nd.pose = pose; nd.img.setAttribute("href", spriteHref(b, pose)); }
+    var bob = nd.beweegt && !nd.klim ? Math.abs(Math.sin(t / 130)) * 2 : 0;
+    var flip = !nd.img && nd.richting < 0;   // alleen de SVG-baby spiegelen; pixel-sprites hebben eigen L/R-frames
+    nd.lijf.setAttribute("transform", "translate(" + ((flip ? 100 : -100) * sc).toFixed(1) + "," + (-h - bob).toFixed(1) + ") scale(" + ((flip ? -1 : 1) * sc).toFixed(3) + "," + sc.toFixed(3) + ")");
+    nd.lijf.setAttribute("opacity", b.ziek ? "0.75" : "1");
+    nd.g.setAttribute("transform", "translate(" + nd.x.toFixed(1) + "," + nd.y.toFixed(1) + ")");
+    nd.ring.setAttribute("cy", 0);
+    nd.naam.setAttribute("y", 20);
+    if (nd.bub){
+      if (Date.now() > nd.bubTot){ nd.g.removeChild(nd.bub); nd.bub = null; }
+      else nd.bub.setAttribute("transform", "translate(0," + (-h - 18) + ")");
+    }
+  }
+  function zeg(nd, tekst, stemming){
+    if (nd.bub){ nd.g.removeChild(nd.bub); nd.bub = null; }
+    var g = document.createElementNS(SVGNS, "g"); g.setAttribute("class", "bubbel");
+    var w = Math.min(320, 18 + tekst.length * 8.2);
+    g.innerHTML = '<rect x="' + (-w / 2) + '" y="-30" width="' + w + '" height="30" rx="13"/><path d="M-6,0 l6,9 l6,-9 z" fill="#fffaf0" stroke="#6b4a2b" stroke-width="2"/><text text-anchor="middle" y="-10">' + esc(tekst) + "</text>";
+    nd.g.appendChild(g); nd.bub = g; nd.bubTot = Date.now() + 3200;
+    if (window.BottyAudio && !BottyAudio.isGedempt()) BottyAudio.spreek(nd.b, stemming || "praat");
+  }
+  function floater(nd, ico){
+    var t = document.createElementNS(SVGNS, "text");
+    t.setAttribute("x", nd.x); t.setAttribute("y", nd.y - hoogteVan(nd.b) - 10); t.setAttribute("text-anchor", "middle"); t.setAttribute("class", "floater");
+    t.textContent = ico; fxlaag.appendChild(t);
+    setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 1400);
+  }
+
+  // ── De Hand en het gereedschap ──────────────────────────────────────────────
+  var gereedschap = "kijk", HAND_ICO = { kijk:"👁️", aai:"🖐", tik:"👆", voer:"🍎", medicijn:"💊", noem:"🏷️" };
+  var handEl = document.getElementById("hand"), handPos = null;
+  document.querySelectorAll("[data-tool]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      gereedschap = btn.getAttribute("data-tool");
+      document.querySelectorAll("[data-tool]").forEach(function(b2){ b2.classList.toggle("actief", b2 === btn); });
+      handEl.textContent = HAND_ICO[gereedschap] || "🖐";
+    });
+  });
+  function plaatsHand(){ handEl.style.left = handPos.px + "px"; handEl.style.top = handPos.py + "px"; }
+  var sleep = null;
+  wereld.addEventListener("pointermove", function(ev){
+    var r = wereld.getBoundingClientRect();
+    handPos = { px:ev.clientX - r.left, py:ev.clientY - r.top }; handEl.style.display = ""; plaatsHand();
+    if (sleep && sleep.id === ev.pointerId){
+      var m = camMaat(), dx = (ev.clientX - sleep.x) / m.s, dy = (ev.clientY - sleep.y) / m.s;
+      if (Math.abs(ev.clientX - sleep.x0) + Math.abs(ev.clientY - sleep.y0) > 6) sleep.verschoven = true;
+      if (sleep.verschoven){ zetVolgen(false); doelCam.cx -= dx; doelCam.cy -= dy; klemCam(doelCam); cam.cx = doelCam.cx; cam.cy = doelCam.cy; }
+      sleep.x = ev.clientX; sleep.y = ev.clientY;
+    }
+  });
+  wereld.addEventListener("pointerleave", function(){ handEl.style.display = "none"; });
+  wereld.addEventListener("pointerdown", function(ev){
+    if (ev.target.closest && ev.target.closest("button,input,form,#noem-pop")) return;
+    sleep = { id:ev.pointerId, x:ev.clientX, y:ev.clientY, x0:ev.clientX, y0:ev.clientY, verschoven:false };
+    try { wereld.setPointerCapture(ev.pointerId); } catch (e) {}
+  });
+  wereld.addEventListener("pointerup", function(ev){
+    var was = sleep; sleep = null;
+    if (!was || was.verschoven) return;
+    var p = schermNaarWereld(ev.clientX, ev.clientY), beste = null, bd = 100 * 100;
+    Object.keys(nodes).forEach(function(k){
+      var nd = nodes[k], h = hoogteVan(nd.b);
+      var dx = nd.x - p.x, dy = (nd.y - h / 2) - p.y, d2 = dx * dx + dy * dy * 0.5;
+      if (d2 < bd){ bd = d2; beste = k; }
+    });
+    if (!beste) return;
+    kiesBotty(beste, false);
+    if (gereedschap === "noem") openNoem(beste);
+    else if (gereedschap !== "kijk") doeInteractie(beste, gereedschap);
+  });
+
+  // ── Interacties met de server ───────────────────────────────────────────────
+  var iaBezig = false, lesboek = opslag.get("wereld-lesboek", []);
+  function melding(tekst, ms){
+    var el = document.getElementById("wereld-melding");
+    el.textContent = tekst; el.style.display = "block";
+    clearTimeout(melding._t); melding._t = setTimeout(function(){ el.style.display = "none"; }, ms || 3200);
+  }
+  function geloofVan(naam, drift, obj){ var d = detail[naam]; return d && d.brein && d.brein[drift] ? d.brein[drift][obj] : null; }
+  function doeInteractie(naam, actie, woord){
+    if (iaBezig) return;
+    var nd = nodes[naam], b = bot(naam); if (!nd || !b) return;
+    iaBezig = true;
+    handEl.classList.remove("aait", "tikt"); void handEl.offsetWidth;
+    handEl.classList.add(actie === "tik" ? "tikt" : "aait");
+    if (actie === "aai") floater(nd, "❤️");
+    if (window.BottyAudio) BottyAudio.unlock();
+    var d = b.doel || {}, les = (actie === "aai" || actie === "tik") && d.soort === "zelfzorg" && d.stat && d.obj
+      ? { drift:d.stat, obj:d.obj, voor:geloofVan(naam, d.stat, d.obj) } : null;
+    fetch(TICK_URL, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ actie:actie, bot:naam, woord:woord }) })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        iaBezig = false;
+        var ia = res && res.interactie;
+        if (!ia || ia.ok === false){
+          melding(ia && ia.reden === "rustig" ? T("🖐 Easy now — the hive needs a moment.", "🖐 Rustig aan — de hive heeft even tijd nodig.")
+            : ia && ia.reden === "niets om te noemen" ? T("It isn't busy with anything to name right now.", "Hij is nu nergens mee bezig om te benoemen.") : T("That didn't work…", "Dat lukte niet…"));
+          return;
+        }
+        if (actie === "tik"){ floater(nd, "💢"); zeg(nd, kies(T(["oh!","sorry…","hm."], ["oei!","sorry…","hm."])), "ziek"); }
+        else if (actie === "aai") zeg(nd, kies(T(["hihi!","nice!","again!"], ["hihi!","fijn!","nog eens!"])), "blij");
+        else if (actie === "voer"){ floater(nd, "🍎"); zeg(nd, kies(T(["mmm!","tasty!"], ["mmm!","lekker!"])), "blij"); }
+        else if (actie === "medicijn") floater(nd, "💊");
+        else if (actie === "noem"){ floater(nd, "🏷️"); zeg(nd, ia.woord ? ia.woord + "!" : "?", "praat"); }
+        voegEvent(stripTags(ia.tekst || ""));
+        // Lesboek: wat leerde hij hiervan? Vergelijk het geloof vóór en ná.
+        var item = { t:Date.now(), naam:naam, actie:actie, woord:ia.woord || null, obj:ia.obj || (les && les.obj) || null, drift:les && les.drift, voor:les && les.voor, na:null };
+        lesboek.unshift(item); lesboek.length = Math.min(lesboek.length, 30); opslag.zet("wereld-lesboek", lesboek);
+        setTimeout(function(){
+          laadDetail().then(function(){
+            if (les){ item.na = geloofVan(naam, les.drift, les.obj); opslag.zet("wereld-lesboek", lesboek); werkKitsBij(true); }
+          });
+        }, 1200);
+        laad();
+      })
+      .catch(function(){ iaBezig = false; melding(T("No connection to the hive.", "Geen verbinding met de hive.")); });
+  }
+  // Noemen: vraag een woord voor het ding waar hij mee bezig is.
+  var noemVoor = null;
+  function huidigObject(b){ var d = b && b.doel || {}; return d.obj || (d.soort === "priemjacht" ? "bord" : null); }
+  function openNoem(naam){
+    var b = bot(naam), obj = huidigObject(b);
+    if (!obj){ melding(T(naam + " isn't busy with an object right now — wait until it goes to one.", naam + " is nu niet met een object bezig — wacht tot hij ergens heen gaat.")); return; }
+    noemVoor = naam;
+    var o = OBJECTEN.filter(function(q){ return q.id === obj; })[0];
+    document.getElementById("noem-vraag").textContent = T("What is the word for ", "Wat is het woord voor ") + (o ? o.icoon + " " : "") + objNaam(obj) + "? " + T("(" + naam + " will learn it)", "(" + naam + " leert het)");
+    document.getElementById("noem-pop").style.display = "block";
+    var inp = document.getElementById("noem-input"); inp.value = ""; inp.focus();
+  }
+  document.getElementById("noem-form").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var w = document.getElementById("noem-input").value.trim();
+    document.getElementById("noem-pop").style.display = "none";
+    if (w && noemVoor) doeInteractie(noemVoor, "noem", w);
+  });
+  document.getElementById("noem-annuleer").addEventListener("click", function(){ document.getElementById("noem-pop").style.display = "none"; });
+
+  // ── Statusbalk + gebeurtenissen ─────────────────────────────────────────────
+  var events = [];
+  function stripTags(s){ var d = document.createElement("div"); d.innerHTML = s; return d.textContent || ""; }
+  function voegEvent(tekst){
+    if (!tekst) return;
+    events.unshift({ t:Date.now(), tekst:tekst }); events.length = Math.min(events.length, 40);
+    document.getElementById("sb-event").textContent = "📜 " + tekst;
+    renderEventlog();
+  }
+  function renderEventlog(){
+    document.getElementById("eventlog").innerHTML = events.map(function(e){
+      return "<li><span>" + new Date(e.t).toLocaleTimeString(lang() === "nl" ? "nl-NL" : "en-GB", { hour:"2-digit", minute:"2-digit" }) + "</span>" + esc(e.tekst) + "</li>";
+    }).join("") || "<li>" + esc(T("Nothing yet…", "Nog niets…")) + "</li>";
+  }
+  document.getElementById("sb-event").addEventListener("click", function(){
+    var el = document.getElementById("eventlog"); el.style.display = el.style.display === "block" ? "none" : "block"; renderEventlog();
+  });
+  function werkStatusBij(){
+    var b = bot(sel);
+    document.getElementById("sb-sel").textContent = b ? (b.sekse === "v" ? "♀ " : "♂ ") + b.naam : "—";
+    var lk = b ? Math.round(b.levenskracht ?? 100) : 0;
+    document.getElementById("sb-life-i").style.width = lk + "%";
+    document.getElementById("sb-life-v").textContent = b ? lk + "%" : "—";
+    var gen = bottys.reduce(function(m, x){ return Math.max(m, x.generatie || 0); }, 0);
+    document.getElementById("sb-score").textContent = "🏆 " + T("gen ", "gen ") + gen;
+    var nu = new Date();
+    document.getElementById("sb-tijd").textContent = (isNacht() ? "🌙 " : "☀️ ") + nu.toLocaleTimeString(lang() === "nl" ? "nl-NL" : "en-GB", { hour:"2-digit", minute:"2-digit" })
+      + " · " + bottys.length + " Botty" + (bottys.length !== 1 ? (lang() === "nl" ? "'s" : "s") : "") + (eieren.length ? " · 🥚 " + eieren.length : "");
+  }
+
+  // ── Kits: verplaatsbare vensters ────────────────────────────────────────────
+  var kitStand = opslag.get("wereld-kits", {});
+  document.querySelectorAll(".kitv").forEach(function(v){
+    var id = v.getAttribute("data-kitv"), kop = v.querySelector(".kitv-kop");
+    if (kitStand[id] && kitStand[id].pos){ v.style.left = kitStand[id].pos[0] + "px"; v.style.top = kitStand[id].pos[1] + "px"; v.style.right = "auto"; }
+    if (kitStand[id] && kitStand[id].open) v.classList.add("open");
+    kop.querySelector("button").addEventListener("click", function(){ zetKit(id, false); });
+    var drag = null;
+    kop.addEventListener("pointerdown", function(ev){
+      if (ev.target.tagName === "BUTTON" || window.innerWidth <= 700) return;
+      var r = v.getBoundingClientRect(); drag = { dx:ev.clientX - r.left, dy:ev.clientY - r.top };
+      kop.setPointerCapture(ev.pointerId); v.style.zIndex = ++topZ;
+    });
+    kop.addEventListener("pointermove", function(ev){
+      if (!drag) return;
+      var x = Math.max(0, Math.min(window.innerWidth - 80, ev.clientX - drag.dx)), y = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - drag.dy));
+      v.style.left = x + "px"; v.style.top = y + "px"; v.style.right = "auto";
+    });
+    kop.addEventListener("pointerup", function(){
+      if (!drag) return; drag = null;
+      kitStand[id] = kitStand[id] || {}; kitStand[id].pos = [parseInt(v.style.left, 10), parseInt(v.style.top, 10)]; opslag.zet("wereld-kits", kitStand);
+    });
+    v.addEventListener("pointerdown", function(){ v.style.zIndex = ++topZ; });
+  });
+  var topZ = 20;
+  function zetKit(id, open){
+    var v = document.querySelector('[data-kitv="' + id + '"]'); if (!v) return;
+    v.classList.toggle("open", open); if (open) v.style.zIndex = ++topZ;
+    document.querySelector('[data-kit="' + id + '"]').classList.toggle("actief", open);
+    kitStand[id] = kitStand[id] || {}; kitStand[id].open = open; opslag.zet("wereld-kits", kitStand);
+    if (open){ laadDetail(); werkKitsBij(true); }
+  }
+  document.querySelectorAll("[data-kit]").forEach(function(btn){
+    var id = btn.getAttribute("data-kit");
+    btn.classList.toggle("actief", !!(kitStand[id] && kitStand[id].open));
+    btn.addEventListener("click", function(){ zetKit(id, !document.querySelector('[data-kitv="' + id + '"]').classList.contains("open")); });
+  });
+  function kitOpen(id){ return document.querySelector('[data-kitv="' + id + '"]').classList.contains("open"); }
+  function balk(label, waarde, kleur, titel){
+    var v = Math.max(0, Math.min(100, waarde || 0));
+    return '<div class="kit-rij"' + (titel ? ' title="' + esc(titel) + '"' : "") + '><span class="l">' + label + '</span><span class="balk"><i style="width:' + v.toFixed(0) + "%;background:" + kleur + '"></i></span><span class="v">' + Math.round(v) + "</span></div>";
+  }
+  var FASE = { en:{ born:"newborn", young:"young", teen:"teenager", adult:"adult", elder:"elderly", sage:"sage" }, nl:{ born:"pasgeboren", young:"jong", teen:"tiener", adult:"volwassen", elder:"oud", sage:"wijs" } };
+  var laatsteKitRender = 0;
+  function werkKitsBij(nu){
+    if (!nu && Date.now() - laatsteKitRender < 1500) return;
+    laatsteKitRender = Date.now();
+    var b = bot(sel), d = b && detail[b.naam];
+    var leeg = '<p class="kitv-leeg">' + esc(T("Click a Botty in the world to choose it.", "Klik op een Botty in de wereld om hem te kiezen.")) + "</p>";
+    if (kitOpen("eigenaar")) document.getElementById("kit-eigenaar").innerHTML = b ? kitEigenaar(b, d) : leeg;
+    if (kitOpen("gezondheid")) document.getElementById("kit-gezondheid").innerHTML = b ? kitGezondheid(b, d) : leeg;
+    if (kitOpen("wetenschap")) document.getElementById("kit-wetenschap").innerHTML = b ? kitWetenschap(b, d) : leeg;
+    if (kitOpen("opvoeden")) document.getElementById("kit-opvoeden").innerHTML = b ? kitOpvoeden(b, d) : leeg;
+  }
+  function portret(b){
+    var pal = b.kleur || paletten[0];
+    var inner = PIX[b.stage] ? '<image href="' + spriteHref(b, "idle_0") + '" x="0" y="0" width="200" height="250" preserveAspectRatio="xMidYMax meet"/>' : (sprites.baby || sprites.volwassen)(pal);
+    return '<svg viewBox="0 0 200 250">' + inner + "</svg>";
+  }
+  function leeftijd(b){
+    if (!b.geboren) return "—";
+    var min = Math.round((Date.now() - b.geboren) / 60000);
+    return min < 90 ? min + " min" : (min / 60).toFixed(1) + (lang() === "nl" ? " uur" : " h");
+  }
+  function kitEigenaar(b, d){
+    var T4 = b.temperament || {};
+    var h = '<div class="portret">' + portret(b) + '<div><div class="n">' + esc(b.naam) + "</div>"
+      + '<div class="s">' + esc((FASE[lang()] || {})[b.stage] || b.stage) + " · " + (b.sekse === "v" ? "♀" : "♂") + " · " + T("generation ", "generatie ") + (b.generatie || 1)
+      + "<br>" + T("Age ", "Leeftijd ") + leeftijd(b) + " · IQ " + Math.round(b.iq || 100) + "</div></div></div>";
+    if (b.zelfbeeld) h += '<div class="noot">🪞 “' + esc(b.zelfbeeld) + "”</div>";
+    h += '<div class="gedachte">💭 “' + esc(b.gedachte || "…") + "”</div>";
+    h += '<div class="kit-kop2">' + esc(T("Temperament", "Temperament")) + "</div>"
+      + balk(T("Social", "Sociaal"), (T4.sociaal || 0) * 100, "#ff9ecb")
+      + balk(T("Curious", "Nieuwsgierig"), (T4.nieuwsgierig || 0) * 100, "#5ec6ff")
+      + balk(T("Diligent", "IJverig"), (T4.ijver || 0) * 100, "#8be36b")
+      + balk(T("Brave", "Dapper"), (T4.dapper || 0) * 100, "#ffd84d");
+    var lex = d && d.lexicon ? Object.keys(d.lexicon).length : null;
+    h += '<div class="kit-kop2">' + esc(T("Language", "Taal")) + "</div><div>" + (lex == null ? "…" : lex + " " + T("words known", "woorden bekend")) + "</div>";
+    if (b.mutaties && b.mutaties.length) h += '<div class="noot">🧬 ' + esc(b.mutaties.join(", ")) + "</div>";
+    return h;
+  }
+  var CHEM_LIJST = [["glucose","#8be36b"],["glycogeen","#57e0c8"],["honger","#ffb14d"],["vermoeidheid","#8fa9c8"],["endorfine","#39ff85"],["stress","#ff6b7a"],["adrenaline","#ffd84d"],["cortisol","#d1584a"],["gif","#b98bff"],["verveling","#c9b487"],["angst","#7f8bff"],["eenzaamheid","#66a3ff"],["oxytocine","#ff9ecb"],["libido","#ff5ea8"]];
+  var CHEM_EN = { glucose:"glucose", glycogeen:"reserve", honger:"hunger", vermoeidheid:"fatigue", endorfine:"endorphin", stress:"stress", adrenaline:"adrenaline", cortisol:"cortisol", gif:"toxin", verveling:"boredom", angst:"fear", eenzaamheid:"loneliness", oxytocine:"oxytocin", libido:"libido" };
+  function kitGezondheid(b, d){
+    var h = '<div class="kit-kop2">' + esc(T("Needs (higher = more urgent)", "Behoeften (hoger = dringender)")) + "</div>";
+    DRIFT.forEach(function(dr){ h += balk(dr[1] + " " + DRIFT_NAAM[lang()][dr[0]], 100 - (b[dr[0]] || 0), "linear-gradient(90deg,#f6c75a,#e0556b)"); });
+    h += balk("💚 " + T("Life force", "Levenskracht"), b.levenskracht ?? 100, "linear-gradient(90deg,#e0556b,#39ff85)");
+    h += '<div class="noot">' + (b.ziek ? "🤒 " + T("Ill — give medicine.", "Ziek — geef medicijn.") : "✅ " + T("Healthy", "Gezond")) + "</div>";
+    h += '<div class="kit-kop2">' + esc(T("Biochemistry", "Biochemie")) + "</div>";
+    if (!d || !d.chem) h += '<p class="kitv-leeg">' + esc(T("Loading…", "Laden…")) + "</p>";
+    else CHEM_LIJST.forEach(function(c){ h += balk(lang() === "nl" ? c[0] : CHEM_EN[c[0]], d.chem[c[0]], c[1]); });
+    return h;
+  }
+  // Wetenschapskit: geleerde verbanden (drift ↔ object) + chemie-verloop
+  var chemHist = {};
+  function kitWetenschap(b, d){
+    var h = '<div class="kit-kop2">' + esc(T("🧠 Learned links", "🧠 Geleerde verbanden")) + "</div>";
+    h += netSvg(b, d);
+    var tot = d && d.breinN ? Object.keys(d.breinN).reduce(function(s, k){ return s + (d.breinN[k] || 0); }, 0) : 0;
+    h += '<div class="noot">' + tot + " " + esc(T("learning experiences · green = helps, red dashed = does not help, ★ = favourite", "leerervaringen · groen = helpt, rood gestippeld = helpt niet, ★ = favoriet")) + "</div>";
+    h += '<div class="kit-kop2">' + esc(T("📈 Chemistry over time", "📈 Chemie in de tijd")) + "</div>" + grafiekSvg(b.naam)
+      + '<div class="noot"><span style="color:#39ff85">■</span> ' + esc(T("endorphin", "endorfine")) + ' &nbsp;<span style="color:#ff6b7a">■</span> stress &nbsp;<span style="color:#ffb14d">■</span> ' + esc(T("hunger", "honger")) + ' &nbsp;<span style="color:#8fa9c8">■</span> ' + esc(T("fatigue", "moeheid")) + "</div>";
+    return h;
+  }
+  function netSvg(b, d){
+    var brein = (d && d.brein) || {}, W = 300, H = Math.max(200, 24 + OBJECTEN.length * 22), lx = 34, rx = 214;
+    var dy = DRIFT.map(function(_, i){ return 36 + i * (H - 72) / 3; });
+    var oy = OBJECTEN.map(function(_, i){ return 14 + i * (H - 28) / Math.max(1, OBJECTEN.length - 1); });
+    var p = [], fav = {};
+    DRIFT.forEach(function(dr){ var r = brein[dr[0]] || {}, best = null, bw = 0.545; OBJECTEN.forEach(function(o){ if ((r[o.id] || 0) > bw){ bw = r[o.id]; best = o.id; } }); if (best) fav[best] = true; });
+    var doel = b.doel || {};
+    DRIFT.forEach(function(dr, di){
+      var r = brein[dr[0]] || {};
+      OBJECTEN.forEach(function(o, oi){
+        var w = r[o.id], actief = doel.stat === dr[0] && doel.obj === o.id;
+        var pad = "M" + (lx + 16) + "," + dy[di].toFixed(1) + " C125," + dy[di].toFixed(1) + " 125," + oy[oi].toFixed(1) + " " + (rx - 10) + "," + oy[oi].toFixed(1);
+        if (w == null || Math.abs(w - 0.5) < 0.045){ if (actief) p.push('<path d="' + pad + '" fill="none" stroke="#ffe066" stroke-width="1.5" stroke-dasharray="3 4"/>'); return; }
+        var dev = w - 0.5, pos = dev > 0, s = Math.min(1, Math.abs(dev) * 2.2);
+        p.push('<path d="' + pad + '" fill="none" stroke="' + (actief ? "#ffe066" : pos ? "#39ff85" : "#e0556b") + '" stroke-width="' + (pos ? 1 + s * 4 : 0.8 + s * 2).toFixed(1) + '" opacity="' + (0.3 + s * 0.7).toFixed(2) + '"' + (pos ? "" : ' stroke-dasharray="4 4"') + "><title>" + esc(DRIFT_NAAM[lang()][dr[0]] + " ↔ " + objNaam(o.id) + ": " + Math.round(w * 100) + "%") + "</title></path>");
+      });
+    });
+    DRIFT.forEach(function(dr, di){
+      var nood = 1 - (b[dr[0]] || 0) / 100;
+      p.push('<circle cx="' + lx + '" cy="' + dy[di].toFixed(1) + '" r="22" fill="#ffd54a" opacity="' + (nood * 0.5).toFixed(2) + '"/><circle cx="' + lx + '" cy="' + dy[di].toFixed(1) + '" r="15" fill="#0e2f1e" stroke="#39c88a" stroke-width="1.6"/><text x="' + lx + '" y="' + (dy[di] + 5).toFixed(1) + '" text-anchor="middle" font-size="14">' + dr[1] + "</text>");
+    });
+    OBJECTEN.forEach(function(o, oi){
+      p.push('<circle cx="' + rx + '" cy="' + oy[oi].toFixed(1) + '" r="10" fill="#0e2f1e" stroke="' + (fav[o.id] ? "#f6c75a" : "#2f8f86") + '" stroke-width="1.3"/><text x="' + rx + '" y="' + (oy[oi] + 4).toFixed(1) + '" text-anchor="middle" font-size="11">' + o.icoon + '</text><text x="' + (rx + 15) + '" y="' + (oy[oi] + 4).toFixed(1) + '" font-size="10" fill="#cfe8da">' + esc(objNaam(o.id).replace(/^(de|het|the) /, "")) + (fav[o.id] ? ' <tspan fill="#f6c75a">★</tspan>' : "") + "</text>");
+    });
+    return '<svg id="sk-net" viewBox="0 0 ' + W + " " + H + '">' + p.join("") + "</svg>";
+  }
+  function noteerChem(){
+    Object.keys(detail).forEach(function(naam){
+      var c = detail[naam].chem; if (!c) return;
+      var h = chemHist[naam] = chemHist[naam] || [];
+      h.push([c.endorfine || 0, c.stress || 0, c.honger || 0, c.vermoeidheid || 0]); if (h.length > 60) h.shift();
+    });
+  }
+  function grafiekSvg(naam){
+    var h = chemHist[naam] || [], W = 300, H = 90, kleuren = ["#39ff85","#ff6b7a","#ffb14d","#8fa9c8"];
+    if (h.length < 2) return '<svg id="sk-grafiek" viewBox="0 0 300 90"><text x="150" y="50" text-anchor="middle" font-size="11" fill="#7fb89a">' + esc(T("collecting…", "verzamelen…")) + "</text></svg>";
+    var lijnen = kleuren.map(function(k, i){
+      return '<polyline fill="none" stroke="' + k + '" stroke-width="1.6" points="' + h.map(function(r, j){ return (j / (h.length - 1) * W).toFixed(1) + "," + (H - 4 - r[i] / 100 * (H - 8)).toFixed(1); }).join(" ") + '"/>';
+    }).join("");
+    return '<svg id="sk-grafiek" viewBox="0 0 300 90" preserveAspectRatio="none">' + lijnen + "</svg>";
+  }
+  // Opvoedkit: wat doet hij nu, wat vind jij ervan, welke woorden kent hij, wat leerde hij van jou
+  function kitOpvoeden(b, d){
+    var doel = b.doel || {}, obj = huidigObject(b);
+    var nu = doel.tekst || (doel.soort ? doel.soort : T("wandering", "dwalen"));
+    var h = '<div class="opv-nu"><div><b>' + esc(b.naam) + "</b> " + esc(T("is now:", "is nu:")) + " " + esc(nu) + "</div>";
+    if (doel.soort === "zelfzorg" && doel.stat && doel.obj){
+      var w = geloofVan(b.naam, doel.stat, doel.obj);
+      h += '<div class="noot" style="margin-top:.25rem">' + esc(T("It thinks ", "Hij denkt dat ")) + esc(objNaam(doel.obj)) + esc(T(" helps its ", " helpt tegen ")) + esc(DRIFT_NAAM[lang()][doel.stat]) + (w != null ? " (" + Math.round(w * 100) + "%)" : "") + ". " + esc(T("Do you agree?", "Klopt dat?")) + "</div>";
+      h += '<div class="opv-knoppen"><button class="knop" data-opv="aai">🖐 ' + esc(T("Good, keep it up", "Goed zo")) + '</button><button class="knop" data-opv="tik">👆 ' + esc(T("No, not that", "Nee, dat niet")) + "</button></div>";
+    } else {
+      h += '<div class="noot" style="margin-top:.25rem">' + esc(T("Rewarding or correcting works best when it goes to an object for a need.", "Belonen of corrigeren werkt het best als hij voor een behoefte naar een object gaat.")) + "</div>";
+    }
+    if (obj) h += '<div class="opv-knoppen"><button class="knop" data-opv="noem">🏷️ ' + esc(T("Name ", "Noem ")) + esc(objNaam(obj).replace(/^(de|het|the) /, "")) + "</button></div>";
+    h += "</div>";
+    // woordjes voor objecten
+    h += '<div class="kit-kop2">' + esc(T("🗣️ Words it knows for things", "🗣️ Woorden die hij kent voor dingen")) + "</div>";
+    var lex = d && d.lexicon;
+    if (!lex) h += '<p class="kitv-leeg">…</p>';
+    else {
+      var w2 = OBJECTEN.filter(function(o){ return lex[o.id]; }).map(function(o){ return '<span class="woordje">' + o.icoon + " " + esc(lex[o.id]) + "</span>"; });
+      h += w2.length ? '<div class="woordjes">' + w2.join("") + "</div>" : '<p class="kitv-leeg">' + esc(T("No words for things yet — use 🏷️ Name.", "Nog geen woorden voor dingen — gebruik 🏷️ Noem.")) + "</p>";
+    }
+    // lesboek
+    var mijn = lesboek.filter(function(l){ return l.naam === b.naam; }).slice(0, 8);
+    h += '<div class="kit-kop2">' + esc(T("📒 Your lessons", "📒 Jouw lessen")) + '</div><ul class="lesboek">';
+    if (!mijn.length) h += '<li class="kitv-leeg">' + esc(T("No lessons yet.", "Nog geen lessen.")) + "</li>";
+    mijn.forEach(function(l){
+      var ico = { aai:"🖐", tik:"👆", voer:"🍎", medicijn:"💊", noem:"🏷️" }[l.actie] || "•", txt, extra = "";
+      if (l.actie === "noem") txt = objNaam(l.obj) + " = “" + (l.woord || "?") + "”";
+      else if (l.drift && l.obj){
+        txt = DRIFT_NAAM[lang()][l.drift] + " ↔ " + objNaam(l.obj);
+        if (l.voor != null && l.na != null) extra = ": <b>" + Math.round(l.voor * 100) + "% → " + Math.round(l.na * 100) + "%</b>";
+      }
+      else txt = { aai:T("stroked", "geaaid"), tik:T("tapped", "getikt"), voer:T("fed", "gevoerd"), medicijn:T("medicine", "medicijn") }[l.actie] || l.actie;
+      h += "<li>" + ico + " " + esc(txt) + extra + "</li>";
+    });
+    h += "</ul><div class=\"noot\">" + esc(T("Like in Creatures: stroking rewards what it is doing, a tap corrects it. It still decides for itself — you only nudge what it learns.", "Net als in Creatures: aaien beloont wat hij doet, een tikje corrigeert het. Hij beslist nog steeds zelf — jij stuurt alleen wat hij leert.")) + "</div>";
+    return h;
+  }
+  document.getElementById("kit-opvoeden").addEventListener("click", function(ev){
+    var k = ev.target.closest("[data-opv]"); if (!k || !sel) return;
+    var a = k.getAttribute("data-opv");
+    if (a === "noem") openNoem(sel); else doeInteractie(sel, a);
+  });
+
+  // ── Omgevingsgeluid (eigen synthese, standaard uit) ─────────────────────────
+  var audio = { ctx:null, aan:false, wind:null, timer:null };
+  function startAmbient(){
+    var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    audio.ctx = audio.ctx || new AC();
+    var ctx = audio.ctx, len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), data = buf.getChannelData(0), last = 0;
+    for (var i = 0; i < len; i++){ last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; data[i] = last * 3.5; }
+    var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    var filt = ctx.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 520;
+    var gain = ctx.createGain(); gain.gain.value = 0.05;
+    src.connect(filt); filt.connect(gain); gain.connect(ctx.destination); src.start();
+    audio.wind = { src:src, gain:gain };
+    (function vogel(){
+      audio.timer = setTimeout(function(){
+        if (!audio.aan) return;
+        if (!isNacht()){
+          var o = ctx.createOscillator(), g = ctx.createGain(), t0 = ctx.currentTime, f = 2200 + Math.random() * 1600;
+          o.type = "sine"; o.frequency.setValueAtTime(f, t0); o.frequency.exponentialRampToValueAtTime(f * 1.35, t0 + 0.08); o.frequency.exponentialRampToValueAtTime(f * 0.9, t0 + 0.16);
+          g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.025, t0 + 0.02); g.gain.linearRampToValueAtTime(0, t0 + 0.18);
+          o.connect(g); g.connect(ctx.destination); o.start(t0); o.stop(t0 + 0.2);
+        }
+        vogel();
+      }, 2500 + Math.random() * 6000);
+    })();
+  }
+  function stopAmbient(){ if (audio.wind){ try { audio.wind.src.stop(); } catch (e) {} audio.wind = null; } clearTimeout(audio.timer); }
+  var geluidKnop = document.getElementById("geluidknop");
+  function zetGeluid(aan){
+    audio.aan = aan; geluidKnop.querySelector(".ico").textContent = aan ? "🔊" : "🔇"; geluidKnop.setAttribute("aria-pressed", aan ? "true" : "false");
+    if (window.BottyAudio){ if (BottyAudio.isGedempt() === aan) BottyAudio.setDemping(!aan); }
+    if (aan) startAmbient(); else stopAmbient();
+    opslag.zet("wereld-geluid", aan);
+  }
+  geluidKnop.addEventListener("click", function(){ zetGeluid(!audio.aan); });
+  if (window.BottyAudio && !BottyAudio.isGedempt()) BottyAudio.setDemping(true);   // pas na een klik geluid
+
+  // ── Live houden ─────────────────────────────────────────────────────────────
+  laad();
+  requestAnimationFrame(frame);
+  supabase.channel("hive-live").on("broadcast", { event:"state" }, function(msg){ var p = msg.payload; if (p && p.bottys) toonState(p.bottys, p.eieren); }).subscribe();
+  supabase.channel("hive-events").on("broadcast", { event:"actie" }, function(msg){ var p = msg.payload; if (p && p.tekst) voegEvent(stripTags(p.tekst)); }).subscribe();
+  setInterval(function(){ if (!document.hidden && Date.now() - laatsteStaat > 9000) fetch(TICK_URL, { method:"POST" }).catch(function(){}); }, 10000);
+  setInterval(function(){ if (!document.hidden && sel) laadDetail().then(noteerChem); }, 8000);
+  setInterval(function(){ werkKitsBij(false); werkStatusBij(); }, 2000);
+  window.addEventListener("resize", function(){ klemCam(doelCam); });
+  if (window.SiteLang) SiteLang.onChange(function(){ vulPlekken(); werkKitsBij(true); werkStatusBij(); renderEventlog(); });
+})();
+</script>
+</body>
+</html>
