@@ -1956,7 +1956,10 @@
     var b = sel && bottys.find(function(x){ return x.naam === sel; });
     if(!b){ sel = null; leeg.hidden = false; body.hidden = true; return; }
     leeg.hidden = true; body.hidden = false;
-    document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
+    // Portret = dezelfde tekening als in de wereld: pixel-sprite (idle) voor alle fases
+    // behalve "born", die de procedurele SVG-Botty houdt. Voorheen stond hier altijd de
+    // oude SVG-figuur, waardoor het portret niet leek op de Botty in het lokaal.
+    document.getElementById("kit-portret").innerHTML = PIX_STAGES[b.stage] ? pixelInnerHTML(b.stage, sekseMap(b)) : svgSpriteInner(b);
     document.getElementById("kit-naam").textContent = b.naam;
     refreshAdopt(b.naam, b.bid || null);
     nn.sig = null; nn.naam = null;   // verse selectie → opnieuw opbouwen, geen valse flits
