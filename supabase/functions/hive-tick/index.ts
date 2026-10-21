@@ -547,6 +547,7 @@ const chemVervalFactor = (h: number) => Math.pow(0.5, 1 / Math.max(1, h));
 // Niveaus 1–7 vervallen elke tick, daarna blijft de factor 0,975 en verdubbelt het
 // interval — elke stap van 8 verdubbelt dus de halfwaardetijd, van "direct weg" (0)
 // tot "nooit" (248+). Met de vlag uit valt het terug op het oude continue verval.
+const VERMOEID_HL_MAX = 14;    // bovengrens half-life vermoeidheid (ticks), zie biochemie()
 const HALFWAARDE_LOG = true;   // A1 aan (false = ablatie: continue half-life in ticks)
 const HL_FACTOR: number[] = [0, 12965, 29149, 43707, 53520, 59224, 62300, ...Array(24).fill(63897), 65535].map(f => f / 65536);
 const HL_MASKER: number[] = [...Array(8).fill(0), ...Array.from({ length: 24 }, (_, i) => (1 << (i + 1)) - 1)];
@@ -642,6 +643,12 @@ function biochemie(b: any, bottys: any[], tick = 0) {
   // Half-lives: exponentieel verval per stof. Leeftijd stelt drie ervan bij:
   const hl = chemHalfLives(G);
   hl.vermoeidheid *= (1 + veroud * 0.6);   // oud herstelt trager, jong vlot
+  // Bovengrens: een traag fit-verval-gen (G.verval.fit < 1) × ouderdom kon de half-life
+  // van vermoeidheid tot ~30 ticks rekken; dan ligt het evenwicht boven 100 en zit een
+  // oude Botty permanent op 'uitgeput' (ook al in het oude continue model). Begrensd op
+  // VERMOEID_HL_MAX ticks blijft 'oud is sneller moe' bestaan via de emitter (oud × 0,8),
+  // maar zakt een gemiddelde Botty niet meer vast. Valt op A1-niveau 13,7 ticks (byte 48).
+  hl.vermoeidheid = Math.min(hl.vermoeidheid, VERMOEID_HL_MAX);
   hl.cortisol     *= (1 + oud * 0.8);      // chronische stress blijft op leeftijd langer hangen
   hl.endorfine    *= (1 - veroud * 0.25);  // jong: endorfine zindert langer na; oud: dooft sneller
   // A1: verval op de logaritmische Creatures-schaal (of, als ablatie, het oude continue verval).
