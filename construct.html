@@ -322,7 +322,7 @@
     kies een gereedschap en klik op een Botty om te <strong>aaien</strong>, <strong>voeren</strong> of
     <strong>medicijn</strong> te geven, of leer de hive een <strong>woord</strong> bij het schoolbord. En broedt een
     paar een ei? Dan mag jíj het uitbroeden.</p>
-  <a class="terug" href="./" data-nl="← Terug naar de hive">← Back to the hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a>
+  <a class="terug" href="./" data-nl="← Terug naar de hive">← Back to the hive</a> &nbsp;·&nbsp; <a class="terug" href="genoom.html" data-nl="🗺️ Genoom-kaart">🗺️ Genome map</a> &nbsp;·&nbsp; <a class="terug" href="wereld.html" data-nl="🥚 De Wereld (nieuw)">🥚 The World (new)</a>
 </header>
 
 <main>
@@ -1956,7 +1956,10 @@
     var b = sel && bottys.find(function(x){ return x.naam === sel; });
     if(!b){ sel = null; leeg.hidden = false; body.hidden = true; return; }
     leeg.hidden = true; body.hidden = false;
-    document.getElementById("kit-portret").innerHTML = (sprites[b.stage]||sprites.volwassen)(b.kleur||paletten[0]);
+    // Portret = dezelfde tekening als in de wereld: pixel-sprite (idle) voor alle fases
+    // behalve "born", die de procedurele SVG-Botty houdt. Voorheen stond hier altijd de
+    // oude SVG-figuur, waardoor het portret niet leek op de Botty in het lokaal.
+    document.getElementById("kit-portret").innerHTML = PIX_STAGES[b.stage] ? pixelInnerHTML(b.stage, sekseMap(b)) : svgSpriteInner(b);
     document.getElementById("kit-naam").textContent = b.naam;
     refreshAdopt(b.naam, b.bid || null);
     nn.sig = null; nn.naam = null;   // verse selectie → opnieuw opbouwen, geen valse flits

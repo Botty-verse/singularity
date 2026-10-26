@@ -538,12 +538,43 @@ function chemHalfLives(G: any): Record<string, number> {
   };
 }
 const chemVervalFactor = (h: number) => Math.pow(0.5, 1 / Math.max(1, h));
+
+// ── A1 — Logaritmische halfwaardetijden (Creatures-getrouw) ─────────────────────
+// Uit de originele Creatures-engine (Ghidra, zie docs/voorstel-creatures-biochemie-
+// en-svrules.md): een halfwaardetijd is één byte op een LOGARITMISCHE schaal. De
+// bovenste 5 bits kiezen één van 32 niveaus; elk niveau heeft een factor (16.16) en
+// een tick-masker. Op ticks waar (tick & masker) == masker gaat de waarde × factor.
+// Niveaus 1–7 vervallen elke tick, daarna blijft de factor 0,975 en verdubbelt het
+// interval — elke stap van 8 verdubbelt dus de halfwaardetijd, van "direct weg" (0)
+// tot "nooit" (248+). Met de vlag uit valt het terug op het oude continue verval.
+const VERMOEID_HL_MAX = 14;    // bovengrens half-life vermoeidheid (ticks), zie biochemie()
+const HALFWAARDE_LOG = true;   // A1 aan (false = ablatie: continue half-life in ticks)
+const HL_FACTOR: number[] = [0, 12965, 29149, 43707, 53520, 59224, 62300, ...Array(24).fill(63897), 65535].map(f => f / 65536);
+const HL_MASKER: number[] = [...Array(8).fill(0), ...Array.from({ length: 24 }, (_, i) => (1 << (i + 1)) - 1)];
+// Halfwaardetijd (in ticks) per niveau, om bestaande tick-waarden op een byte te leggen.
+const HL_TICKS: number[] = HL_FACTOR.map((f, n) =>
+  f <= 0 ? 0 : f >= 1 ? Infinity : (HL_MASKER[n] + 1) * Math.log(0.5) / Math.log(f));
+// Tick-halfwaardetijd → dichtstbijzijnde niveau (logaritmisch), als byte (niveau × 8).
+function hlByteVoor(ticks: number): number {
+  if (!(ticks > 0)) return 0;
+  let best = 1, bestD = Infinity;
+  for (let n = 1; n < 31; n++) {
+    const d = Math.abs(Math.log2(HL_TICKS[n]) - Math.log2(ticks));
+    if (d < bestD) { bestD = d; best = n; }
+  }
+  return best << 3;
+}
+// Eén tick verval volgens de Creatures-tabel.
+function hlVerval(v: number, hlByte: number, tick: number): number {
+  const n = (hlByte >> 3) & 31, m = HL_MASKER[n];
+  return (tick & m) === m ? v * HL_FACTOR[n] : v;
+}
 // Stress ondermijnt de weerstand (Creatures p.16/245: hoge stress → lagere
 // immuniteit én fertiliteit). Factor 1.0 (geen stress) .. 2.5 (max stress).
 const stressVan = (b: any): number => b.chem?.stress ?? 0;
 const stressFactor = (b: any): number => 1 + stressVan(b) / 100 * 1.5;
 
-function biochemie(b: any, bottys: any[]) {
+function biochemie(b: any, bottys: any[], tick = 0) {
   const G = exprVan(b);
   const c = b.chem = b.chem || {};
   for (const k of CHEM) if (typeof c[k] !== "number") c[k] = CHEM_START[k] ?? 0;
@@ -612,9 +643,19 @@ function biochemie(b: any, bottys: any[]) {
   // Half-lives: exponentieel verval per stof. Leeftijd stelt drie ervan bij:
   const hl = chemHalfLives(G);
   hl.vermoeidheid *= (1 + veroud * 0.6);   // oud herstelt trager, jong vlot
+  // Bovengrens: een traag fit-verval-gen (G.verval.fit < 1) × ouderdom kon de half-life
+  // van vermoeidheid tot ~30 ticks rekken; dan ligt het evenwicht boven 100 en zit een
+  // oude Botty permanent op 'uitgeput' (ook al in het oude continue model). Begrensd op
+  // VERMOEID_HL_MAX ticks blijft 'oud is sneller moe' bestaan via de emitter (oud × 0,8),
+  // maar zakt een gemiddelde Botty niet meer vast. Valt op A1-niveau 13,7 ticks (byte 48).
+  hl.vermoeidheid = Math.min(hl.vermoeidheid, VERMOEID_HL_MAX);
   hl.cortisol     *= (1 + oud * 0.8);      // chronische stress blijft op leeftijd langer hangen
   hl.endorfine    *= (1 - veroud * 0.25);  // jong: endorfine zindert langer na; oud: dooft sneller
-  for (const k of CHEM) c[k] = Math.max(0, Math.min(100, +(c[k] * chemVervalFactor(hl[k])).toFixed(2)));
+  // A1: verval op de logaritmische Creatures-schaal (of, als ablatie, het oude continue verval).
+  for (const k of CHEM) {
+    const v = HALFWAARDE_LOG ? hlVerval(c[k], hlByteVoor(hl[k]), tick) : c[k] * chemVervalFactor(hl[k]);
+    c[k] = Math.max(0, Math.min(100, +v.toFixed(2)));
+  }
 
   // Receptors: endorfine tilt de stemming op, stress/verveling/angst/eenzaamheid drukken.
   let d = 0;
@@ -2258,6 +2299,10 @@ Deno.serve(async (req) => {
   }
 
   let acties: number = state.acties ?? 0;
+  // A1: oplopende globale tick-teller voor de halfwaardetijd-maskers. Opgeslagen in
+  // ia_bucket.tick (jsonb, geen migratie); loopt ook in de catch-up-lus door.
+  const vorigeTick = Number((state as any)?.ia_bucket?.tick);
+  let tickTeller: number = Number.isFinite(vorigeTick) ? vorigeTick : 0;
   const events: object[] = [];
   let lastKweek: any = null;
 
@@ -2267,7 +2312,8 @@ Deno.serve(async (req) => {
     try { zelfzorgRonde(bottys, null); } catch (_) { /* niet kritisch */ }
     try { smetRonde(bottys); } catch (_) { /* niet kritisch */ }
     try { spiegelRonde(bottys, null); } catch (_) { /* niet kritisch */ }
-    try { bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); }); } catch (_) { /* chemie mag de tick nooit breken */ }
+    tickTeller++;
+    try { bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys, tickTeller); }); } catch (_) { /* chemie mag de tick nooit breken */ }
     if (!NACHT) kiesDoelen(bottys, zorgPerTick(bottys)).forEach(b => { zorg(b); acties++; });   // 's nachts rust ook de AI-verzorger
     if (t % Math.round(VERVAL_INTERVAL / INTERVAL) === 0) {
       bottys.forEach(b => { if (!b.bezigEi) vervalEen(b); });
@@ -2294,7 +2340,8 @@ Deno.serve(async (req) => {
       spiegelRonde(bottys, events);
       merkBijAnderRonde(bottys, events);
       socialeRonde(bottys, events);
-      bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys); });
+      tickTeller++;
+      bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys, tickTeller); });
     } catch (_) { /* beweging/zelfzorg/sociaal/chemie is niet kritisch voor de hive */ }
 
     const doelen = NACHT ? [] : kiesDoelen(bottys, zorgPerTick(bottys));   // 's nachts rust ook de AI-verzorger
@@ -2649,6 +2696,52 @@ Deno.serve(async (req) => {
         }
       }
 
+      // 4a) TIKJE — de tegenhanger van aaien (Creatures: "slap"). Corrigeert wat de Botty
+      //     NU doet: staat hij bij een object voor een drive, dan leert hij dat dat
+      //     object die drive níét stilt. Geen pijn, wel een beetje stress — zo kan een
+      //     bezoeker bijgeloof afleren. Kost een interactie-token, net als aaien.
+      else if (vraag.actie === "tik") {
+        const b = vindBot(vraag.bot);
+        if (b) {
+          kost();
+          b.chem = b.chem || {};
+          b.chem.stress = Math.min(100, (b.chem.stress ?? 0) + 8);
+          b.stemming = klem((b.stemming ?? 50) - 4);
+          let leer = "";
+          if (b.doel && b.doel.soort === "zelfzorg" && b.doel.stat && b.doel.obj) {
+            breinLeer(b, b.doel.stat, b.doel.obj, false);   // "nee, dat niet"
+            const o = OBJECTEN.find(x => x.id === b.doel.obj);
+            if (o) leer = " — leert dat " + o.kort + " niet helpt";
+          }
+          onthoud(b, "gecorrigeerd", "een hand gaf me een tikje");
+          iaEvent = { ok: true, soort: "tik", naam: b.naam,
+            tekst: "👆 <b>" + b.naam + "</b> krijgt een tikje" + leer };
+        }
+      }
+
+      // 4b) NOEMEN — leer één Botty een woord voor het ding waar hij nu mee bezig is
+      //     (Creatures: woorden leren via gedeelde aandacht). Het woord landt onder het
+      //     object-id in zijn lexicon, dus het reist daarna mee met de bestaande
+      //     kennisdeling (deelKennis / praat) door de hive.
+      else if (vraag.actie === "noem") {
+        const b = vindBot(vraag.bot);
+        const woord = String(vraag.woord ?? "").trim().slice(0, 16).replace(/[<>&"]/g, "");
+        const objId = b && (b.doel?.obj || (b.doel?.soort === "priemjacht" ? "bord" : null));
+        const o = objId ? OBJECTEN.find(x => x.id === objId) : null;
+        if (b && woord && o) {
+          kost();
+          b.lexicon = b.lexicon || {};
+          const jong = huidigeStage(b) === "born" || huidigeStage(b) === "young";
+          b.lexicon[o.id] = jong && Math.random() < 0.5 ? muteerWoord(woord) : woord;
+          boostEndorfine(b, 5);
+          onthoud(b, "woord-geleerd", "een mens leerde me dat " + o.kort + " “" + b.lexicon[o.id] + "” heet");
+          iaEvent = { ok: true, soort: "noem", naam: b.naam, obj: o.id, woord: b.lexicon[o.id],
+            tekst: "🏷️ <b>" + b.naam + "</b> leert dat " + o.kort + " “" + b.lexicon[o.id] + "” heet" };
+        } else if (b && woord) {
+          iaEvent = { ok: false, reden: "niets om te noemen" };
+        }
+      }
+
       // 4) WOORD ROEPEN — je leert de hive een woord bij het schoolbord. Wie wakker en
       //    dichtbij genoeg is pikt het op (baby's verbasteren het). Het woord landt in
       //    hun lexicon → telt mee in hun woordenschat en grafschrift-nalatenschap.
@@ -2730,7 +2823,7 @@ Deno.serve(async (req) => {
       last_updated_at: nu,
       last_kweek: lastKweek,
       eieren,
-      ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu, bcast: magBroadcast ? nu : vorigeBcast, egress },
+      ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu, bcast: magBroadcast ? nu : vorigeBcast, egress, tick: tickTeller },
     });
     // Slank live-snapshot naar alle kijkers (vervangt de volle-rij postgres_changes).
     if (magBroadcast) await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek, egress);
