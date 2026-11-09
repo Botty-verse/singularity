@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="wand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f3faf7"/><stop offset="100%" stop-color="#dcefe7"/>
+    </linearGradient>
+    <linearGradient id="blad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e2bd8c"/><stop offset="100%" stop-color="#c79a62"/>
+    </linearGradient>
+    <linearGradient id="scherm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#17514c"/><stop offset="100%" stop-color="#0f3b37"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#wand)"/>
+
+  <!-- whiteboard: een lusje en een voorwaarde, het eerste dat je uitlegt -->
+  <g transform="translate(-44,-74)">
+    <rect x="96" y="104" width="470" height="330" rx="16" fill="#ffffff" stroke="#2b2b2b" stroke-width="5"/>
+    <rect x="96" y="104" width="470" height="330" rx="16" fill="none" stroke="#9fb8ae" stroke-width="2"/>
+    <g stroke="#2f8f86" stroke-width="5" fill="none" stroke-linecap="round">
+      <rect x="150" y="150" width="130" height="56" rx="12"/>
+      <line x1="215" y1="206" x2="215" y2="250"/>
+      <path d="M215,250 l62,40 -62,40 -62,-40 Z"/>
+      <line x1="277" y1="290" x2="392" y2="290"/>
+      <rect x="392" y="262" width="122" height="56" rx="12"/>
+      <line x1="215" y1="370" x2="215" y2="398"/>
+      <path d="M215,398 q-80,0 -80,-108" stroke-dasharray="10 9"/>
+    </g>
+    <g fill="#2b2b2b" font-family="Nunito, Verdana, sans-serif" font-weight="700" font-size="20">
+      <text x="215" y="186" text-anchor="middle">start</text>
+      <text x="215" y="298" text-anchor="middle">honger?</text>
+      <text x="453" y="298" text-anchor="middle">eet iets</text>
+      <text x="300" y="282" text-anchor="middle" font-size="17" fill="#b52718">ja</text>
+    </g>
+  </g>
+
+  <!-- raam met wat groen erachter -->
+  <g transform="translate(26,-66)">
+    <rect x="1120" y="110" width="380" height="250" rx="12" fill="#cfe9f7" stroke="#2b2b2b" stroke-width="5"/>
+    <circle cx="1230" cy="250" r="66" fill="#8fcf86"/>
+    <circle cx="1330" cy="268" r="48" fill="#79bd70"/>
+    <circle cx="1420" cy="286" r="36" fill="#8fcf86"/>
+    <circle cx="1430" cy="166" r="26" fill="#ffd54a"/>
+    <line x1="1310" y1="110" x2="1310" y2="360" stroke="#2b2b2b" stroke-width="5"/>
+    <line x1="1120" y1="235" x2="1500" y2="235" stroke="#2b2b2b" stroke-width="5"/>
+  </g>
+
+  <!-- ── de docent ───────────────────────────────────────────────── -->
+  <g>
+    <!-- arm naar het toetsenbord -->
+    <path d="M520,520 C590,556 606,660 612,724" fill="none" stroke="#7d1a10" stroke-width="30" stroke-linecap="round"/>
+    <path d="M520,520 C590,556 606,660 612,724" fill="none" stroke="#b52718" stroke-width="22" stroke-linecap="round"/>
+    <!-- linkerarm, ontspannen langs het lijf -->
+    <path d="M344,516 C318,580 312,660 318,726" fill="none" stroke="#7d1a10" stroke-width="30" stroke-linecap="round"/>
+    <path d="M344,516 C318,580 312,660 318,726" fill="none" stroke="#b52718" stroke-width="22" stroke-linecap="round"/>
+    <circle cx="320" cy="740" r="21" fill="#f3cba6" stroke="#2b2b2b" stroke-width="4.5"/>
+    <!-- romp -->
+    <path d="M430,440 C386,440 356,474 350,528 L338,812 L522,812 L510,528 C504,474 474,440 430,440 Z"
+          fill="#b52718" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M400,444 Q430,486 460,444" fill="none" stroke="#7d1a10" stroke-width="5"/>
+    <!-- hand op het toetsenbord -->
+    <!-- hals -->
+    <rect x="406" y="398" width="48" height="52" rx="16" fill="#f3cba6" stroke="#2b2b2b" stroke-width="4.5"/>
+    <!-- hoofd -->
+    <circle cx="430" cy="356" r="66" fill="#f3cba6" stroke="#2b2b2b" stroke-width="5"/>
+    <circle cx="364" cy="366" r="13" fill="#f3cba6" stroke="#2b2b2b" stroke-width="4"/>
+    <circle cx="496" cy="366" r="13" fill="#f3cba6" stroke="#2b2b2b" stroke-width="4"/>
+    <!-- haar -->
+    <path d="M364,352 Q362,286 430,286 Q498,286 496,352 Q486,312 430,306 Q374,312 364,352 Z"
+          fill="#4a3426" stroke="#2b2b2b" stroke-width="4.5" stroke-linejoin="round"/>
+    <!-- bril -->
+    <g fill="none" stroke="#2b2b2b" stroke-width="4.5">
+      <rect x="386" y="334" width="38" height="30" rx="10"/>
+      <rect x="436" y="334" width="38" height="30" rx="10"/>
+      <line x1="424" y1="348" x2="436" y2="348"/>
+      <line x1="386" y1="346" x2="366" y2="352"/>
+      <line x1="474" y1="346" x2="494" y2="352"/>
+    </g>
+    <circle cx="405" cy="350" r="6" fill="#2b2b2b"/>
+    <circle cx="455" cy="350" r="6" fill="#2b2b2b"/>
+    <path d="M408,392 Q430,410 452,392" fill="none" stroke="#2b2b2b" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- ── Botty: de canonieke sprite uit assets/botty-sprites.js ──── -->
+  <g transform="translate(1020,330) scale(1.85)">
+<g class="antenne"><path d="M100,46 Q96,28 109,20" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/><circle cx="111" cy="16" r="6.5" fill="#8c9196" stroke="#2b2b2b" stroke-width="2.5"/><path class="ster" d="M111,1 L112.4,5.6 117,7 112.4,8.4 111,13 109.6,8.4 105,7 109.6,5.6 Z" fill="#ffd54a" stroke="#f6a623" stroke-width="0.6"/></g><g class="been"><line x1="86" y1="212" x2="80" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="78" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g><g class="been"><line x1="114" y1="212" x2="120" y2="236" stroke="#2b2b2b" stroke-width="4"/><ellipse cx="122" cy="239" rx="11" ry="6" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="2.5"/></g><g class="arm arm-l" transform="rotate(38 66 156)"><line x1="66" y1="156" x2="36" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="55" cy="166" r="7.5" fill="#57b85f" stroke="#2b2b2b" stroke-width="2"/><circle cx="34" cy="187" r="6" fill="#2f8f86" stroke="#2b2b2b" stroke-width="2.5"/></g><g class="arm arm-r"><line x1="134" y1="156" x2="164" y2="184" stroke="#2b2b2b" stroke-width="4"/><circle class="spier" cx="145" cy="166" r="7.5" fill="#57b85f" stroke="#2b2b2b" stroke-width="2"/><circle cx="166" cy="187" r="6" fill="#2f8f86" stroke="#2b2b2b" stroke-width="2.5"/></g><rect x="68" y="184" width="64" height="30" rx="10" fill="#57b85f" stroke="#2e6b34" stroke-width="3"/><line x1="100" y1="200" x2="100" y2="214" stroke="#2e6b34" stroke-width="3"/><rect x="66" y="140" width="68" height="52" rx="20" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><rect x="84" y="150" width="32" height="20" rx="7" fill="#2f8f86" stroke="#2b2b2b" stroke-width="2.5"/><path d="M93,124 q14,4 0,7 q-14,4 0,7" fill="none" stroke="#9aa0a4" stroke-width="4" stroke-linecap="round"/><g class="kop"><circle cx="52" cy="76" r="13" fill="#2f8f86" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="52" cy="76" r="6" fill="#bfe3df"/><circle cx="148" cy="76" r="13" fill="#2f8f86" stroke="#2b2b2b" stroke-width="2.5"/><circle cx="148" cy="76" r="6" fill="#bfe3df"/><path d="M72,46 Q52,48 52,76 Q52,108 72,122 Q100,134 128,122 Q148,108 148,76 Q148,48 128,46 Q100,40 72,46 Z" fill="#fbfbf2" stroke="#2b2b2b" stroke-width="3"/><path d="M80,64 Q100,60 120,64 Q131,66 125,79 L107,106 Q100,115 93,106 L75,79 Q69,66 80,64 Z" fill="#3a9d94" stroke="#2b8077" stroke-width="1.5"/><line x1="90" y1="78" x2="90" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><line x1="110" y1="78" x2="110" y2="90" stroke="#1f2a28" stroke-width="4.5" stroke-linecap="round"/><path d="M93,97 Q100,101 107,97 Q106,108 100,109 Q94,108 93,97 Z" fill="#15605a"/></g>
+  </g>
+
+  <!-- ── tafel ───────────────────────────────────────────────────── -->
+  <rect x="0" y="770" width="1600" height="34" fill="#b98a52"/>
+  <rect x="0" y="800" width="1600" height="200" fill="url(#blad)"/>
+  <line x1="0" y1="770" x2="1600" y2="770" stroke="#2b2b2b" stroke-width="5"/>
+  <line x1="0" y1="804" x2="1600" y2="804" stroke="#8d6637" stroke-width="3"/>
+
+  <!-- ── de laptop ───────────────────────────────────────────────── -->
+  <g transform="rotate(-1 792 620)">
+    <rect x="628" y="462" width="330" height="290" rx="16" fill="#3b4440" stroke="#2b2b2b" stroke-width="5"/>
+    <rect x="648" y="482" width="290" height="250" rx="8" fill="url(#scherm)" stroke="#2b8077" stroke-width="3"/>
+    <g font-family="Menlo, Consolas, monospace" font-size="18" font-weight="700">
+      <text x="668" y="518" fill="#8fe3c9">while</text><text x="730" y="518" fill="#eaf6f2">leeft:</text>
+      <text x="688" y="552" fill="#ffd54a">if</text><text x="716" y="552" fill="#eaf6f2">honger:</text>
+      <text x="708" y="586" fill="#8fe3c9">eet</text><text x="748" y="586" fill="#eaf6f2">()</text>
+      <text x="688" y="620" fill="#ffd54a">else</text><text x="738" y="620" fill="#eaf6f2">:</text>
+      <text x="708" y="654" fill="#8fe3c9">leer</text><text x="760" y="654" fill="#eaf6f2">()</text>
+      <text x="668" y="700" fill="#5fd0a8">#</text><text x="686" y="700" fill="#79a69c">zo denkt Botty</text>
+    </g>
+    <rect x="668" y="712" width="12" height="20" fill="#8fe3c9" opacity="0.9"/>
+  </g>
+  <path d="M600,752 L986,752 L1016,800 L570,800 Z" fill="#eef1ed" stroke="#2b2b2b" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M690,762 L900,762 L912,786 L676,786 Z" fill="#d6dcd7" stroke="#aab3ab" stroke-width="2"/>
+
+  <!-- de hand van de docent op het toetsenbord -->
+  <circle cx="628" cy="772" r="22" fill="#f3cba6" stroke="#2b2b2b" stroke-width="4.5"/>
+
+  <!-- samen kijken: een klein hartje boven de laptop -->
+  <path d="M800,428 c-16,-20 -44,-6 -30,16 c8,13 30,26 30,26 c0,0 22,-13 30,-26 c14,-22 -14,-36 -30,-16 Z"
+        fill="#b52718" stroke="#7d1a10" stroke-width="3" opacity="0.92"/>
+</svg>
