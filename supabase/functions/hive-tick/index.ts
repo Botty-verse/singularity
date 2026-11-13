@@ -2287,20 +2287,60 @@ Deno.serve(async (req) => {
   // CORS-preflight (OPTIONS) meteen beantwoorden — anders faalt elke POST met headers.
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
-  // Bezoekersverzoek (optioneel): { actie: "broed", ei: "<id>" } broedt een rijp ei uit
+  if (req.method !== "POST") {
+    return new Response("method not allowed", { status: 405, headers: { ...CORS, Allow: "POST, OPTIONS" } });
+  }
+  // Valideer vóór databasewerk. Een onbekende actie mag de tick niet omzeilen.
+  const reader = req.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  if (reader) {
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > 4096) {
+          await reader.cancel();
+          return new Response("payload too large", { status: 413, headers: CORS });
+        }
+        chunks.push(value);
+      }
+    } finally { reader.releaseLock(); }
+  }
+  const payload = new Uint8Array(bytes);
+  let offset = 0;
+  for (const chunk of chunks) { payload.set(chunk, offset); offset += chunk.byteLength; }
+  const body = new TextDecoder().decode(payload);
   let vraag: any = null;
-  try { vraag = await req.json(); } catch (_) { /* geen body = gewone tick */ }
-
-  // Globale tick-throttle: een gewone tick (geen bezoekersinteractie) doet niets nieuws
-  // als er <TICK_THROTTLE_MS geleden al een echte tick liep. Dan slaan we de dure
-  // volle-rij read/write + broadcast over met alleen een piepkleine klok-read. Zo
-  // schaalt de DB-last niet meer mee met het aantal kijkers; de sim verliest niets
-  // (catch-up reconstrueert de gemiste tijd deterministisch uit last_updated_at).
-  if (!(vraag && vraag.actie)) {
-    const { data: klok } = await supabase.from("hive_state").select("last_updated_at").eq("id", "main").single();
-    if (klok && klok.last_updated_at && Date.now() - new Date(klok.last_updated_at).getTime() < TICK_THROTTLE_MS) {
-      return new Response(JSON.stringify({ ok: true, skipped: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
+  if (body.trim()) {
+    try { vraag = JSON.parse(body); }
+    catch (_) { return new Response("invalid JSON", { status: 400, headers: CORS }); }
+    if (!vraag || typeof vraag !== "object" || Array.isArray(vraag)) {
+      return new Response("invalid request", { status: 400, headers: CORS });
     }
+    if (vraag.actie !== undefined) {
+      const acties = ["aai", "voer", "medicijn", "tik", "noem", "woord", "broed"];
+      if (!acties.includes(vraag.actie)
+        || (["aai", "voer", "medicijn", "tik", "noem"].includes(vraag.actie)
+          && (typeof vraag.bot !== "string" || vraag.bot.length > 200))
+        || (["noem", "woord"].includes(vraag.actie)
+          && (typeof vraag.woord !== "string" || !vraag.woord.trim() || vraag.woord.length > 200))
+        || (vraag.actie === "broed" && (typeof vraag.ei !== "string" || vraag.ei.length > 200))) {
+        return new Response("invalid action", { status: 400, headers: CORS });
+      }
+    }
+  }
+
+  // Ook geldige interacties begrenzen vóór de grote state-read en simulatie.
+  // Interacties blijven responsief; gewone ticks behouden de bestaande 5s-grens.
+  const interactie = !!(vraag && vraag.actie);
+  const minimumInterval = interactie ? 1000 : TICK_THROTTLE_MS;
+  const { data: klok, error: klokFout } = await supabase.from("hive_state").select("last_updated_at").eq("id", "main").maybeSingle();
+  if (klokFout) return new Response("state unavailable", { status: 503, headers: CORS });
+  if (klok && klok.last_updated_at && Date.now() - new Date(klok.last_updated_at).getTime() < minimumInterval) {
+    return new Response(JSON.stringify({ ok: true, skipped: true, interactie: interactie ? { ok: false, reden: "rustig" } : null }),
+      { headers: { ...CORS, "Content-Type": "application/json" } });
   }
 
   // Lees alleen de kolommen die de tick echt gebruikt (i.p.v. select *).
