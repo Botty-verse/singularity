@@ -5,15 +5,14 @@
 // (of via de Supabase MCP deploy-tool met exact deze inhoud)
 // Houd de gen-layout gelijk aan assets/genome.js (clientside weergave).
 
+import { acquireTick, releaseTick } from "../_shared/tick-gate.ts";
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERVAL          = 1000;
 const BROADCAST_MIN_MS  = 5500;   // egress-throttle: hoogstens ~1 live-broadcast per 6s, globaal
-const TICK_THROTTLE_MS  = 5000;   // globale tick-throttle: liep er net al een echte tick,
-                                  // dan slaan gewone (niet-interactie) aanroepen de dure
-                                  // volle-rij read/write/broadcast over. Catch-up haalt in.
 // CORS: de Construct/hive-pagina roept deze function cross-origin aan
 // (hive.ramonmoorlag.nl → *.supabase.co). Zonder deze headers blokkeert een strikte
 // browser (Safari) elke fetch en sneuvelt de preflight van interacties (aai/voer/woord).
@@ -2286,6 +2285,7 @@ async function broadcastState(bottys: any[], eieren: any[], acties: number, firs
 Deno.serve(async (req) => {
   // CORS-preflight (OPTIONS) meteen beantwoorden — anders faalt elke POST met headers.
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  let tickToken: string | null = null;
   try {
   if (req.method !== "POST") {
     return new Response("method not allowed", { status: 405, headers: { ...CORS, Allow: "POST, OPTIONS" } });
@@ -2332,16 +2332,16 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Ook geldige interacties begrenzen vóór de grote state-read en simulatie.
-  // Interacties blijven responsief; gewone ticks behouden de bestaande 5s-grens.
-  const interactie = !!(vraag && vraag.actie);
-  const minimumInterval = interactie ? 1000 : TICK_THROTTLE_MS;
-  const { data: klok, error: klokFout } = await supabase.from("hive_state").select("last_updated_at").eq("id", "main").maybeSingle();
-  if (klokFout) return new Response("state unavailable", { status: 503, headers: CORS });
-  if (klok && klok.last_updated_at && Date.now() - new Date(klok.last_updated_at).getTime() < minimumInterval) {
-    return new Response(JSON.stringify({ ok: true, skipped: true, interactie: interactie ? { ok: false, reden: "rustig" } : null }),
-      { headers: { ...CORS, "Content-Type": "application/json" } });
+  // Admission + cooldown are atomic across all isolates; reject before loading state.
+  const interaction = !!(vraag && vraag.actie);
+  const token = crypto.randomUUID();
+  if (!await acquireTick(supabase, interaction, token)) {
+    return new Response(JSON.stringify({ ok: true, skipped: true, interactie: interaction ? { ok: false, reden: "rustig" } : null }),
+      { headers: { ...CORS, "Content-Type": "application/json", "Retry-After": interaction ? "1" : "5" } });
   }
+  tickToken = token;
+  const births: any[] = [];
+  const deaths: any[] = [];
 
   // Lees alleen de kolommen die de tick echt gebruikt (i.p.v. select *).
   const { data: row, error } = await supabase.from("hive_state")
@@ -2393,16 +2393,8 @@ Deno.serve(async (req) => {
   // Opruimen van oude pings is niet elke browser-tick nodig. Bij een drukke
   // tab is gemist klein (1–3); de cron (1×/min) en eerste loads geven een grote
   // gemist → daar ruimen we op. Scheelt ~40× minder DELETE's per minuut.
-  if (gemist >= 20) {
-    await supabase.from("bezoeker_pings").delete().lt("ts", new Date(nu - 120000).toISOString());
-    // Retentie: houd de geschiedenis-tabellen begrensd (anders groeien geboorten/levens
-    // onbeperkt richting de 500MB DB-limiet). 180 dagen is ruim voor stamboom/grafschriften.
-    try {
-      const retentie = new Date(nu - 180 * 86400000).toISOString();
-      await supabase.from("geboorten").delete().lt("ts", retentie);
-      await supabase.from("levens").delete().lt("ts", retentie);
-    } catch (_) { /* retentie is niet kritisch voor de tick */ }
-  }
+  // Retention joins state/history in the fenced commit transaction.
+  const cleanup = gemist >= 20;
 
   let acties: number = state.acties ?? 0;
   // A1: oplopende globale tick-teller voor de halfwaardetijd-maskers. Opgeslagen in
@@ -2592,7 +2584,7 @@ Deno.serve(async (req) => {
             verwantschap: verwR, immigrant,
           };
           try {
-            await supabase.from("geboorten").insert({
+            births.push({
               kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
               oudera_id: null, oudera_naam: null, ouderb_id: null, ouderb_naam: null,
               genome: kind.genome, grootte: kind.grootte,
@@ -2658,7 +2650,7 @@ Deno.serve(async (req) => {
       }
     } catch (_) { /* sterfte mag de tick nooit breken */ }
     if (grafschriften.length) {
-      try { await supabase.from("levens").insert(grafschriften); } catch (_) { /* grafschrift is niet kritisch */ }
+      deaths.push(...grafschriften);
     }
 
     // Bewustzijn: elke Botty vormt een innerlijke gedachte op basis van zijn staat,
@@ -2697,7 +2689,7 @@ Deno.serve(async (req) => {
     }
     bottys.push(kind);
     try {
-      await supabase.from("geboorten").insert({
+      births.push({
         kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
         oudera_id: ei.ouderA_bid ?? null, oudera_naam: ei.ouderA ?? null,
         ouderb_id: ei.ouderB_bid ?? null, ouderb_naam: ei.ouderB ?? null,
@@ -2924,7 +2916,9 @@ Deno.serve(async (req) => {
       const payloadBytes = JSON.stringify({ bottys: slankeBottys(bottys), eieren, acties, first_opened: state.first_opened ?? nu, last_kweek: lastKweek }).length;
       egress = { maand, bytes: egress.bytes + payloadBytes * Math.max(1, bezoekers), bcasts: egress.bcasts + 1 };
     }
-    await supabase.from("hive_state").upsert({
+    const { data: committed, error: commitError } = await supabase.rpc("commit_hive_tick", {
+      p_token: tickToken, p_births: births, p_deaths: deaths, p_cleanup: cleanup,
+      p_state: {
       id: "main", bottys,
       first_opened: state.first_opened ?? nu,
       acties,
@@ -2932,7 +2926,11 @@ Deno.serve(async (req) => {
       last_kweek: lastKweek,
       eieren,
       ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu, bcast: magBroadcast ? nu : vorigeBcast, egress, tick: tickTeller },
+      },
     });
+    if (commitError) throw new Error("hive commit failed");
+    if (!committed) return new Response(JSON.stringify({ ok: false, skipped: true, reden: "tick verlopen" }),
+      { status: 409, headers: { ...CORS, "Content-Type": "application/json" } });
     // Slank live-snapshot naar alle kijkers (vervangt de volle-rij postgres_changes).
     if (magBroadcast) await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek, egress);
   }
@@ -2949,8 +2947,12 @@ Deno.serve(async (req) => {
     // "access control"-fout meldt i.p.v. als de echte serverfout.
     console.error("hive-tick fout:", e);
     return new Response(
-      JSON.stringify({ ok: false, error: String((e as any)?.message ?? e) }),
-      { status: 200, headers: { ...CORS, "Content-Type": "application/json" } },
+      JSON.stringify({ ok: false, error: "hive tijdelijk niet beschikbaar" }),
+      { status: 503, headers: { ...CORS, "Content-Type": "application/json" } },
     );
+  } finally {
+    if (tickToken) {
+      try { await releaseTick(supabase, tickToken); } catch (_) { /* expires automatically */ }
+    }
   }
 });
