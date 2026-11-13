@@ -173,6 +173,16 @@
 
   function esc(s){ var d=document.createElement("div"); d.textContent=s==null?"":String(s); return d.innerHTML; }
   function fmtDatum(ts){ if(!ts) return ""; var d=new Date(ts); return d.toLocaleDateString(lang()==="nl"?"nl-NL":"en-GB",{day:"numeric",month:"short",year:"numeric"}); }
+  // Leeftijd bij overlijden (leeftijd_sec = geleefde seconden reële tijd). Levens duren
+  // doorgaans uren, een enkele sage een dag+, dus toon dagen/uren/minuten naar behoefte.
+  function fmtLeeftijd(sec){
+    sec = Math.round(Number(sec)||0); if(sec<=0) return "";
+    var en = lang()==="en";
+    var d = Math.floor(sec/86400), u = Math.floor((sec%86400)/3600), m = Math.floor((sec%3600)/60);
+    if(d>0) return en ? (d+"d "+u+"h") : (d+" d "+u+" u");
+    if(u>0) return en ? (u+"h "+m+"m") : (u+" u "+m+" m");
+    return en ? (Math.max(1,m)+"m") : (Math.max(1,m)+" m");
+  }
 
   function metaRegel(v){
     var tt=t(), parts=[];
@@ -180,6 +190,7 @@
     if(v.oorzaak) parts.push("· "+(tt.cause[v.oorzaak]||v.oorzaak));
     if(typeof v.kinderen==="number") parts.push("· "+tt.kids(v.kinderen));
     var d=fmtDatum(v.gestorven); if(d) parts.push("· "+d);
+    var lf=fmtLeeftijd(v.leeftijd_sec); if(lf) parts.push("· "+(lang()==="nl"?(lf+" oud"):(lf+" old")));
     return parts.join(" ");
   }
 
