@@ -1064,6 +1064,63 @@ const OUDERDOM_DOOD  = 8000;  // hier staat het plafond op 0 → sterven van oud
 const MIN_POP = 4;            // zachte vloer: de hive sterft nooit hieronder uit
 const MAX_POP = 12;           // zachte cap: daarboven vervangt een geboorte de zwakste ouder
 
+// ─── v14 "Besmetting": overdraagbare ziekte (additief, guarded) ───────────────────
+// Nulmeting (docs/de-construct-stand.md §6): ziekte is nu 2% van de sterfgevallen en
+// kost ~50 min levensduur. Deze laag maakt ziekte OVERDRAAGBAAR en voegt (grotendeels
+// verworven, deels erfelijke) immuniteit toe. Ze lift op wat er al is: de nabijheid-
+// telling (ZICHT/afstand2) en de bestaande ziek-machinerie (gif/stress/angst/
+// levenskracht/zorg). Bewust VOORZICHTIG afgesteld; alles zit achter één noodrem.
+const BESMETTING_AAN       = true;   // noodrem: op false draait de hive exact als vóór v14
+const BESM_BASIS           = 0.025;  // infectiekans/tick per besmettelijke buur (voor imm./gen-schaling)
+const ZIEKTE_HERSTEL_BASIS = 0.08;   // kans/tick dat een zieke vanzelf opknapt (×herstel-gen 10)
+const IMMUUN_NA_ZIEKTE     = 0.85;   // verworven weerstand direct na genezing (0..1)
+const IMMUUN_VERVAL        = 0.998;  // trage afname per actieve tick → houdt ~een leven lang stand
+const IMMUUN_ERF_FACTOR    = 0.5;    // kind erft dit deel van de gemiddelde ouder-immuniteit (maternaal)
+function immuunVan(b: any): number { return Math.max(0, Math.min(1, +b.immuniteit || 0)); }
+function verwervImmuniteit(b: any) { if (BESMETTING_AAN) b.immuniteit = Math.max(immuunVan(b), IMMUUN_NA_ZIEKTE); }
+
+// Eén ronde die de hele pathogeen-levensloop afhandelt (overdracht → natuurlijk herstel →
+// immuniteit). Guarded: raakt niets als BESMETTING_AAN uit staat. Draait in de actieve
+// tick, ná beweeg/socialeRonde, zodat posities actueel zijn. Best-effort (mag nooit breken).
+function besmettingRonde(bottys: any[], events: any[] | null) {
+  if (!BESMETTING_AAN) return;
+  // 0) init + trage immuniteit-afname
+  for (const b of bottys) {
+    if (typeof b.immuniteit !== "number") b.immuniteit = 0;
+    b.immuniteit = Math.max(0, Math.min(1, b.immuniteit * IMMUUN_VERVAL));
+  }
+  // 1) overdracht — momentopname van de besmettelijken vóór nieuwe infecties (geen
+  //    intra-tick cascade): een gezonde buur binnen ZICHT van een zieke kan besmet raken.
+  const besmettelijk = bottys.filter(o => o.ziek && !o.bezigEi && o.pos);
+  if (besmettelijk.length) {
+    for (const b of bottys) {
+      if (b.ziek || b.bezigEi || !b.pos) continue;
+      let buren = 0;
+      for (const o of besmettelijk) if (o !== b && afstand2(b.pos, o.pos) < ZICHT * ZICHT) buren++;
+      if (!buren) continue;
+      const pPer = Math.max(0, Math.min(1, BESM_BASIS * (exprVan(b).ziekKans ?? 1) * (1 - immuunVan(b))));
+      if (Math.random() < 1 - Math.pow(1 - pPer, buren)) {
+        b.ziek = true;
+        onthoud(b, "ziek", "ik werd besmet door een zieke buur");
+        if (events) events.push({ soort: "besmetting", naam: b.naam,
+          tekst: "🦠 <b>" + b.naam + "</b> raakte besmet door een zieke buur" });
+      }
+    }
+  }
+  // 2) natuurlijk herstel (los van de AI-verzorger) → bouwt verworven immuniteit op
+  for (const b of bottys) {
+    if (!b.ziek || b.bezigEi) continue;
+    if (Math.random() < ZIEKTE_HERSTEL_BASIS * (exprVan(b).herstel ?? 1)) {
+      b.ziek = false;
+      if (b.chem) b.chem.gif = Math.min(b.chem.gif ?? 0, 10);
+      verwervImmuniteit(b);
+      onthoud(b, "genezen", "ik vocht de ziekte zelf af en ben nu weerbaarder");
+      if (events) events.push({ soort: "genezen", naam: b.naam,
+        tekst: "💪 <b>" + b.naam + "</b> herstelde van de ziekte en is nu weerbaarder" });
+    }
+  }
+}
+
 // ─── Broedmachine: kweek legt een ei, een bezoeker broedt het uit ────────────────
 const MAX_EIEREN    = 2;             // max eieren tegelijk in de broedmachine
 const BROEDTIJD_MS  = 90_000;        // ei is rijp na 1,5 minuut warmte
@@ -1158,6 +1215,7 @@ function zorg(b: any) {
   // 1) Ziekte eerst — een zieke Botty is altijd het urgentst.
   if (b.ziek) {
     b.ziek = false;
+    verwervImmuniteit(b);                     // v14: genezing door de AI-verzorger geeft weerstand
     b.energie = klem(b.energie + 10 * G.herstel);
     b.fit     = klem(b.fit     + 10 * G.herstel);
     b.stemming = klem((b.stemming ?? 50) + 14);
@@ -1197,8 +1255,9 @@ function vervalEen(b: any) {
   b.fit      = klem(b.fit      - 1.6 * G.verval.fit);
   b.geluk    = klem(b.geluk    - 1.5 * G.verval.geluk);
   b.stemming = klem((b.stemming ?? 50) - 1.6 * G.verval.stemming);
-  // Immuniteit: hoge stress verzwakt de weerstand → grotere ziektekans.
-  if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b)) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
+  // Immuniteit: hoge stress verzwakt de weerstand → grotere ziektekans. v14: verworven
+  // immuniteit remt óók de spontane onset (een genezen Botty wordt niet snel opnieuw ziek).
+  if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b) * (1 - immuunVan(b))) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
 }
 
 // ─── Dag & nacht: de hive leeft op Nederlandse kloktijd ──────────────────────────
@@ -2055,7 +2114,7 @@ function maakBotty(naam: string, palet: any, generatie = 1, extra: any = {}) {
     efficientie:   40 + Math.random() * 30,
     stemming: 40 + Math.random() * 25,
     stage: "born", geboren: Date.now(),
-    generatie, ziek: false, mutaties: [], bezigEi: false,
+    generatie, ziek: false, immuniteit: 0, mutaties: [], bezigEi: false,
     genome,
     sekse, dimorf: true,
     grootte,
@@ -2129,6 +2188,12 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   const ouderBonus = ((ouderA.leerBonus ?? 1) + (ouderB.leerBonus ?? 1)) / 2;
   const leerBonus = +(1 + (ouderBonus - 1) * 0.9).toFixed(3);
 
+  // v14: het kind erft deels de (maternale) immuniteit van zijn ouders; die dooft daarna
+  // traag weg. Verworven weerstand zelf blijft niet-erfelijk — alleen deze startgift wel.
+  const kindImmuun = BESMETTING_AAN
+    ? +(((immuunVan(ouderA) + immuunVan(ouderB)) / 2) * IMMUUN_ERF_FACTOR).toFixed(3) : 0;
+  erfenis.immuunErf = kindImmuun;
+
   return maakBotty(naam, { ...kleur, naam: kleur.naam || "mix" }, gen, {
     datakwaliteit: dk, efficientie: ef, mutaties,
     stemming: kindStemming,
@@ -2138,6 +2203,7 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
     erfenis,
     brein, breinN,
     ...(leerBonus > 1.01 ? { leerBonus } : {}),
+    ...(kindImmuun > 0 ? { immuniteit: kindImmuun } : {}),
   });
 }
 
@@ -2340,6 +2406,7 @@ Deno.serve(async (req) => {
       spiegelRonde(bottys, events);
       merkBijAnderRonde(bottys, events);
       socialeRonde(bottys, events);
+      besmettingRonde(bottys, events);     // v14: overdracht + natuurlijk herstel + immuniteit
       tickTeller++;
       bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys, tickTeller); });
     } catch (_) { /* beweging/zelfzorg/sociaal/chemie is niet kritisch voor de hive */ }
@@ -2682,6 +2749,7 @@ Deno.serve(async (req) => {
           kost();
           if (b.ziek) {
             b.ziek = false;
+            verwervImmuniteit(b);             // v14: medicijn geneest én geeft weerstand
             b.chem = b.chem || {}; b.chem.gif = 0;
             b.energie = klem((b.energie ?? 50) + 8); b.fit = klem((b.fit ?? 50) + 8);
             b.stemming = klem((b.stemming ?? 50) + 16);
