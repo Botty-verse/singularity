@@ -3,16 +3,16 @@
 > **Doel.** Een nulmeting van het Botty-verse ("de Construct") op het moment net vóór
 > we de besmettelijke-ziekte-laag bouwen. De paper beschrijft (1) de architectuur,
 > (2) de chemielaag, (3) gezondheid & ziekte en het effect daarvan op de Botty's,
-> (4) de emergente gevolgen en (5) de evolutionaire gevolgen. Daarna een lopende
-> observatie-sectie die over twee weken met echte voorbeelden uit de levende hive
-> gevuld wordt.
+> (4) de emergente gevolgen, (5) de evolutionaire gevolgen en (6) de doorlooptijd en
+> het effect van onze ingrepen. Daarna een lopende observatie-sectie die over twee weken
+> met echte voorbeelden uit de levende hive gevuld wordt.
 >
 > **Peildatum.** 13 november 2026. Populatie 7, generaties 861–864, 0 zieken.
 > **Codebasis.** `supabase/functions/hive-tick/index.ts` (2848 regels), commit `c3b5fc3`.
 > Regelverwijzingen hierna als *(tick:NNN)* verwijzen naar dat bestand.
 >
 > **Status.** Levend document. De chemie- en ziekte-mechanica in §2–§3 is de code zoals
-> ze nú draait; §6 groeit dagelijks aan met waarnemingen; de analyse in §4–§5 wordt na
+> ze nú draait; §7 groeit dagelijks aan met waarnemingen; de analyse in §4–§5 wordt na
 > de twee weken herzien tegen die waarnemingen.
 
 ---
@@ -35,7 +35,10 @@ heeft "verdriet", "verveling" of "zelfbesef" geprogrammeerd — die ontstaan uit
 drempelwaarden op de chemie en uit de wisselwerking tussen buren. **Evolutionair**: het
 16-genen genoom staat onder selectie. Omdat stress de ziektekans verhoogt en ziekte de
 levenskracht aanvreet, worden allelen die slecht met stress omgaan over generaties
-weggezeefd — zonder dat "fitness" ergens expliciet berekend wordt.
+weggezeefd — zonder dat "fitness" ergens expliciet berekend wordt. Over 1191 voltooide
+levens meten we een **mediane doorlooptijd van ~2 u 54 m** (gemiddeld 3 u 17 m); die is
+over honderden generaties opvallend stabiel, want onze ingrepen raakten de
+overlevingsmechanica niet — alleen zorg en omgeving bewegen de gerealiseerde levensduur (§6).
 
 ---
 
@@ -58,7 +61,7 @@ van elkaar.
 
 Deze scheiding is belangrijk voor de rest van de paper: **alle mechanica die we
 beschrijven leeft in de edge-functie**, draait door of er iemand kijkt of niet, en is
-daarmee reproduceerbaar en meetbaar vanuit de database. De observatie-collector in §6
+daarmee reproduceerbaar en meetbaar vanuit de database. De observatie-collector in §7
 maakt daar gebruik van: hij leest `hive_state` server-side, los van elke sessie.
 
 ---
@@ -300,11 +303,98 @@ Daaruit volgt selectie zonder expliciete fitness-functie:
 
 De voorzichtige verwachting voor de komende twee weken: bij een kleine, dicht verwante
 populatie zonder instroom zien we eerder **drift en inteelt-signalen** dan schone
-gerichte selectie. De observaties in §6 moeten dat bevestigen of weerleggen.
+gerichte selectie. De observaties in §7 moeten dat bevestigen of weerleggen.
 
 ---
 
-## 6. Observaties — lopende 2-weken-studie
+## 6. Doorlooptijd & het effect van onze ingrepen
+
+**Vraag.** Hoe lang leeft een gemiddelde Botty — en hebben de dingen die we aan de hive
+sleutelden die levensduur bewogen?
+
+**Data.** Het grootboek `verhalen` bevat elk voltooid leven met `leeftijd_sec` (reële
+geleefde seconden) plus doodsoorzaak, geboorte-/sterfdatum en generatie. Analyse over
+**1191 levens** (generaties 418–865, overlijdens 11 okt – 13 nov 2026).
+
+### 6.1 De verdeling
+
+| maat | waarde |
+|---|---|
+| gemiddelde | **3 u 17 m** (197,7 min) |
+| mediaan | **2 u 54 m** (174 min) |
+| spreiding (SD) | ± 1 u 41 m |
+| middelste 50% (p25–p75) | 2 u 48 m – 3 u 08 m |
+| kortste / langste | 25 m / 11 u 42 m |
+
+De **mediaan (~2 u 54 m)** is het eerlijkste "typische" leven: de middelste helft ligt
+opvallend strak (±20 min). Het gemiddelde ligt hoger door een dunne staart van taaie
+exemplaren tot bijna 12 uur — de bovenkant van het verouderingsgen (gen 15). In de
+versnelde hive-tijd is ~3 uur een volledig leven van geboorte tot ouderdom.
+
+### 6.2 Naar doodsoorzaak
+
+| oorzaak | aantal | gem. | mediaan |
+|---|---:|---|---|
+| ouderdom (natuurlijk) | 885 (74%) | 3 u 27 m | 2 u 56 m |
+| uitputting | 281 (24%) | 2 u 51 m | 2 u 52 m |
+| ziekte | 25 (2%) | 2 u 37 m | 2 u 36 m |
+
+De **natuurlijke levensduur** (ouderdom) is strak begrensd: p10 2,70 u · mediaan 2,93 u ·
+p90 3,33 u. Een kwart van de levens eindigt vroegtijdig; die Botty's halen hun plafond
+niet en leven 35–50 min korter.
+
+### 6.3 Onze ingrepen afgezet tegen de levensduur
+
+**(a) De cognitieve ladder (v9–v13).** Lopende lichamen, zintuigen, taal en verouderende
+chemie (v9 *Stride*), het global-workspace-podium (v10), de spiegel (v11), de merkproef
+(v12) en de leerling/leraar (v13) stonden al **live op 11 sep 2026** — vóór het eerste
+overlijden in de dataset (11 okt). Het hele meetvenster zit dus ín het "post-v13"-regime.
+Binnen dat venster waren onze wijzigingen vrijwel uitsluitend **front-end en cosmetisch**
+(kaarten, footer, deze paper, de leeftijd-weergave) plus het geautomatiseerde
+genoom-grootboek — **niets raakte de overlevingsmechanica**.
+
+**(b) Het gevolg: een vlakke levensduur.** De doorlooptijd beweegt niet mee. Over 447
+generaties is de correlatie tussen leeftijd en generatie **r = −0,04** (praktisch nul);
+het gemiddelde zakt minimaal van 3,34 u (oudste 25% generaties) naar 3,20 u (nieuwste) —
+ruis, geen drift. Dat is zélf de bevinding: **de doorlooptijd wordt verankerd door het
+verouderingsgen (gen 15) en het levenskracht-plafond** *(tick:1058-1099)*, en die hebben
+we niet aangeraakt. De features die we wél bouwden — zelfherkenning, leren, uiterlijk —
+bewegen gedrag, welzijn en bewustzijn, maar **niet het levensduur-plafond**. Een Botty
+leeft niet langer omdat ze zichzelf in de spiegel herkent.
+
+**(c) De enige hefboom die de gerealiseerde levensduur wél beweegt: zorg & omgeving.**
+Niet de levensduur zelf, maar de *doodsoorzaak* is stuurbaar. Of een Botty haar plafond
+haalt (ouderdom, 74%) of vroegtijdig bezwijkt (uitputting 24%, ziekte 2%) hangt af van de
+verzorging — de AI-verzorger plus bezoekers die aaien, voeren of medicijn geven. Dat
+aandeel schommelt zichtbaar per week:
+
+| week | n | ouderdom | vroegtijdig | gem. |
+|---|---:|---:|---:|---|
+| 41 | 14 | 71% | 29% | 2,95 u |
+| 42 | 256 | 81% | 19% | 3,37 u |
+| 43 | 260 | 81% | 19% | 3,30 u |
+| 44 | 251 | **50%** | **50%** | 3,37 u |
+| 45 | 250 | 75% | 25% | 3,19 u |
+| 46 | 160 | 91% | 9% | 3,25 u |
+
+Week 44 (eind okt) toont een duidelijke **welzijnsdip** — de helft stierf vroegtijdig —
+die in week 46 herstelde tot 91% natuurlijke dood. Zulke uitslagen zijn de vingerafdruk
+van externe omstandigheden (bezoekersdrukte, een geboortegolf die de zorg uitdunt), niet
+van de genetisch vastgelegde levensduur.
+
+### 6.4 Betekenis voor de ziekte-laag
+
+Ziekte kost nu amper levensduur: 2% van de sterfgevallen, ~50 min korter dan een
+natuurlijke dood. Dat is de **meetlat** voor de besmettelijke-ziekte-laag (#2): als
+overdracht werkt, verwachten we dat zowel het ziekte-aandeel als de levensduurkost ervan
+meetbaar stijgen — precies het contrast dat deze nulmeting vastlegt.
+
+> *Databron: grootboek `verhalen` (1191 levens), uitgelezen via de publieke REST-API
+> (dezelfde anon-leesweg als de website), 13 nov 2026.*
+
+---
+
+## 7. Observaties — lopende 2-weken-studie
 
 **Methode.** Een server-side `pg_cron`-job (`construct-obs-daily`, dagelijks 05:17 UTC)
 schrijft een momentopname van elke Botty (naam, fase, generatie, levenskracht, ziek,
@@ -345,7 +435,7 @@ de meest waarschijnlijke eerste kandidaat als haar isolatie aanhoudt.
 
 ---
 
-## 7. Open vragen & brug naar de ziekte-laag
+## 8. Open vragen & brug naar de ziekte-laag
 
 Deze nulmeting maakt drie ontwerpvragen scherp voor de besmettelijke-ziekte-laag (#2):
 
@@ -370,4 +460,4 @@ Deze nulmeting maakt drie ontwerpvragen scherp voor de besmettelijke-ziekte-laag
   chemo-emitters/receptors, stress→immuniteit/fertiliteit, genoom-abstractie).
 - `docs/ontwerp-construct-en-laag4.md`, `docs/plan-zon-slaap-objecten.md` — aangrenzend ontwerp.
 - Live-data: Supabase project `oblzouaapvdippyhxmpo`, tabel `hive_state` (momentopname) en
-  `construct_observaties` (dagelijkse reeks, §6).
+  `construct_observaties` (dagelijkse reeks, §7); grootboek `verhalen` (levensduur-analyse, §6).
