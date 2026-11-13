@@ -837,12 +837,16 @@
         if(idx < cards.length) verse.insertBefore(kaart, cards[idx]);
         else verse.appendChild(kaart);
         var els = vulKaart(kaart, b);
-        elMap[b.naam] = { kaart:kaart, wrap:els.wrap, floaters:els.floaters, gedachte:els.gedachte, doel:els.doel, bars:els.bars };
+        elMap[b.naam] = { kaart:kaart, bid:b.bid, wrap:els.wrap, floaters:els.floaters, gedachte:els.gedachte, doel:els.doel, bars:els.bars };
       } else {
-        // Stage veranderd? Herbouw de kaart
+        // Herbouw de kaart bij levensfase-wissel, óf wanneer een vrijgekomen naam
+        // door een nieuw individu is overgenomen (andere bid) — anders blijven
+        // generatie, genen en kleur van de vórige drager hangen.
         var prevB = prevBottys.find(function(x){ return x.naam===b.naam; });
-        if(!prevB || prevB.stage !== b.stage){
+        var nieuwIndividu = existing.bid && b.bid && existing.bid !== b.bid;
+        if(!prevB || prevB.stage !== b.stage || nieuwIndividu){
           var els2 = vulKaart(existing.kaart, b);
+          existing.bid = b.bid;
           existing.wrap = els2.wrap;
           existing.floaters = els2.floaters;
           existing.gedachte = els2.gedachte;
