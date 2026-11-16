@@ -165,7 +165,7 @@ function topWoorden(lexicon: any): { w: string; c: string }[] {
 }
 
 Deno.serve(async (req) => {
-  if (SWEEP_KEY && req.headers.get("x-sweep-key") !== SWEEP_KEY) {
+  if (!SWEEP_KEY || req.headers.get("x-sweep-key") !== SWEEP_KEY) {
     return new Response("forbidden", { status: 403 });
   }
   const supa = createClient(SUPABASE_URL, SERVICE_ROLE);

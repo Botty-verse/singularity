@@ -5,15 +5,14 @@
 // (of via de Supabase MCP deploy-tool met exact deze inhoud)
 // Houd de gen-layout gelijk aan assets/genome.js (clientside weergave).
 
+import { acquireTick, releaseTick } from "../_shared/tick-gate.ts";
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERVAL          = 1000;
 const BROADCAST_MIN_MS  = 5500;   // egress-throttle: hoogstens ~1 live-broadcast per 6s, globaal
-const TICK_THROTTLE_MS  = 5000;   // globale tick-throttle: liep er net al een echte tick,
-                                  // dan slaan gewone (niet-interactie) aanroepen de dure
-                                  // volle-rij read/write/broadcast over. Catch-up haalt in.
 // CORS: de Construct/hive-pagina roept deze function cross-origin aan
 // (hive.ramonmoorlag.nl → *.supabase.co). Zonder deze headers blokkeert een strikte
 // browser (Safari) elke fetch en sneuvelt de preflight van interacties (aai/voer/woord).
@@ -1064,6 +1063,63 @@ const OUDERDOM_DOOD  = 8000;  // hier staat het plafond op 0 → sterven van oud
 const MIN_POP = 4;            // zachte vloer: de hive sterft nooit hieronder uit
 const MAX_POP = 12;           // zachte cap: daarboven vervangt een geboorte de zwakste ouder
 
+// ─── v14 "Besmetting": overdraagbare ziekte (additief, guarded) ───────────────────
+// Nulmeting (docs/de-construct-stand.md §6): ziekte is nu 2% van de sterfgevallen en
+// kost ~50 min levensduur. Deze laag maakt ziekte OVERDRAAGBAAR en voegt (grotendeels
+// verworven, deels erfelijke) immuniteit toe. Ze lift op wat er al is: de nabijheid-
+// telling (ZICHT/afstand2) en de bestaande ziek-machinerie (gif/stress/angst/
+// levenskracht/zorg). Bewust VOORZICHTIG afgesteld; alles zit achter één noodrem.
+const BESMETTING_AAN       = true;   // noodrem: op false draait de hive exact als vóór v14
+const BESM_BASIS           = 0.025;  // infectiekans/tick per besmettelijke buur (voor imm./gen-schaling)
+const ZIEKTE_HERSTEL_BASIS = 0.08;   // kans/tick dat een zieke vanzelf opknapt (×herstel-gen 10)
+const IMMUUN_NA_ZIEKTE     = 0.85;   // verworven weerstand direct na genezing (0..1)
+const IMMUUN_VERVAL        = 0.998;  // trage afname per actieve tick → houdt ~een leven lang stand
+const IMMUUN_ERF_FACTOR    = 0.5;    // kind erft dit deel van de gemiddelde ouder-immuniteit (maternaal)
+function immuunVan(b: any): number { return Math.max(0, Math.min(1, +b.immuniteit || 0)); }
+function verwervImmuniteit(b: any) { if (BESMETTING_AAN) b.immuniteit = Math.max(immuunVan(b), IMMUUN_NA_ZIEKTE); }
+
+// Eén ronde die de hele pathogeen-levensloop afhandelt (overdracht → natuurlijk herstel →
+// immuniteit). Guarded: raakt niets als BESMETTING_AAN uit staat. Draait in de actieve
+// tick, ná beweeg/socialeRonde, zodat posities actueel zijn. Best-effort (mag nooit breken).
+function besmettingRonde(bottys: any[], events: any[] | null) {
+  if (!BESMETTING_AAN) return;
+  // 0) init + trage immuniteit-afname
+  for (const b of bottys) {
+    if (typeof b.immuniteit !== "number") b.immuniteit = 0;
+    b.immuniteit = Math.max(0, Math.min(1, b.immuniteit * IMMUUN_VERVAL));
+  }
+  // 1) overdracht — momentopname van de besmettelijken vóór nieuwe infecties (geen
+  //    intra-tick cascade): een gezonde buur binnen ZICHT van een zieke kan besmet raken.
+  const besmettelijk = bottys.filter(o => o.ziek && !o.bezigEi && o.pos);
+  if (besmettelijk.length) {
+    for (const b of bottys) {
+      if (b.ziek || b.bezigEi || !b.pos) continue;
+      let buren = 0;
+      for (const o of besmettelijk) if (o !== b && afstand2(b.pos, o.pos) < ZICHT * ZICHT) buren++;
+      if (!buren) continue;
+      const pPer = Math.max(0, Math.min(1, BESM_BASIS * (exprVan(b).ziekKans ?? 1) * (1 - immuunVan(b))));
+      if (Math.random() < 1 - Math.pow(1 - pPer, buren)) {
+        b.ziek = true;
+        onthoud(b, "ziek", "ik werd besmet door een zieke buur");
+        if (events) events.push({ soort: "besmetting", naam: b.naam,
+          tekst: "🦠 <b>" + b.naam + "</b> raakte besmet door een zieke buur" });
+      }
+    }
+  }
+  // 2) natuurlijk herstel (los van de AI-verzorger) → bouwt verworven immuniteit op
+  for (const b of bottys) {
+    if (!b.ziek || b.bezigEi) continue;
+    if (Math.random() < ZIEKTE_HERSTEL_BASIS * (exprVan(b).herstel ?? 1)) {
+      b.ziek = false;
+      if (b.chem) b.chem.gif = Math.min(b.chem.gif ?? 0, 10);
+      verwervImmuniteit(b);
+      onthoud(b, "genezen", "ik vocht de ziekte zelf af en ben nu weerbaarder");
+      if (events) events.push({ soort: "genezen", naam: b.naam,
+        tekst: "💪 <b>" + b.naam + "</b> herstelde van de ziekte en is nu weerbaarder" });
+    }
+  }
+}
+
 // ─── Broedmachine: kweek legt een ei, een bezoeker broedt het uit ────────────────
 const MAX_EIEREN    = 2;             // max eieren tegelijk in de broedmachine
 const BROEDTIJD_MS  = 90_000;        // ei is rijp na 1,5 minuut warmte
@@ -1158,6 +1214,7 @@ function zorg(b: any) {
   // 1) Ziekte eerst — een zieke Botty is altijd het urgentst.
   if (b.ziek) {
     b.ziek = false;
+    verwervImmuniteit(b);                     // v14: genezing door de AI-verzorger geeft weerstand
     b.energie = klem(b.energie + 10 * G.herstel);
     b.fit     = klem(b.fit     + 10 * G.herstel);
     b.stemming = klem((b.stemming ?? 50) + 14);
@@ -1197,8 +1254,9 @@ function vervalEen(b: any) {
   b.fit      = klem(b.fit      - 1.6 * G.verval.fit);
   b.geluk    = klem(b.geluk    - 1.5 * G.verval.geluk);
   b.stemming = klem((b.stemming ?? 50) - 1.6 * G.verval.stemming);
-  // Immuniteit: hoge stress verzwakt de weerstand → grotere ziektekans.
-  if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b)) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
+  // Immuniteit: hoge stress verzwakt de weerstand → grotere ziektekans. v14: verworven
+  // immuniteit remt óók de spontane onset (een genezen Botty wordt niet snel opnieuw ziek).
+  if (!b.ziek && Math.random() < 0.004 * G.ziekKans * stressFactor(b) * (1 - immuunVan(b))) { b.ziek = true; onthoud(b, "ziek", "ik werd ziek"); }
 }
 
 // ─── Dag & nacht: de hive leeft op Nederlandse kloktijd ──────────────────────────
@@ -2055,7 +2113,7 @@ function maakBotty(naam: string, palet: any, generatie = 1, extra: any = {}) {
     efficientie:   40 + Math.random() * 30,
     stemming: 40 + Math.random() * 25,
     stage: "born", geboren: Date.now(),
-    generatie, ziek: false, mutaties: [], bezigEi: false,
+    generatie, ziek: false, immuniteit: 0, mutaties: [], bezigEi: false,
     genome,
     sekse, dimorf: true,
     grootte,
@@ -2129,6 +2187,12 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
   const ouderBonus = ((ouderA.leerBonus ?? 1) + (ouderB.leerBonus ?? 1)) / 2;
   const leerBonus = +(1 + (ouderBonus - 1) * 0.9).toFixed(3);
 
+  // v14: het kind erft deels de (maternale) immuniteit van zijn ouders; die dooft daarna
+  // traag weg. Verworven weerstand zelf blijft niet-erfelijk — alleen deze startgift wel.
+  const kindImmuun = BESMETTING_AAN
+    ? +(((immuunVan(ouderA) + immuunVan(ouderB)) / 2) * IMMUUN_ERF_FACTOR).toFixed(3) : 0;
+  erfenis.immuunErf = kindImmuun;
+
   return maakBotty(naam, { ...kleur, naam: kleur.naam || "mix" }, gen, {
     datakwaliteit: dk, efficientie: ef, mutaties,
     stemming: kindStemming,
@@ -2138,6 +2202,7 @@ function maakKind(ouderA: any, ouderB: any, namen: string[]) {
     erfenis,
     brein, breinN,
     ...(leerBonus > 1.01 ? { leerBonus } : {}),
+    ...(kindImmuun > 0 ? { immuniteit: kindImmuun } : {}),
   });
 }
 
@@ -2220,22 +2285,63 @@ async function broadcastState(bottys: any[], eieren: any[], acties: number, firs
 Deno.serve(async (req) => {
   // CORS-preflight (OPTIONS) meteen beantwoorden — anders faalt elke POST met headers.
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  let tickToken: string | null = null;
   try {
-  // Bezoekersverzoek (optioneel): { actie: "broed", ei: "<id>" } broedt een rijp ei uit
+  if (req.method !== "POST") {
+    return new Response("method not allowed", { status: 405, headers: { ...CORS, Allow: "POST, OPTIONS" } });
+  }
+  // Valideer vóór databasewerk. Een onbekende actie mag de tick niet omzeilen.
+  const reader = req.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  if (reader) {
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > 4096) {
+          await reader.cancel();
+          return new Response("payload too large", { status: 413, headers: CORS });
+        }
+        chunks.push(value);
+      }
+    } finally { reader.releaseLock(); }
+  }
+  const payload = new Uint8Array(bytes);
+  let offset = 0;
+  for (const chunk of chunks) { payload.set(chunk, offset); offset += chunk.byteLength; }
+  const body = new TextDecoder().decode(payload);
   let vraag: any = null;
-  try { vraag = await req.json(); } catch (_) { /* geen body = gewone tick */ }
-
-  // Globale tick-throttle: een gewone tick (geen bezoekersinteractie) doet niets nieuws
-  // als er <TICK_THROTTLE_MS geleden al een echte tick liep. Dan slaan we de dure
-  // volle-rij read/write + broadcast over met alleen een piepkleine klok-read. Zo
-  // schaalt de DB-last niet meer mee met het aantal kijkers; de sim verliest niets
-  // (catch-up reconstrueert de gemiste tijd deterministisch uit last_updated_at).
-  if (!(vraag && vraag.actie)) {
-    const { data: klok } = await supabase.from("hive_state").select("last_updated_at").eq("id", "main").single();
-    if (klok && klok.last_updated_at && Date.now() - new Date(klok.last_updated_at).getTime() < TICK_THROTTLE_MS) {
-      return new Response(JSON.stringify({ ok: true, skipped: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
+  if (body.trim()) {
+    try { vraag = JSON.parse(body); }
+    catch (_) { return new Response("invalid JSON", { status: 400, headers: CORS }); }
+    if (!vraag || typeof vraag !== "object" || Array.isArray(vraag)) {
+      return new Response("invalid request", { status: 400, headers: CORS });
+    }
+    if (vraag.actie !== undefined) {
+      const acties = ["aai", "voer", "medicijn", "tik", "noem", "woord", "broed"];
+      if (!acties.includes(vraag.actie)
+        || (["aai", "voer", "medicijn", "tik", "noem"].includes(vraag.actie)
+          && (typeof vraag.bot !== "string" || vraag.bot.length > 200))
+        || (["noem", "woord"].includes(vraag.actie)
+          && (typeof vraag.woord !== "string" || !vraag.woord.trim() || vraag.woord.length > 200))
+        || (vraag.actie === "broed" && (typeof vraag.ei !== "string" || vraag.ei.length > 200))) {
+        return new Response("invalid action", { status: 400, headers: CORS });
+      }
     }
   }
+
+  // Admission + cooldown are atomic across all isolates; reject before loading state.
+  const interaction = !!(vraag && vraag.actie);
+  const token = crypto.randomUUID();
+  if (!await acquireTick(supabase, interaction, token)) {
+    return new Response(JSON.stringify({ ok: true, skipped: true, interactie: interaction ? { ok: false, reden: "rustig" } : null }),
+      { headers: { ...CORS, "Content-Type": "application/json", "Retry-After": interaction ? "1" : "5" } });
+  }
+  tickToken = token;
+  const births: any[] = [];
+  const deaths: any[] = [];
 
   // Lees alleen de kolommen die de tick echt gebruikt (i.p.v. select *).
   const { data: row, error } = await supabase.from("hive_state")
@@ -2287,16 +2393,8 @@ Deno.serve(async (req) => {
   // Opruimen van oude pings is niet elke browser-tick nodig. Bij een drukke
   // tab is gemist klein (1–3); de cron (1×/min) en eerste loads geven een grote
   // gemist → daar ruimen we op. Scheelt ~40× minder DELETE's per minuut.
-  if (gemist >= 20) {
-    await supabase.from("bezoeker_pings").delete().lt("ts", new Date(nu - 120000).toISOString());
-    // Retentie: houd de geschiedenis-tabellen begrensd (anders groeien geboorten/levens
-    // onbeperkt richting de 500MB DB-limiet). 180 dagen is ruim voor stamboom/grafschriften.
-    try {
-      const retentie = new Date(nu - 180 * 86400000).toISOString();
-      await supabase.from("geboorten").delete().lt("ts", retentie);
-      await supabase.from("levens").delete().lt("ts", retentie);
-    } catch (_) { /* retentie is niet kritisch voor de tick */ }
-  }
+  // Retention joins state/history in the fenced commit transaction.
+  const cleanup = gemist >= 20;
 
   let acties: number = state.acties ?? 0;
   // A1: oplopende globale tick-teller voor de halfwaardetijd-maskers. Opgeslagen in
@@ -2340,6 +2438,7 @@ Deno.serve(async (req) => {
       spiegelRonde(bottys, events);
       merkBijAnderRonde(bottys, events);
       socialeRonde(bottys, events);
+      besmettingRonde(bottys, events);     // v14: overdracht + natuurlijk herstel + immuniteit
       tickTeller++;
       bottys.forEach(b => { if (!b.bezigEi) biochemie(b, bottys, tickTeller); });
     } catch (_) { /* beweging/zelfzorg/sociaal/chemie is niet kritisch voor de hive */ }
@@ -2485,7 +2584,7 @@ Deno.serve(async (req) => {
             verwantschap: verwR, immigrant,
           };
           try {
-            await supabase.from("geboorten").insert({
+            births.push({
               kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
               oudera_id: null, oudera_naam: null, ouderb_id: null, ouderb_naam: null,
               genome: kind.genome, grootte: kind.grootte,
@@ -2551,7 +2650,7 @@ Deno.serve(async (req) => {
       }
     } catch (_) { /* sterfte mag de tick nooit breken */ }
     if (grafschriften.length) {
-      try { await supabase.from("levens").insert(grafschriften); } catch (_) { /* grafschrift is niet kritisch */ }
+      deaths.push(...grafschriften);
     }
 
     // Bewustzijn: elke Botty vormt een innerlijke gedachte op basis van zijn staat,
@@ -2590,7 +2689,7 @@ Deno.serve(async (req) => {
     }
     bottys.push(kind);
     try {
-      await supabase.from("geboorten").insert({
+      births.push({
         kind_id: kind.bid, kind_naam: kind.naam, generatie: kind.generatie,
         oudera_id: ei.ouderA_bid ?? null, oudera_naam: ei.ouderA ?? null,
         ouderb_id: ei.ouderB_bid ?? null, ouderb_naam: ei.ouderB ?? null,
@@ -2682,6 +2781,7 @@ Deno.serve(async (req) => {
           kost();
           if (b.ziek) {
             b.ziek = false;
+            verwervImmuniteit(b);             // v14: medicijn geneest én geeft weerstand
             b.chem = b.chem || {}; b.chem.gif = 0;
             b.energie = klem((b.energie ?? 50) + 8); b.fit = klem((b.fit ?? 50) + 8);
             b.stemming = klem((b.stemming ?? 50) + 16);
@@ -2816,7 +2916,9 @@ Deno.serve(async (req) => {
       const payloadBytes = JSON.stringify({ bottys: slankeBottys(bottys), eieren, acties, first_opened: state.first_opened ?? nu, last_kweek: lastKweek }).length;
       egress = { maand, bytes: egress.bytes + payloadBytes * Math.max(1, bezoekers), bcasts: egress.bcasts + 1 };
     }
-    await supabase.from("hive_state").upsert({
+    const { data: committed, error: commitError } = await supabase.rpc("commit_hive_tick", {
+      p_token: tickToken, p_births: births, p_deaths: deaths, p_cleanup: cleanup,
+      p_state: {
       id: "main", bottys,
       first_opened: state.first_opened ?? nu,
       acties,
@@ -2824,7 +2926,11 @@ Deno.serve(async (req) => {
       last_kweek: lastKweek,
       eieren,
       ia_bucket: { tokens: Math.round(iaBucket.tokens * 100) / 100, laatst: nu, bcast: magBroadcast ? nu : vorigeBcast, egress, tick: tickTeller },
+      },
     });
+    if (commitError) throw new Error("hive commit failed");
+    if (!committed) return new Response(JSON.stringify({ ok: false, skipped: true, reden: "tick verlopen" }),
+      { status: 409, headers: { ...CORS, "Content-Type": "application/json" } });
     // Slank live-snapshot naar alle kijkers (vervangt de volle-rij postgres_changes).
     if (magBroadcast) await broadcastState(bottys, eieren, acties, state.first_opened ?? nu, lastKweek, egress);
   }
@@ -2841,8 +2947,12 @@ Deno.serve(async (req) => {
     // "access control"-fout meldt i.p.v. als de echte serverfout.
     console.error("hive-tick fout:", e);
     return new Response(
-      JSON.stringify({ ok: false, error: String((e as any)?.message ?? e) }),
-      { status: 200, headers: { ...CORS, "Content-Type": "application/json" } },
+      JSON.stringify({ ok: false, error: "hive tijdelijk niet beschikbaar" }),
+      { status: 503, headers: { ...CORS, "Content-Type": "application/json" } },
     );
+  } finally {
+    if (tickToken) {
+      try { await releaseTick(supabase, tickToken); } catch (_) { /* expires automatically */ }
+    }
   }
 });

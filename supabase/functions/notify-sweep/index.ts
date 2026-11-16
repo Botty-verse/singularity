@@ -34,7 +34,7 @@ function oorzaakTekst(o: string, nl: boolean): string {
 }
 
 Deno.serve(async (req) => {
-  if (SWEEP_KEY && req.headers.get("x-sweep-key") !== SWEEP_KEY) {
+  if (!SWEEP_KEY || req.headers.get("x-sweep-key") !== SWEEP_KEY) {
     return new Response("forbidden", { status: 403 });
   }
   if (!VAPID_PRIVATE) {

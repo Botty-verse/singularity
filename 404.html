@@ -448,13 +448,32 @@ if (statsMode) {
     document.getElementById('kpi-uniek').textContent = uniek;
 
     const tbody = document.getElementById('hits-tbody');
-    tbody.innerHTML = hits.map(h => {
+    tbody.replaceChildren();
+    hits.forEach(h => {
       const loc = (window.SiteLang && SiteLang.get() === 'nl') ? 'nl-NL' : 'en-GB';
-      const t = new Date(h.ts).toLocaleString(loc, { dateStyle: 'short', timeStyle: 'short' });
-      const pad = h.path || '—';
-      const ref = h.referrer ? '<a href="' + h.referrer + '" style="color:var(--matrix)" target="_blank" rel="noopener">' + h.referrer.replace(/https?:\/\//, '').slice(0, 40) + '</a>' : '<span style="color:var(--dim)">direct</span>';
-      return '<tr><td>' + t + '</td><td>' + pad + '</td><td>' + ref + '</td></tr>';
-    }).join('');
+      const row = document.createElement('tr');
+      const time = document.createElement('td');
+      time.textContent = new Date(h.ts).toLocaleString(loc, { dateStyle: 'short', timeStyle: 'short' });
+      const path = document.createElement('td');
+      path.textContent = h.path || '—';
+      const ref = document.createElement('td');
+      let url = null;
+      try { url = new URL(h.referrer); } catch (_) { /* malformed referrers stay text */ }
+      if (url && (url.protocol === 'https:' || url.protocol === 'http:')) {
+        const link = document.createElement('a');
+        link.href = url.href;
+        link.style.color = 'var(--matrix)';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = String(h.referrer).replace(/^https?:\/\//, '').slice(0, 40);
+        ref.appendChild(link);
+      } else {
+        ref.textContent = h.referrer ? String(h.referrer).slice(0, 40) : 'direct';
+        ref.style.color = 'var(--dim)';
+      }
+      row.append(time, path, ref);
+      tbody.appendChild(row);
+    });
   })();
 }
 
